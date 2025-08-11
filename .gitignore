@@ -1,0 +1,7 @@
+certs/*
+ssl/*
+
+__pycache__/
+.venv/
+.git/
+.env.local
