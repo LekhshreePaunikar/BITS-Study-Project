@@ -23,6 +23,23 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
+export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
+  const [showPassword, setShowPassword] = useState(false);
+  const [profileData, setProfileData] = useState({
+    // Personal Information
+    fullName: '',
+    email: '',
+    password: '',
+    gender: '',
+    phone: '',
+    location: '',
+    
+
+  });
+
+
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Profile data:', profileData);
@@ -108,6 +125,166 @@ interface ProfileSetupProps {
                 <Camera className="h-4 w-4" />
                 <span>Change Photo</span>
               </Button>
+            </CardContent>
+          </Card>
+{/* ---------------------------- */}
+          {/* Personal Information */}
+          <Card 
+            className="border transition-all duration-200 hover:shadow-lg"
+            style={{ 
+              backgroundColor: '#1F2937',
+              borderColor: '#374151'
+            }}
+          >
+            <CardHeader>
+              <CardTitle style={{ color: '#9CA3AF' }}>Personal Information</CardTitle>
+              <CardDescription style={{ color: '#9CA3AF' }}>
+                Basic information about yourself
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="fullName"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Full Name
+                </Label>
+                <Input
+                  id="fullName"
+                  placeholder="Enter your full name"
+                  value={profileData.fullName}
+                  onChange={(e) => handleInputChange('fullName', e.target.value)}
+                  className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563',
+                    color: '#FFFFFF'
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="email"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Email
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={profileData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563',
+                    color: '#FFFFFF'
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="password"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Enter password"
+                    value={profileData.password}
+                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    className="pr-10 transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
+                    style={{
+                      backgroundColor: '#374151',
+                      borderColor: '#4B5563',
+                      color: '#FFFFFF'
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 transition-colors duration-200"
+                    style={{ color: '#6B7280' }}
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="gender"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Gender
+                </Label>
+                <Select value={profileData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+                  <SelectTrigger 
+                    style={{
+                      backgroundColor: '#374151',
+                      borderColor: '#4B5563',
+                      color: '#FFFFFF'
+                    }}
+                  >
+                    <SelectValue placeholder="Select gender" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                    <SelectItem value="prefer-not-to-say">Prefer not to say</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="phone"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Phone Number
+                </Label>
+                <Input
+                  id="phone"
+                  placeholder="Enter your phone number"
+                  value={profileData.phone}
+                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563',
+                    color: '#FFFFFF'
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label 
+                  htmlFor="location"
+                  style={{ color: '#9CA3AF' }}
+                >
+                  Location
+                </Label>
+                <Input
+                  id="location"
+                  placeholder="City, Country"
+                  value={profileData.location}
+                  onChange={(e) => handleInputChange('location', e.target.value)}
+                  className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563',
+                    color: '#FFFFFF'
+                  }}
+                />
+              </div>
             </CardContent>
           </Card>
 
