@@ -6,11 +6,11 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { 
+import {
   ArrowLeft,
-  User, 
-  Mail, 
-  Lock, 
+  User,
+  Mail,
+  Lock,
   Upload,
   Camera,
   Save,
@@ -33,7 +33,13 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     gender: '',
     phone: '',
     location: '',
-    
+
+    // Professional Information
+    preferredRole: '',
+    skills: [] as string[],
+    programmingLanguages: [] as string[],
+    experienceLevel: '',
+
 
   });
 
@@ -49,20 +55,20 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header 
+      <header
         className="border-b"
-        style={{ 
+        style={{
           backgroundColor: '#1F2937',
           borderColor: '#374151'
         }}
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              onClick={onBack} 
+            <Button
+              variant="ghost"
+              onClick={onBack}
               className="flex items-center space-x-2 transition-all duration-200"
-              style={{ 
+              style={{
                 color: '#9CA3AF',
                 backgroundColor: 'transparent'
               }}
@@ -72,7 +78,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
             </Button>
             <div>
               <h1 className="text-white">Profile Setup</h1>
-              <p 
+              <p
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
@@ -87,9 +93,9 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
       <main className="container mx-auto px-6 py-8 max-w-4xl">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Profile Picture Section */}
-          <Card 
+          <Card
             className="border transition-all duration-200 hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151'
             }}
@@ -101,20 +107,20 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex items-center space-x-6">
-              <Avatar 
+              <Avatar
                 className="h-24 w-24 transition-all duration-200 hover:shadow-lg"
                 style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
               >
                 <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80`} alt={username} />
-                <AvatarFallback 
+                <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: '#3B82F6' }}
                 >
                   {username.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex items-center space-x-2 transition-all duration-200 hover:scale-105"
                 style={{
                   borderColor: '#6B7280',
@@ -127,11 +133,11 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </Button>
             </CardContent>
           </Card>
-{/* ---------------------------- */}
+          {/* ---------------------------- */}
           {/* Personal Information */}
-          <Card 
+          <Card
             className="border transition-all duration-200 hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151'
             }}
@@ -144,7 +150,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="fullName"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -165,7 +171,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
 
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="email"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -187,7 +193,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
 
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="password"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -219,14 +225,14 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
 
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="gender"
                   style={{ color: '#9CA3AF' }}
                 >
                   Gender
                 </Label>
                 <Select value={profileData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                  <SelectTrigger 
+                  <SelectTrigger
                     style={{
                       backgroundColor: '#374151',
                       borderColor: '#4B5563',
@@ -245,7 +251,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
 
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="phone"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -266,7 +272,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
 
               <div className="space-y-2">
-                <Label 
+                <Label
                   htmlFor="location"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -287,12 +293,135 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
               </div>
             </CardContent>
           </Card>
+          {/* --------------------------------- */}
+          {/* Professional Information */}
+          <Card
+            className="border transition-all duration-200 hover:shadow-lg"
+            style={{
+              backgroundColor: '#1F2937',
+              borderColor: '#374151'
+            }}
+          >
+            <CardHeader>
+              <CardTitle style={{ color: '#9CA3AF' }}>Professional Information</CardTitle>
+              <CardDescription style={{ color: '#9CA3AF' }}>
+                Your career preferences and technical skills
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="preferredRole"
+                    style={{ color: '#9CA3AF' }}
+                  >
+                    Preferred Role
+                  </Label>
+                  <Select value={profileData.preferredRole} onValueChange={(value) => handleInputChange('preferredRole', value)}>
+                    <SelectTrigger
+                      style={{
+                        backgroundColor: '#374151',
+                        borderColor: '#4B5563',
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      <SelectValue placeholder="Select your preferred role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {preferredRoles.map(role => (
+                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="experienceLevel"
+                    style={{ color: '#9CA3AF' }}
+                  >
+                    Experience Level
+                  </Label>
+                  <Select value={profileData.experienceLevel} onValueChange={(value) => handleInputChange('experienceLevel', value)}>
+                    <SelectTrigger
+                      style={{
+                        backgroundColor: '#374151',
+                        borderColor: '#4B5563',
+                        color: '#FFFFFF'
+                      }}
+                    >
+                      <SelectValue placeholder="Select experience level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {experienceLevels.map(level => (
+                        <SelectItem key={level} value={level}>{level}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label style={{ color: '#9CA3AF' }}>Skills</Label>
+                <div
+                  className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563'
+                  }}
+                >
+                  {skillsOptions.map(skill => (
+                    <label key={skill} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={profileData.skills.includes(skill)}
+                        onChange={() => handleMultiSelectChange('skills', skill)}
+                        className="rounded"
+                        style={{
+                          backgroundColor: '#4B5563',
+                          borderColor: '#6B7280'
+                        }}
+                      />
+                      <span className="text-sm text-white">{skill}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label style={{ color: '#9CA3AF' }}>Programming Languages</Label>
+                <div
+                  className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563'
+                  }}
+                >
+                  {programmingLanguagesOptions.map(lang => (
+                    <label key={lang} className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={profileData.programmingLanguages.includes(lang)}
+                        onChange={() => handleMultiSelectChange('programmingLanguages', lang)}
+                        className="rounded"
+                        style={{
+                          backgroundColor: '#4B5563',
+                          borderColor: '#6B7280'
+                        }}
+                      />
+                      <span className="text-sm text-white">{lang}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
 
           {/* Submit Button */}
           <div className="flex justify-end space-x-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onBack}
               className="transition-all duration-200 hover:scale-105"
               style={{
@@ -303,8 +432,8 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
             >
               Cancel
             </Button>
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
               style={{ backgroundColor: '#3B82F6' }}
             >
