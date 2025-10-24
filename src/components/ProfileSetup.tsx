@@ -23,11 +23,6 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
-
-
-
-
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Profile data:', profileData);
