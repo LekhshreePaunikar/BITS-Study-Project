@@ -1,41 +1,24 @@
-"use client";
+"use client"; // Indicates React Server Component compatibility
 
-import * as React from "react";
-// Import the Radix Label Primitive for base accessibility and behavior
-import * as LabelPrimitive from "@radix-ui/react-label@2.1.2";
+import * as React from "react"; // Import React
+import * as LabelPrimitive from "@radix-ui/react-label@2.1.2"; // Import Label primitives
 
-// Import the utility function for conditionally joining class names
-import { cn } from "./utils";
+import { cn } from "./utils"; // Import className utility
 
-/**
- * Defines the props for the Label component by inheriting props from the Radix Label Root component.
- */
 function Label({
   className,
   ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
+}: React.ComponentProps<typeof LabelPrimitive.Root>) { // Type-safe props
+
   return (
     <LabelPrimitive.Root
-      // Set a data-slot attribute for testing or styling purposes
-      data-slot="label"
+      data-slot="label" // Custom data attribute
       className={cn(
-        // Base styling for the label text and alignment
-        "flex items-center gap-2 text-sm leading-none font-medium select-none",
-        
-        // Styles for when the parent element (like a form field wrapper) is disabled.
-        // This targets the label when the component it's labeling is disabled.
-        "group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50",
-        
-        // Styles for when the associated peer (sibling input) is disabled.
-        // This is the standard way to style a label linked to a disabled input.
-        "peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        
-        // Apply any custom class names passed via props
-        className,
-      )}
-      {...props}
+        "flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
+      )} // Combine default and custom classes
+      {...props} // Pass down other props
     />
   );
 }
-..
-export { Label };
+
+export { Label }; // Export for external use
