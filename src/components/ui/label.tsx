@@ -1,7 +1,7 @@
 "use client"; // Indicates React Server Component compatibility
 
 import * as React from "react"; // Import React
-import * as LabelPrimitive from "@radix-ui/react-label@2.1.2"; // Import Label primitives
+import * as LabelPrimitive from "@radix-ui/react-label"; // Import Label primitives
 
 import { cn } from "./utils"; // Import className utility
 
@@ -21,4 +21,4 @@ function Label({
   );
 }
 
-export { Label }; // Export for external use
+export { Label }; // Export for external usenpm
