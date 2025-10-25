@@ -39,5 +39,4 @@ function MenubarItem({
     />
   );
 }
-
 export { MenubarItem };
