@@ -731,6 +731,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
                   >
                     GitHub Profile
                   </Label>
+                  {/* .. */}
                   <Input
                     id="githubProfile"
                     placeholder="https://github.com/yourusername"
