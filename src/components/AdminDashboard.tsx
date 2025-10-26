@@ -231,10 +231,10 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                       style={{
                         backgroundColor: 'transparent'
                       }}
-                      onMouseEnter={(e) => {
+                      onMouseEnter={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => {
                         e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
                       }}
-                      onMouseLeave={(e) => {
+                      onMouseLeave={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >

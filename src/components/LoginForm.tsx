@@ -195,7 +195,7 @@ export default function LoginForm({
             <Checkbox
               id="remember-me"
               checked={rememberMe}
-              onCheckedChange={(checked) =>
+              onCheckedChange={(checked: boolean) =>
                 setRememberMe(checked === true)
               }
               style={{
