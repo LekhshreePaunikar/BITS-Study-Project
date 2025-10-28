@@ -1,94 +1,334 @@
-import * as React from 'react';
-import { Button } from './components/ui/button';
-import { Input } from './components/ui/input';
-import { Label } from './components/ui/label';
-import { RadioGroup, RadioGroupItem } from './components/ui/radio-group';
-import { Checkbox } from './components/ui/checkbox';
-// Assuming Toaster (for notifications) is available
-import { Toaster } from './components/ui/sonner'; 
+import { useState, useEffect } from 'react';
+import LoginForm from './components/LoginForm';
+import SignUpForm from './components/SignUpForm';
+import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
+import FlaggedContentModeration from './components/FlaggedContentModeration';
+import ManageQuestions from './components/ManageQuestions';
+import ManageUsers from './components/ManageUsers';
+import Analytics from './components/Analytics';
+import ProfileSetup from './components/ProfileSetup';
+import LogoutConfirmation from './components/LogoutConfirmation';
+import InterviewSetup, { InterviewConfig } from './components/InterviewSetup';
+import InterviewQuestion from './components/InterviewQuestion';
+import SessionCompletion from './components/SessionCompletion';
+import DetailedFeedback from './components/DetailedFeedback';
+import PastSessions from './components/PastSessions';
+import PerformanceReport from './components/PerformanceReport';
+import HelpAndSupport from './components/HelpAndSupport';
+import { Toaster } from './components/ui/sonner';
+
+type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'flagged-content' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
 
 export default function App() {
+  const [currentView, setCurrentView] = useState<ViewType>('login');
+  const [currentUser, setCurrentUser] = useState<string>('');
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [interviewConfig, setInterviewConfig] = useState<InterviewConfig | null>(null);
+  const [sessionData, setSessionData] = useState<{
+    totalScore: number;
+    timeSpent: number;
+    questionsAnswered: number;
+    totalQuestions: number;
+  } | null>(null);
+
+  // Check for remembered user on app initialization
+  useEffect(() => {
+    const rememberedUser = localStorage.getItem('rememberUser');
+    if (rememberedUser) {
+      try {
+        const userData = JSON.parse(rememberedUser);
+        if (userData.rememberMe && userData.username) {
+          // Auto-login the remembered user
+          setCurrentUser(userData.username);
+          setIsAdmin(userData.isAdmin || false);
+          setCurrentView(userData.isAdmin ? 'admin-dashboard' : 'dashboard');
+        }
+      } catch (error) {
+        console.error('Error parsing remembered user data:', error);
+        localStorage.removeItem('rememberUser');
+      }
+    }
+  }, []);
+
+  const switchToSignUp = () => {
+    setCurrentView('signup');
+  };
+
+  const switchToLogin = () => {
+    setCurrentView('login');
+  };
+
+  const handleLoginSuccess = (username: string) => {
+    setCurrentUser(username);
+    setIsAdmin(false);
+    setCurrentView('dashboard');
+  };
+
+  const handleAdminLoginSuccess = (username: string) => {
+    setCurrentUser(username);
+    setIsAdmin(true);
+    setCurrentView('admin-dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentView('logout');
+  };
+
+  const handleConfirmLogout = () => {
+    // Clear the user but stay on the logout page to show success message
+    setCurrentUser('');
+    setIsAdmin(false);
+    // Clear remembered user data on explicit logout
+    localStorage.removeItem('rememberUser');
+    // Don't change the view - stay on 'logout' to show the success message
+  };
+
+  const handleReLogin = () => {
+    // Only redirect to login when user explicitly clicks "Login Again"
+    setCurrentView('login');
+  };
+
+  const handleProfileClick = () => {
+    setCurrentView('profile');
+  };
+
+  const handleBackToDashboard = () => {
+    setCurrentView(isAdmin ? 'admin-dashboard' : 'dashboard');
+  };
+
+  const handleStartInterviewSetup = () => {
+    setCurrentView('interview-setup');
+  };
+
+  const handleViewPastSessions = () => {
+    setCurrentView('past-sessions');
+  };
+
+  const handleViewPerformanceReport = () => {
+    setCurrentView('performance-report');
+  };
+
+  const handleGetHelp = () => {
+    setCurrentView('help-support');
+  };
+
+  const handleFlaggedContent = () => {
+    setCurrentView('flagged-content');
+  };
+
+  const handleBackToAdminDashboard = () => {
+    setCurrentView('admin-dashboard');
+  };
+
+  const handleManageQuestions = () => {
+    setCurrentView('manage-questions');
+  };
+
+  const handleManageUsers = () => {
+    setCurrentView('manage-users');
+  };
+
+  const handleAnalytics = () => {
+    setCurrentView('analytics');
+  };
+
+  const handleStartInterview = (config: InterviewConfig) => {
+    console.log('Starting interview with config:', config);
+    setInterviewConfig(config);
+    setCurrentView('interview');
+  };
+
+  const handleEndInterview = () => {
+    // Generate mock session data
+    const mockSessionData = {
+      totalScore: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
+      timeSpent: Math.floor(Math.random() * 1800) + 600, // Random time between 10-40 minutes
+      questionsAnswered: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10,
+      totalQuestions: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10
+    };
+    
+    setSessionData(mockSessionData);
+    setCurrentView('session-completion');
+  };
+
+  const handleSessionCompletionBackToDashboard = () => {
+    // Clear interview data and return to dashboard
+    setInterviewConfig(null);
+    setSessionData(null);
+    setCurrentView('dashboard');
+  };
+
+  const handleViewDetailedFeedback = () => {
+    setCurrentView('detailed-feedback');
+  };
+
+  const handleDetailedFeedbackBackToDashboard = () => {
+    // Clear interview data and return to dashboard
+    setInterviewConfig(null);
+    setSessionData(null);
+    setCurrentView('dashboard');
+  };
+
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'login':
+        return (
+          <LoginForm 
+            onSwitchToSignUp={switchToSignUp} 
+            onLoginSuccess={handleLoginSuccess}
+            onAdminLoginSuccess={handleAdminLoginSuccess}
+          />
+        );
+      case 'signup':
+        return (
+          <SignUpForm onSwitchToLogin={switchToLogin} />
+        );
+      case 'dashboard':
+        return (
+          <Dashboard 
+            username={currentUser} 
+            onLogout={handleLogout}
+            onProfileClick={handleProfileClick}
+            onStartInterview={handleStartInterviewSetup}
+            onViewPastSessions={handleViewPastSessions}
+            onViewPerformanceReport={handleViewPerformanceReport}
+            onGetHelp={handleGetHelp}
+          />
+        );
+      case 'admin-dashboard':
+        return (
+          <AdminDashboard 
+            username={currentUser}
+            onLogout={handleLogout}
+            onFlaggedContent={handleFlaggedContent}
+            onManageQuestions={handleManageQuestions}
+            onManageUsers={handleManageUsers}
+            onAnalytics={handleAnalytics}
+          />
+        );
+      case 'flagged-content':
+        return (
+          <FlaggedContentModeration
+            username={currentUser}
+            onBackToAdminDashboard={handleBackToAdminDashboard}
+          />
+        );
+      case 'manage-questions':
+        return (
+          <ManageQuestions
+            username={currentUser}
+            onBackToAdminDashboard={handleBackToAdminDashboard}
+          />
+        );
+      case 'manage-users':
+        return (
+          <ManageUsers
+            username={currentUser}
+            onBackToAdminDashboard={handleBackToAdminDashboard}
+          />
+        );
+      case 'analytics':
+        return (
+          <Analytics
+            username={currentUser}
+            onBackToAdminDashboard={handleBackToAdminDashboard}
+          />
+        );
+      case 'profile':
+        return (
+          <ProfileSetup 
+            username={currentUser}
+            onBack={handleBackToDashboard}
+          />
+        );
+      case 'interview-setup':
+        return (
+          <InterviewSetup
+            username={currentUser}
+            onBack={handleBackToDashboard}
+            onStartInterview={handleStartInterview}
+          />
+        );
+      case 'interview':
+        return interviewConfig ? (
+          <InterviewQuestion
+            username={currentUser}
+            config={interviewConfig}
+            onEndInterview={handleEndInterview}
+            onBackToDashboard={handleBackToDashboard}
+          />
+        ) : null;
+      case 'session-completion':
+        return interviewConfig && sessionData ? (
+          <SessionCompletion
+            username={currentUser}
+            config={interviewConfig}
+            sessionData={sessionData}
+            onBackToDashboard={handleSessionCompletionBackToDashboard}
+            onViewDetailedFeedback={handleViewDetailedFeedback}
+          />
+        ) : null;
+      case 'detailed-feedback':
+        return interviewConfig && sessionData ? (
+          <DetailedFeedback
+            username={currentUser}
+            config={interviewConfig}
+            sessionData={sessionData}
+            onBackToDashboard={handleDetailedFeedbackBackToDashboard}
+          />
+        ) : null;
+      case 'past-sessions':
+        return (
+          <PastSessions
+            username={currentUser}
+            onBackToDashboard={handleBackToDashboard}
+          />
+        );
+      case 'performance-report':
+        return (
+          <PerformanceReport
+            username={currentUser}
+            onBackToDashboard={handleBackToDashboard}
+          />
+        );
+      case 'help-support':
+        return (
+          <HelpAndSupport
+            username={currentUser}
+            onBackToDashboard={handleBackToDashboard}
+          />
+        );
+      case 'logout':
+        return (
+          <LogoutConfirmation
+            username={currentUser}
+            onBack={handleBackToDashboard}
+            onConfirmLogout={handleConfirmLogout}
+            onReLogin={handleReLogin}
+          />
+        );
+      default:
+        return (
+          <LoginForm 
+            onSwitchToSignUp={switchToSignUp} 
+            onLoginSuccess={handleLoginSuccess}
+            onAdminLoginSuccess={handleAdminLoginSuccess}
+          />
+        );
+    }
+  };
+
   return (
     <div className="dark">
-      {/* Set a dark background for contrast, matching common Tailwind theme setup */}
-      <div className="min-h-screen p-8" style={{ backgroundColor: '#111827' }}>
-        <h1 className="text-3xl font-bold text-white mb-8 border-b border-gray-700 pb-4">
-          Base UI Components Showcase
-        </h1>
-
-        {/* --- 1. BUTTONS --- */}
-        <div className="mb-12 p-6 border border-gray-700 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-300 mb-4">Button Component</h2>
-          <div className="flex gap-4 items-center flex-wrap">
-            <Button variant="default">Default</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="outline">Outline</Button>
-            <Button variant="destructive">Destructive</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="link">Link</Button>
-            <Button size="icon" disabled>
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/></svg>
-            </Button>
+      <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
+        {(currentView === 'dashboard' || currentView === 'admin-dashboard' || currentView === 'flagged-content' || currentView === 'manage-questions' || currentView === 'manage-users' || currentView === 'analytics' || currentView === 'profile' || currentView === 'logout' || currentView === 'interview-setup' || currentView === 'interview' || currentView === 'session-completion' || currentView === 'detailed-feedback' || currentView === 'past-sessions' || currentView === 'performance-report' || currentView === 'help-support') ? (
+          renderCurrentView()
+        ) : (
+          <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#111827' }}>
+            {renderCurrentView()}
           </div>
-        </div>
-
-        {/* --- 2. INPUT & LABEL --- */}
-        <div className="mb-12 p-6 border border-gray-700 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-300 mb-4">Input & Label Components</h2>
-          <div className="space-y-4 max-w-lg">
-            {/* Standard Input */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="username-input">Username</Label>
-              <Input type="text" id="username-input" placeholder="Enter your username" />
-            </div>
-            {/* Input with Error State (aria-invalid) */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="error-input">Password (Invalid State)</Label>
-              <Input type="password" id="error-input" aria-invalid="true" placeholder="Password must be 8 characters" />
-            </div>
-            {/* Disabled Input */}
-            <div className="grid w-full items-center gap-1.5">
-              <Label htmlFor="disabled-input">Disabled Input</Label>
-              <Input type="text" id="disabled-input" placeholder="Cannot type here" disabled />
-            </div>
-          </div>
-        </div>
-
-        {/* --- 3. RADIO GROUP & CHECKBOX --- */}
-        <div className="mb-12 p-6 border border-gray-700 rounded-lg">
-          <h2 className="text-xl font-semibold text-gray-300 mb-4">Radio Group & Checkbox</h2>
-          <div className="flex gap-12">
-            {/* Radio Group Test */}
-            <RadioGroup defaultValue="option-2" className="grid gap-2">
-              <p className="text-sm text-gray-400">Select an option:</p>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="option-1" id="r1" />
-                <Label htmlFor="r1">Option 1</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="option-2" id="r2" />
-                <Label htmlFor="r2">Option 2 (Selected)</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="option-3" id="r3" disabled />
-                <Label htmlFor="r3">Option 3 (Disabled)</Label>
-              </div>
-            </RadioGroup>
-
-            {/* Checkbox Test */}
-            <div className="space-y-4">
-              <p className="text-sm text-gray-400">Check:</p>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="terms-check" />
-                <Label htmlFor="terms-check">I agree to the terms</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox id="disabled-check" disabled />
-                <Label htmlFor="disabled-check">Cannot check this</Label>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
       <Toaster />
     </div>

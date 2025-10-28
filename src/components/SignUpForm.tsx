@@ -171,7 +171,7 @@ export default function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
             <Checkbox 
               id="signup-remember-me" 
               checked={rememberMe}
-              onCheckedChange={(checked) => setRememberMe(checked === true)}
+              onCheckedChange={(checked: boolean) => setRememberMe(checked === true)}
               style={{
                 borderColor: '#4B5563'
               }}

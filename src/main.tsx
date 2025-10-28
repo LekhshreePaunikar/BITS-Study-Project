@@ -1,4 +1,3 @@
-// Create a module './App.tsx' in .root/src folder
 
   import { createRoot } from "react-dom/client";
   import App from "./App.tsx";
