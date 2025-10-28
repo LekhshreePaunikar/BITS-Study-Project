@@ -1,3 +1,7 @@
+// ==============================
+// Server Setup for AI Mock Interview Platform
+// ==============================
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -8,31 +12,43 @@ const path = require('path');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 
+// Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Security middleware
+// ==============================
+// Security & Middleware
+// ==============================
+
+// Basic security headers
 app.use(helmet());
 
-// Apply rate limiting
+// Rate limiting (max 100 requests per 15 minutes per IP)
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per window
+  windowMs: 15 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api', limiter);
 
-// Enable CORS
+// CORS configuration
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
-// Parse incoming requests
+// Request parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Register routes
+// ==============================
+// Routes
+// ==============================
+
+// Import database helper
+const { query } = require('./config/database');
+
+// Register modular routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/interviews', require('./routes/interviews'));
@@ -40,7 +56,25 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/admin', require('./routes/admin'));
 
-// Health check route
+// ==============================
+// Test & Health Routes
+// ==============================
+
+// ✅ Database connection test route
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const result = await query('SELECT NOW() AS current_time');
+    res.json({
+      message: '✅ Database connection successful!',
+      server_time: result.rows[0].current_time,
+    });
+  } catch (error) {
+    console.error('❌ Database test failed:', error);
+    res.status(500).json({ error: 'Database test failed' });
+  }
+});
+
+// Basic health check route
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -49,28 +83,36 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
+// ==============================
+// Error Handling
+// ==============================
+
+// Global error handler
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('❌ Server Error:', err.stack);
   res.status(500).json({
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// Handle unknown routes
+// Handle undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
     message: 'API endpoint not found'
   });
 });
 
-// Start server
+// ==============================
+// Server Start
+// ==============================
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`Database: ${process.env.POSTGRES_DB}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
+  console.log('-----------------------------------');
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`💻 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`🗄️ Database: ${process.env.POSTGRES_DB}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
+  console.log('-----------------------------------');
 });
 
 module.exports = app;

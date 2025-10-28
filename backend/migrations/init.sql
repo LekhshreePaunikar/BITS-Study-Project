@@ -1,9 +1,3 @@
--- =====================================================
--- AI-Powered Mock Interview Platform - Full Schema
--- PostgreSQL 14+ | Author: Meena & Team
--- =====================================================
--- NOTE: Using PascalCase for tables & columns
--- =====================================================
 
 -- ==============================
 -- ENUM DEFINITIONS
@@ -80,6 +74,15 @@ CREATE TABLE IF NOT EXISTS "UserProfilePreference" (
 -- QUESTION MANAGEMENT TABLES
 -- ==============================
 
+-- 1️⃣ DynamicQuestion (independent table)
+CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
+    "DynQuestionID" SERIAL PRIMARY KEY,
+    "ResumeID" INT,
+    "GeneratedQuestionText" TEXT NOT NULL,
+    "GeneratedAt" TIMESTAMP DEFAULT NOW()
+);
+
+-- 2️⃣ BaseQuestion (references DynamicQuestion)
 CREATE TABLE IF NOT EXISTS "BaseQuestion" (
     "QuestionID" SERIAL PRIMARY KEY,
     "Content" TEXT NOT NULL,
@@ -89,6 +92,14 @@ CREATE TABLE IF NOT EXISTS "BaseQuestion" (
     "LastUpdated" TIMESTAMP DEFAULT NOW()
 );
 
+-- 3️⃣ Add FK after both tables exist
+ALTER TABLE "BaseQuestion"
+ADD CONSTRAINT fk_dynamic_source
+FOREIGN KEY ("DynamicSourceID")
+REFERENCES "DynamicQuestion"("DynQuestionID")
+ON DELETE SET NULL;
+
+-- 3️⃣ StaticQuestion (inherits BaseQuestion)
 CREATE TABLE IF NOT EXISTS "StaticQuestion" (
     "QuestionID" INT PRIMARY KEY REFERENCES "BaseQuestion"("QuestionID") ON DELETE CASCADE,
     "RoleID" INT REFERENCES "Role"("RoleID") ON DELETE SET NULL,
@@ -97,16 +108,6 @@ CREATE TABLE IF NOT EXISTS "StaticQuestion" (
     "DifficultyLevel" INT CHECK ("DifficultyLevel" BETWEEN 1 AND 3)
 );
 
-CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
-    "DynQuestionID" SERIAL PRIMARY KEY,
-    "ResumeID" INT,
-    "GeneratedQuestionText" TEXT NOT NULL,
-    "GeneratedAt" TIMESTAMP DEFAULT NOW()
-);
-
-ALTER TABLE "BaseQuestion"
-    ADD CONSTRAINT fk_dynamic_source FOREIGN KEY ("DynamicSourceID")
-    REFERENCES "DynamicQuestion"("DynQuestionID") ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
     "ID" SERIAL PRIMARY KEY,
@@ -217,15 +218,3 @@ CREATE TABLE IF NOT EXISTS "FlaggedContent" (
     "Status" FlagStatus DEFAULT 'pending',
     "CreatedAt" TIMESTAMP DEFAULT NOW()
 );
-
--- ==============================
--- RELATIONSHIP CLEANUP (CROSS-LINKS)
--- ==============================
-
-ALTER TABLE "DynamicQuestion"
-    ADD CONSTRAINT fk_dynamic_base FOREIGN KEY ("DynQuestionID")
-    REFERENCES "BaseQuestion"("DynamicSourceID");
-
--- ==============================
--- END OF SCHEMA
--- ==============================
