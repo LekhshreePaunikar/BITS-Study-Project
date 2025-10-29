@@ -1,8 +1,8 @@
 # Web-Based AI-Powered Mock Interview Platform
 
 ### Semester-6 Capstone Project 
-**PHASE-I Project Supervisor(s):** Dr. Shreyas Suresh Rao
-**PHASE-II Project Supervisor(s):** Mr. Thilak Vasant and Mr. Pranav Arya Sunku.
+- **PHASE-I Project Supervisor(s):** Dr. Shreyas Suresh Rao
+- **PHASE-II Project Supervisor(s):** Mr. Thilak Vasant and Mr. Pranav Arya Sunku.
 
 ---
 
