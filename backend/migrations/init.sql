@@ -1,7 +1,6 @@
-
--- ==============================
+-- ==============================+
 -- ENUM DEFINITIONS
--- ==============================
+-- ==============================+
 DO $$ BEGIN
     CREATE TYPE ModeType AS ENUM ('text', 'voice');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
@@ -14,8 +13,12 @@ DO $$ BEGIN
     CREATE TYPE FlagStatus AS ENUM ('pending', 'resolved');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
+-- DO $$ BEGIN
+--     CREATE TYPE EvaluationType AS ENUM ('text', 'speech');
+-- EXCEPTION WHEN duplicate_object THEN null; END $$;
+
 DO $$ BEGIN
-    CREATE TYPE EvaluationType AS ENUM ('text', 'speech');
+    CREATE TYPE DifficultyLevelType AS ENUM ('easy', 'medium', 'hard');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- ==============================
@@ -24,21 +27,16 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 CREATE TABLE IF NOT EXISTS "User" (
     "UserID" SERIAL PRIMARY KEY,
-    "Name" VARCHAR(100) NOT NULL,
-    "Email" VARCHAR(120) UNIQUE NOT NULL,
+    "Name" VARCHAR(100) DEFAULT 'New User',
+    "Email" VARCHAR(120) UNIQUE,
     "PasswordHash" TEXT NOT NULL,
+    "IsAdmin" BOOLEAN DEFAULT FALSE NOT NULL,
+    "IsBlacklisted" BOOLEAN DEFAULT FALSE NOT NULL,
     "Education" TEXT,
     "Experience" TEXT,
     "PreferredRoles" TEXT[],
     "PreferredLanguages" TEXT[],
-    "CreatedAt" TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS "Admin" (
-    "AdminID" SERIAL PRIMARY KEY,
-    "Name" VARCHAR(100) NOT NULL,
-    "Email" VARCHAR(120) UNIQUE NOT NULL,
-    "PasswordHash" TEXT NOT NULL
+    "CreatedAt" TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 -- ==============================
@@ -70,44 +68,54 @@ CREATE TABLE IF NOT EXISTS "UserProfilePreference" (
     "LangID" INT REFERENCES "ProgrammingLanguage"("LangID") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS "Resume" (
+    "ResumeID" SERIAL PRIMARY KEY,
+    "UserID" INT REFERENCES "User"("UserID") ON DELETE CASCADE,
+    "FilePath" TEXT,
+    "ParsedSkills" TEXT[],
+    "ParsedExperience" TEXT[],
+    "ParsedEducation" TEXT[],
+    "UploadedAt" TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
 -- ==============================
 -- QUESTION MANAGEMENT TABLES
 -- ==============================
 
--- 1️⃣ DynamicQuestion (independent table)
-CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
-    "DynQuestionID" SERIAL PRIMARY KEY,
-    "ResumeID" INT,
-    "GeneratedQuestionText" TEXT NOT NULL,
-    "GeneratedAt" TIMESTAMP DEFAULT NOW()
+CREATE TABLE IF NOT EXISTS "EvaluationModel" (
+    "ModelID" SERIAL PRIMARY KEY,
+    "ModelName" VARCHAR(100) DEFAULT 'LLM-Model',
+    "Description" TEXT
 );
 
--- 2️⃣ BaseQuestion (references DynamicQuestion)
+-- BaseQuestion = Core question anchor
 CREATE TABLE IF NOT EXISTS "BaseQuestion" (
     "QuestionID" SERIAL PRIMARY KEY,
-    "Content" TEXT NOT NULL,
-    "IsPredefined" BOOLEAN DEFAULT TRUE,
-    "CreatedBy" INT REFERENCES "Admin"("AdminID") ON DELETE SET NULL,
-    "DynamicSourceID" INT,
-    "LastUpdated" TIMESTAMP DEFAULT NOW()
+    "IsPredefined" BOOLEAN DEFAULT TRUE NOT NULL,
+    "DifficultyLevel" DifficultyLevelType DEFAULT 'easy',
+    "CreatedBy" INT REFERENCES "User"("UserID") ON DELETE SET NULL,
+    "CreatedAt" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "LastUpdated" TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- 3️⃣ Add FK after both tables exist
-ALTER TABLE "BaseQuestion"
-ADD CONSTRAINT fk_dynamic_source
-FOREIGN KEY ("DynamicSourceID")
-REFERENCES "DynamicQuestion"("DynQuestionID")
-ON DELETE SET NULL;
-
--- 3️⃣ StaticQuestion (inherits BaseQuestion)
+-- StaticQuestion = Predefined question content (for IsPredefined = TRUE)
 CREATE TABLE IF NOT EXISTS "StaticQuestion" (
-    "QuestionID" INT PRIMARY KEY REFERENCES "BaseQuestion"("QuestionID") ON DELETE CASCADE,
+    "StaticQuestionID" SERIAL PRIMARY KEY,
+    "BaseQuestionID" INT UNIQUE REFERENCES "BaseQuestion"("QuestionID") ON DELETE CASCADE,
+    "QuestionContent" TEXT NOT NULL,
     "RoleID" INT REFERENCES "Role"("RoleID") ON DELETE SET NULL,
     "SkillID" INT REFERENCES "Skill"("SkillID") ON DELETE SET NULL,
-    "LangID" INT REFERENCES "ProgrammingLanguage"("LangID") ON DELETE SET NULL,
-    "DifficultyLevel" INT CHECK ("DifficultyLevel" BETWEEN 1 AND 3)
+    "LangID" INT REFERENCES "ProgrammingLanguage"("LangID") ON DELETE SET NULL
 );
 
+-- DynamicQuestion = AI-generated question content (for IsPredefined = FALSE)
+CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
+    "DynamicQuestionID" SERIAL PRIMARY KEY,
+    "BaseQuestionID" INT UNIQUE REFERENCES "BaseQuestion"("QuestionID") ON DELETE CASCADE,
+    "LLMModelID" INT REFERENCES "EvaluationModel"("ModelID") ON DELETE SET NULL,
+    "GeneratedQuestionContent" TEXT NOT NULL,
+    "ResumeID" INT REFERENCES "Resume"("ResumeID") ON DELETE SET NULL
+);
 
 CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
     "ID" SERIAL PRIMARY KEY,
@@ -122,10 +130,10 @@ CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
 CREATE TABLE IF NOT EXISTS "Session" (
     "SessionID" SERIAL PRIMARY KEY,
     "UserID" INT REFERENCES "User"("UserID") ON DELETE CASCADE,
-    "StartTime" TIMESTAMP DEFAULT NOW(),
-    "EndTime" TIMESTAMP,
-    "DifficultyLevelStart" INT,
-    "DifficultyLevelEnd" INT,
+    "StartTime" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "EndTime" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "DifficultyLevelStart" DifficultyLevelType DEFAULT 'easy',
+    "DifficultyLevelEnd" DifficultyLevelType DEFAULT 'easy',
     "TotalScore" FLOAT
 );
 
@@ -136,7 +144,8 @@ CREATE TABLE IF NOT EXISTS "Answer" (
     "ModeChosen" ModeType NOT NULL,
     "AnswerText" TEXT,
     "AnswerAudioPath" TEXT,
-    "ResponseTimeTaken" INT,
+    "StartTime" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "EndTime" TIMESTAMP DEFAULT NOW() NOT NULL,
     "ScoreContent" FLOAT,
     "ScoreGrammar" FLOAT,
     "ScoreClarity" FLOAT,
@@ -149,7 +158,7 @@ CREATE TABLE IF NOT EXISTS "SessionHistory" (
     "SessionID" INT REFERENCES "Session"("SessionID") ON DELETE CASCADE,
     "QuestionID" INT REFERENCES "BaseQuestion"("QuestionID"),
     "AnswerID" INT REFERENCES "Answer"("AnswerID"),
-    "Timestamp" TIMESTAMP DEFAULT NOW()
+    "Timestamp" TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 -- ==============================
@@ -159,45 +168,24 @@ CREATE TABLE IF NOT EXISTS "SessionHistory" (
 CREATE TABLE IF NOT EXISTS "Feedback" (
     "FeedbackID" SERIAL PRIMARY KEY,
     "AnswerID" INT UNIQUE REFERENCES "Answer"("AnswerID") ON DELETE CASCADE,
+    "EvaluationModelID" INT REFERENCES "EvaluationModel"("ModelID") ON DELETE SET NULL,
     "SuggestionText" TEXT,
-    "GeneratedAt" TIMESTAMP DEFAULT NOW()
+    "GeneratedAt" TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "PerformanceReport" (
     "ReportID" SERIAL PRIMARY KEY,
     "SessionID" INT UNIQUE REFERENCES "Session"("SessionID") ON DELETE CASCADE,
-    "GeneratedAt" TIMESTAMP DEFAULT NOW(),
+    "GeneratedAt" TIMESTAMP DEFAULT NOW() NOT NULL,
     "TotalScore" FLOAT,
     "AvgTimePerQuestion" FLOAT,
     "Strengths" TEXT,
     "Weaknesses" TEXT
 );
 
-CREATE TABLE IF NOT EXISTS "EvaluationModel" (
-    "ModelID" SERIAL PRIMARY KEY,
-    "ModelName" VARCHAR(100) NOT NULL,
-    "EvaluationType" EvaluationType NOT NULL,
-    "Source" VARCHAR(100),
-    "Description" TEXT
-);
-
 -- ==============================
 -- ADDITIONAL FEATURE TABLES
 -- ==============================
-
-CREATE TABLE IF NOT EXISTS "Resume" (
-    "ResumeID" SERIAL PRIMARY KEY,
-    "UserID" INT REFERENCES "User"("UserID") ON DELETE CASCADE,
-    "FilePath" TEXT,
-    "ParsedSkills" TEXT[],
-    "ParsedExperience" TEXT[],
-    "ParsedEducation" TEXT[],
-    "UploadedAt" TIMESTAMP DEFAULT NOW()
-);
-
-ALTER TABLE "DynamicQuestion"
-    ADD CONSTRAINT fk_resume FOREIGN KEY ("ResumeID")
-    REFERENCES "Resume"("ResumeID") ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS "SupportTicket" (
     "TicketID" SERIAL PRIMARY KEY,
@@ -205,16 +193,17 @@ CREATE TABLE IF NOT EXISTS "SupportTicket" (
     "IssueType" VARCHAR(100),
     "Message" TEXT,
     "Status" TicketStatus DEFAULT 'open',
-    "CreatedAt" TIMESTAMP DEFAULT NOW(),
-    "ResolvedAt" TIMESTAMP
+    "CreatedAt" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "UpdatedAt" TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "FlaggedContent" (
     "FlagID" SERIAL PRIMARY KEY,
     "AnswerID" INT UNIQUE REFERENCES "Answer"("AnswerID") ON DELETE CASCADE,
     "ModelID" INT REFERENCES "EvaluationModel"("ModelID"),
-    "AdminID" INT REFERENCES "Admin"("AdminID"),
+    "AdminID" INT REFERENCES "User"("UserID") ON DELETE SET NULL,
     "Reason" TEXT,
     "Status" FlagStatus DEFAULT 'pending',
-    "CreatedAt" TIMESTAMP DEFAULT NOW()
+    "CreatedAt" TIMESTAMP DEFAULT NOW() NOT NULL,
+    "UpdatedAt" TIMESTAMP DEFAULT NOW() NOT NULL
 );

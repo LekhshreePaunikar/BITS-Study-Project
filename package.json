@@ -1,6 +1,6 @@
 
 {
-      "name": "AI Powered Mock Interview Platform",
+      "name": "ai-powered-mock-interview-platform",
       "version": "0.1.0",
       "private": true,
       "dependencies": {
