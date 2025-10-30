@@ -8,7 +8,9 @@ const { generateToken, authenticateToken } = require('../middleware/auth');
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.OAUTH_CLIENT_ID);
 
-// User registration
+// ==============================
+// USER REGISTRATION
+// ==============================
 router.post('/register', async (req, res) => {
   try {
     const { username, email, password, fullName } = req.body;
@@ -37,7 +39,7 @@ router.post('/register', async (req, res) => {
 
     // Check if user already exists
     const existingUser = await query(
-      'SELECT id FROM users WHERE email = $1 OR username = $2',
+      'SELECT "UserID" FROM "User" WHERE "Email" = $1 OR "Name" = $2',
       [email, username]
     );
 
@@ -52,28 +54,32 @@ router.post('/register', async (req, res) => {
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Create user
+    // Create new user
     const newUser = await query(
-      `INSERT INTO users (username, email, password_hash, full_name) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING id, username, email, full_name, is_admin, created_at`,
-      [username, email, passwordHash, fullName || username]
+      `INSERT INTO "User" ("Name", "Email", "PasswordHash") 
+       VALUES ($1, $2, $3)
+       RETURNING "UserID", "Name", "Email", "IsAdmin", "CreatedAt"`,
+      [username, email, passwordHash]
     );
 
     const user = newUser.rows[0];
 
-    // Generate token
-    const token = generateToken(user.id, user.username, user.email, user.is_admin);
+    // Generate JWT token
+    const token = generateToken(
+      user.UserID,
+      user.Name,
+      user.Email,
+      user.IsAdmin
+    );
 
     res.status(201).json({
       message: 'User registered successfully',
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.full_name,
-        isAdmin: user.is_admin,
-        createdAt: user.created_at
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        isAdmin: user.IsAdmin,
+        createdAt: user.CreatedAt
       },
       token
     });
@@ -86,12 +92,13 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// User login
+// ==============================
+// USER LOGIN
+// ==============================
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Input validation
     if (!email || !password) {
       return res.status(400).json({
         message: 'Missing credentials',
@@ -101,7 +108,11 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const userResult = await query(
-      'SELECT id, username, email, password_hash, full_name, is_admin, is_active FROM users WHERE email = $1',
+      `SELECT 
+         "UserID", "Name", "Email", "PasswordHash", 
+         "IsAdmin", "IsBlacklisted"
+       FROM "User" 
+       WHERE "Email" = $1`,
       [email]
     );
 
@@ -114,16 +125,15 @@ router.post('/login', async (req, res) => {
 
     const user = userResult.rows[0];
 
-    if (!user.is_active) {
-      return res.status(401).json({
+    if (user.IsBlacklisted) {
+      return res.status(403).json({
         message: 'Account deactivated',
         error: 'Your account has been deactivated'
       });
     }
 
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
-
+    // Validate password
+    const isValidPassword = await bcrypt.compare(password, user.PasswordHash);
     if (!isValidPassword) {
       return res.status(401).json({
         message: 'Invalid credentials',
@@ -132,16 +142,20 @@ router.post('/login', async (req, res) => {
     }
 
     // Generate token
-    const token = generateToken(user.id, user.username, user.email, user.is_admin);
+    const token = generateToken(
+      user.UserID,
+      user.Name,
+      user.Email,
+      user.IsAdmin
+    );
 
     res.json({
       message: 'Login successful',
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.full_name,
-        isAdmin: user.is_admin
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        isAdmin: user.IsAdmin
       },
       token
     });
@@ -154,11 +168,12 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Google OAuth login
+// ==============================
+// GOOGLE OAUTH LOGIN
+// ==============================
 router.post('/google', async (req, res) => {
   try {
     const { credential } = req.body;
-
     if (!credential) {
       return res.status(400).json({
         message: 'Missing Google credential',
@@ -166,7 +181,6 @@ router.post('/google', async (req, res) => {
       });
     }
 
-    // Verify Google token
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
       audience: process.env.OAUTH_CLIENT_ID
@@ -175,53 +189,45 @@ router.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const { sub: googleId, email, name, picture } = payload;
 
-    // Check if user exists
+    // Check or create user
     let user;
     const existingUser = await query(
-      'SELECT id, username, email, full_name, is_admin, is_active FROM users WHERE google_id = $1 OR email = $2',
-      [googleId, email]
+      'SELECT "UserID", "Name", "Email", "IsAdmin", "IsBlacklisted" FROM "User" WHERE "Email" = $1',
+      [email]
     );
 
     if (existingUser.rows.length > 0) {
       user = existingUser.rows[0];
-      
-      if (!user.is_active) {
-        return res.status(401).json({
+      if (user.IsBlacklisted) {
+        return res.status(403).json({
           message: 'Account deactivated',
           error: 'Your account has been deactivated'
         });
       }
-
-      // Update Google ID if not set
-      if (!user.google_id) {
-        await query(
-          'UPDATE users SET google_id = $1, profile_picture = $2 WHERE id = $3',
-          [googleId, picture, user.id]
-        );
-      }
     } else {
-      // Create new user
-      const username = email.split('@')[0];
       const newUser = await query(
-        `INSERT INTO users (username, email, google_id, full_name, profile_picture) 
-         VALUES ($1, $2, $3, $4, $5) 
-         RETURNING id, username, email, full_name, is_admin, created_at`,
-        [username, email, googleId, name, picture]
+        `INSERT INTO "User" ("Name", "Email") 
+         VALUES ($1, $2)
+         RETURNING "UserID", "Name", "Email", "IsAdmin"`,
+        [name || email.split('@')[0], email]
       );
       user = newUser.rows[0];
     }
 
-    // Generate token
-    const token = generateToken(user.id, user.username, user.email, user.is_admin);
+    const token = generateToken(
+      user.UserID,
+      user.Name,
+      user.Email,
+      user.IsAdmin
+    );
 
     res.json({
       message: 'Google login successful',
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.full_name,
-        isAdmin: user.is_admin
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        isAdmin: user.IsAdmin
       },
       token
     });
@@ -234,12 +240,14 @@ router.post('/google', async (req, res) => {
   }
 });
 
-// Get current user profile
+// ==============================
+// GET CURRENT USER PROFILE
+// ==============================
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const userResult = await query(
-      `SELECT id, username, email, full_name, profile_picture, is_admin, created_at 
-       FROM users WHERE id = $1`,
+      `SELECT "UserID", "Name", "Email", "IsAdmin", "CreatedAt"
+       FROM "User" WHERE "UserID" = $1`,
       [req.user.id]
     );
 
@@ -254,13 +262,11 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.json({
       user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        fullName: user.full_name,
-        profilePicture: user.profile_picture,
-        isAdmin: user.is_admin,
-        createdAt: user.created_at
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        isAdmin: user.IsAdmin,
+        createdAt: user.CreatedAt
       }
     });
   } catch (error) {
@@ -272,11 +278,17 @@ router.get('/me', authenticateToken, async (req, res) => {
   }
 });
 
-// Refresh token
+// ==============================
+// REFRESH TOKEN
+// ==============================
 router.post('/refresh', authenticateToken, async (req, res) => {
   try {
-    // Generate new token
-    const token = generateToken(req.user.id, req.user.username, req.user.email, req.user.is_admin);
+    const token = generateToken(
+      req.user.id,
+      req.user.username,
+      req.user.email,
+      req.user.is_admin
+    );
 
     res.json({
       message: 'Token refreshed successfully',
@@ -291,7 +303,9 @@ router.post('/refresh', authenticateToken, async (req, res) => {
   }
 });
 
-// Logout (client-side token removal)
+// ==============================
+// LOGOUT (Client-Side Token Removal)
+// ==============================
 router.post('/logout', authenticateToken, (req, res) => {
   res.json({
     message: 'Logout successful',

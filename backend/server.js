@@ -10,6 +10,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const interviewSetupRoutes = require("./routes/interviewSetup");
 
+
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 
@@ -42,12 +43,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+
 // ==============================
 // Routes
 // ==============================
 
 // Import database helper
 const { query } = require('./config/database');
+const {authenticateToken, checkLogin} = require('./middleware/auth');
 
 // Register modular routes
 app.use('/api/auth', require('./routes/auth'));
@@ -56,7 +59,10 @@ app.use('/api/interviews', require('./routes/interviews'));
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/admin', require('./routes/admin'));
-app.use("/api/interview", interviewSetupRoutes);
+app.use('/api/interview', require('./routes/interviewSetup'));
+app.use('/api/user', authenticateToken, checkLogin);
+app.use('/api/interview', authenticateToken, checkLogin);
+app.use('/api/sessions', authenticateToken, checkLogin);
 
 // ==============================
 // Test & Health Routes
@@ -110,10 +116,10 @@ app.use('*', (req, res) => {
 // ==============================
 app.listen(PORT, () => {
   console.log('-----------------------------------');
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`💻 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`🗄️ Database: ${process.env.POSTGRES_DB}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+  console.log(`Database: ${process.env.POSTGRES_DB}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
   console.log('-----------------------------------');
 });
 
