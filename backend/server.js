@@ -8,6 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const path = require('path');
+const interviewSetupRoutes = require("./routes/interviewSetup");
 
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -55,6 +56,7 @@ app.use('/api/interviews', require('./routes/interviews'));
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/admin', require('./routes/admin'));
+app.use("/api/interview", interviewSetupRoutes);
 
 // ==============================
 // Test & Health Routes
