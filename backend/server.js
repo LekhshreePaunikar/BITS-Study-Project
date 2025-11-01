@@ -55,6 +55,7 @@ const {authenticateToken, checkLogin} = require('./middleware/auth');
 // Register modular routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/users', require('./routes/users'));
+app.use('/api/profile', require('./routes/userProfile'));
 app.use('/api/interviews', require('./routes/interviews'));
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/sessions', require('./routes/sessions'));
