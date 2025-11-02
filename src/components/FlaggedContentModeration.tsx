@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
-import { 
+import {
   ArrowLeft,
   Flag,
   CheckCircle,
@@ -20,6 +20,7 @@ import {
   Search,
   RefreshCw
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
@@ -44,6 +45,9 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  // For modal and selection
+  const [selectedTicket, setSelectedTicket] = useState<FlaggedItem | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock flagged content data
   const [flaggedItems, setFlaggedItems] = useState<FlaggedItem[]>([
@@ -104,15 +108,35 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
     }
   ]);
 
-  const handleStatusChange = (flagId: string, newStatus: 'resolved' | 'pending' | 'in-progress') => {
-    setFlaggedItems(items => 
-      items.map(item => 
-        item.flagId === flagId 
-          ? { ...item, status: newStatus }
-          : item
-      )
-    );
+  const handleStatusChange = async (flagId: string, newStatus: 'resolved' | 'pending' | 'in-progress') => {
+    try {
+      // Convert UI status names to backend format
+      const backendStatus = newStatus === 'in-progress' ? 'in_progress' :
+        newStatus === 'resolved' ? 'closed' : 'open';
+
+      const response = await fetch(`http://localhost:3001/api/support/${flagId.replace('#', '')}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({ status: backendStatus }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update ticket status');
+
+      // Update frontend state
+      setFlaggedItems(items =>
+        items.map(item => item.flagId === flagId ? { ...item, status: newStatus } : item)
+      );
+
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error updating ticket status:', error);
+      alert('Failed to update ticket status. Please try again.');
+    }
   };
+
 
   const handleViewDetails = (item: FlaggedItem) => {
     alert(`Viewing details for ${item.flagId}:\n\nQuestion: ${item.questionText}\nIssue: ${item.issueDescription}\nReporter: ${item.reporterName}`);
@@ -122,7 +146,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
     switch (status) {
       case 'resolved':
         return (
-          <Badge 
+          <Badge
             className="px-3 py-1 text-xs text-white border-0"
             style={{ backgroundColor: '#10B981' }}
           >
@@ -132,7 +156,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
         );
       case 'pending':
         return (
-          <Badge 
+          <Badge
             className="px-3 py-1 text-xs text-white border-0"
             style={{ backgroundColor: '#F59E0B' }}
           >
@@ -142,7 +166,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
         );
       case 'in-progress':
         return (
-          <Badge 
+          <Badge
             className="px-3 py-1 text-xs text-white border-0"
             style={{ backgroundColor: '#3B82F6' }}
           >
@@ -174,16 +198,16 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
 
   // Filter items based on search and filters
   const filteredItems = flaggedItems.filter(item => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch = searchTerm === '' ||
       item.flagId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.userId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.questionId.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.issueType.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.issueDescription.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || item.status === statusFilter;
     const matchesType = typeFilter === 'all' || item.issueType === typeFilter;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -194,11 +218,11 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
-        
+
         {/* Header */}
-        <header 
+        <header
           className="border-b"
-          style={{ 
+          style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151'
           }}
@@ -213,9 +237,9 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                   Review and resolve reported questions efficiently.
                 </p>
               </div>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 onClick={onBackToAdminDashboard}
                 className="flex items-center space-x-2 transition-all duration-200 hover:scale-105"
                 style={{
@@ -233,13 +257,13 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
 
         {/* Main Content */}
         <main className="container mx-auto px-6 py-8">
-          
+
           {/* Filters and Search */}
           <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <div className="relative">
-                <Search 
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" 
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
                   style={{ color: '#6B7280' }}
                 />
                 <Input
@@ -247,18 +271,18 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 w-full sm:w-80 transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
-                  style={{ 
+                  style={{
                     backgroundColor: '#374151',
                     borderColor: '#4B5563',
                     color: '#FFFFFF'
                   }}
                 />
               </div>
-              
+
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger 
+                <SelectTrigger
                   className="w-full sm:w-40 text-white"
-                  style={{ 
+                  style={{
                     backgroundColor: '#374151',
                     borderColor: '#4B5563',
                     color: '#FFFFFF'
@@ -275,9 +299,9 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger 
+                <SelectTrigger
                   className="w-full sm:w-48 text-white"
-                  style={{ 
+                  style={{
                     backgroundColor: '#374151',
                     borderColor: '#4B5563',
                     color: '#FFFFFF'
@@ -296,8 +320,8 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
               </Select>
             </div>
 
-            <div 
-              className="flex items-center space-x-2 text-sm" 
+            <div
+              className="flex items-center space-x-2 text-sm"
               style={{ color: '#9CA3AF' }}
             >
               <Flag className="h-4 w-4" />
@@ -307,167 +331,162 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
 
           {/* Content Table or Empty State */}
           {filteredItems.length === 0 ? (
-            <Card 
+            <Card
               className="border text-center py-16"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardContent>
-                <Flag 
-                  className="h-16 w-16 mx-auto mb-4" 
+                <Flag
+                  className="h-16 w-16 mx-auto mb-4"
                   style={{ color: '#6B7280' }}
                 />
                 <h3 className="text-xl text-white mb-2">
                   No flagged content to review currently
                 </h3>
                 <p style={{ color: '#9CA3AF' }}>
-                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all' 
+                  {searchTerm || statusFilter !== 'all' || typeFilter !== 'all'
                     ? 'No items match your current filters.'
                     : 'All flagged content has been reviewed.'}
                 </p>
               </CardContent>
             </Card>
           ) : (
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardContent className="p-0">
                 {/* Desktop Table */}
-                <div className="hidden lg:block overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr 
-                        className="border-b"
-                        style={{ 
-                          borderColor: '#374151',
-                          backgroundColor: '#374151'
-                        }}
-                      >
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Flag ID</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>User ID</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Question ID</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Issue Type</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Issue Description</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Timestamp</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Status</th>
-                        <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredItems.map((item, index) => (
-                        <tr 
-                          key={item.flagId}
-                          className="border-b transition-colors duration-200"
-                          style={{ 
+                <div className="hidden lg:block relative">
+                  <div className="overflow-visible">
+                    <table className="w-full">
+                      <thead>
+                        <tr
+                          className="border-b"
+                          style={{
                             borderColor: '#374151',
-                            backgroundColor: index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.3)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent';
+                            backgroundColor: '#374151'
                           }}
                         >
-                          <td 
-                            className="p-4 text-sm"
-                            style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Flag ID</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>User ID</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Question ID</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Issue Type</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Issue Description</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Timestamp</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Status</th>
+                          <th className="text-left p-4" style={{ color: '#9CA3AF' }}>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredItems.map((item, index) => (
+                          <tr
+                            key={item.flagId}
+                            className="border-b transition-colors duration-200"
+                            style={{
+                              borderColor: '#374151',
+                              backgroundColor: index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.3)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent';
+                            }}
                           >
-                            {item.flagId}
-                          </td>
-                          <td 
-                            className="p-4 text-sm"
-                            style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
-                          >
-                            {item.userId}
-                          </td>
-                          <td 
-                            className="p-4 text-sm"
-                            style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
-                          >
-                            {item.questionId}
-                          </td>
-                          <td className="p-4">
-                            <Badge 
-                              variant="outline"
-                              className="text-xs"
-                              style={{ 
-                                borderColor: getIssueTypeColor(item.issueType),
-                                color: getIssueTypeColor(item.issueType),
-                                backgroundColor: `${getIssueTypeColor(item.issueType)}20`
-                              }}
+                            <td
+                              className="p-4 text-sm"
+                              style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                             >
-                              {item.issueType}
-                            </Badge>
-                          </td>
-                          <td className="p-4 text-sm text-white">
-                            <Tooltip>
-                              <TooltipTrigger>
-                                <span>{truncateText(item.issueDescription)}</span>
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                <p>{item.issueDescription}</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </td>
-                          <td className="p-4 text-sm" style={{ color: '#6B7280' }}>
-                            <div className="flex items-center space-x-1">
-                              <Calendar className="h-3 w-3" />
-                              <span>{item.timestamp}</span>
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            {getStatusBadge(item.status)}
-                          </td>
-                          <td className="p-4">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                                  style={{
-                                    color: '#6B7280',
-                                    backgroundColor: 'transparent'
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.color = '#FFFFFF';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.color = '#6B7280';
-                                  }}
-                                >
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent 
-                                align="end"
-                                style={{ 
-                                  backgroundColor: '#1F2937',
-                                  borderColor: '#374151'
+                              {item.flagId}
+                            </td>
+                            <td
+                              className="p-4 text-sm"
+                              style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
+                            >
+                              {item.userId}
+                            </td>
+                            <td
+                              className="p-4 text-sm"
+                              style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
+                            >
+                              {item.questionId}
+                            </td>
+                            <td className="p-4">
+                              <Badge
+                                variant="outline"
+                                className="text-xs"
+                                style={{
+                                  borderColor: getIssueTypeColor(item.issueType),
+                                  color: getIssueTypeColor(item.issueType),
+                                  backgroundColor: `${getIssueTypeColor(item.issueType)}20`
                                 }}
                               >
-                                <DropdownMenuItem 
-                                  onClick={() => handleViewDetails(item)}
-                                  className="text-white cursor-pointer transition-colors duration-200"
-                                  style={{ backgroundColor: 'transparent' }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
+                                {item.issueType}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-sm text-white">
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <span>{truncateText(item.issueDescription)}</span>
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs">
+                                  <p>{item.issueDescription}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </td>
+                            <td className="p-4 text-sm" style={{ color: '#6B7280' }}>
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{item.timestamp}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              {getStatusBadge(item.status)}
+                            </td>
+                            <td className="p-4">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-gray-400 hover:text-white hover:scale-110 transition-all duration-200"
+                                  >
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  style={{
+                                    backgroundColor: '#1F2937',
+                                    borderColor: '#374151'
                                   }}
                                 >
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  View Details
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                  <DropdownMenuItem
+                                    onClick={() => handleViewDetails(item)}
+                                    className="text-white cursor-pointer transition-colors duration-200"
+                                    style={{ backgroundColor: 'transparent' }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'transparent';
+                                    }}
+                                  >
+
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    View Details
+                                  </DropdownMenuItem>
+
+
+                                  {/* <DropdownMenuItem 
                                   onClick={() => handleStatusChange(item.flagId, 'resolved')}
                                   className="cursor-pointer transition-colors duration-200"
                                   style={{ 
@@ -483,8 +502,8 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                                 >
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                   Mark as Resolved
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                </DropdownMenuItem> 
+                                 <DropdownMenuItem 
                                   onClick={() => handleStatusChange(item.flagId, 'in-progress')}
                                   className="cursor-pointer transition-colors duration-200"
                                   style={{ 
@@ -500,8 +519,8 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                                 >
                                   <RefreshCw className="h-4 w-4 mr-2" />
                                   Mark as In Progress
-                                </DropdownMenuItem>
-                                <DropdownMenuItem 
+                                </DropdownMenuItem> 
+                                 <DropdownMenuItem 
                                   onClick={() => handleStatusChange(item.flagId, 'pending')}
                                   className="cursor-pointer transition-colors duration-200"
                                   style={{ 
@@ -517,23 +536,42 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                                 >
                                   <Clock className="h-4 w-4 mr-2" />
                                   Mark as Pending
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                                </DropdownMenuItem> */}
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      setSelectedTicket(item);
+                                      setIsModalOpen(true);
+                                    }}
+                                    className="cursor-pointer text-white transition-colors duration-200"
+                                    style={{ backgroundColor: 'transparent' }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.backgroundColor = 'transparent';
+                                    }}
+                                  >
+                                    <MoreVertical className="h-4 w-4 mr-2" />
+                                    Change Status
+                                  </DropdownMenuItem>
+
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Mobile Cards */}
                 <div className="lg:hidden space-y-4 p-4">
                   {filteredItems.map((item) => (
-                    <Card 
+                    <Card
                       key={item.flagId}
                       className="border transition-all duration-200 hover:shadow-lg"
-                      style={{ 
+                      style={{
                         backgroundColor: '#374151',
                         borderColor: '#4B5563'
                       }}
@@ -541,16 +579,16 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-2">
-                            <span 
+                            <span
                               className="text-sm"
                               style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                             >
                               {item.flagId}
                             </span>
-                            <Badge 
+                            <Badge
                               variant="outline"
                               className="text-xs"
-                              style={{ 
+                              style={{
                                 borderColor: getIssueTypeColor(item.issueType),
                                 color: getIssueTypeColor(item.issueType),
                                 backgroundColor: `${getIssueTypeColor(item.issueType)}20`
@@ -561,19 +599,19 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                           </div>
                           {getStatusBadge(item.status)}
                         </div>
-                        
+
                         <div className="space-y-2 mb-3">
                           <div className="flex items-center space-x-2 text-sm">
-                            <User 
-                              className="h-3 w-3" 
+                            <User
+                              className="h-3 w-3"
                               style={{ color: '#6B7280' }}
                             />
                             <span style={{ color: '#9CA3AF' }}>User: {item.userId}</span>
                             <span style={{ color: '#9CA3AF' }}>Question: {item.questionId}</span>
                           </div>
                           <p className="text-sm text-white">{item.issueDescription}</p>
-                          <div 
-                            className="flex items-center space-x-1 text-xs" 
+                          <div
+                            className="flex items-center space-x-1 text-xs"
                             style={{ color: '#6B7280' }}
                           >
                             <Calendar className="h-3 w-3" />
@@ -582,7 +620,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                         </div>
 
                         <div className="flex items-center space-x-2">
-                          <Button 
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleViewDetails(item)}
@@ -596,10 +634,10 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                             <Eye className="h-3 w-3 mr-1" />
                             Details
                           </Button>
-                          
+
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button 
+                              <Button
                                 size="sm"
                                 variant="outline"
                                 className="transition-all duration-200 hover:scale-105"
@@ -613,14 +651,14 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                                 Actions
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent 
+                            <DropdownMenuContent
                               align="end"
-                              style={{ 
+                              style={{
                                 backgroundColor: '#1F2937',
                                 borderColor: '#374151'
                               }}
                             >
-                              <DropdownMenuItem 
+                              {/* <DropdownMenuItem 
                                 onClick={() => handleStatusChange(item.flagId, 'resolved')}
                                 className="cursor-pointer transition-colors duration-200"
                                 style={{ 
@@ -670,7 +708,25 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                               >
                                 <Clock className="h-4 w-4 mr-2" />
                                 Mark as Pending
+                              </DropdownMenuItem> */}
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedTicket(item);
+                                  setIsModalOpen(true);
+                                }}
+                                className="cursor-pointer text-white transition-colors duration-200"
+                                style={{ backgroundColor: 'transparent' }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                <MoreVertical className="h-4 w-4 mr-2" />
+                                Change Status
                               </DropdownMenuItem>
+
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
@@ -683,6 +739,33 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
           )}
         </main>
       </div>
+
+      {/* Modal for updating ticket status */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-gray-800 text-white border border-gray-700 rounded-xl">
+          <DialogHeader>
+            <DialogTitle>Update Ticket Status</DialogTitle>
+          </DialogHeader>
+          <p className="text-gray-400 mb-4">
+            Choose a new status for <strong>{selectedTicket?.flagId}</strong>
+          </p>
+          <DialogFooter className="flex justify-end gap-3">
+            <Button
+              onClick={() => selectedTicket && handleStatusChange(selectedTicket.flagId, 'in-progress')}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              In Progress
+            </Button>
+            <Button
+              onClick={() => selectedTicket && handleStatusChange(selectedTicket.flagId, 'resolved')}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Closed
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </TooltipProvider>
   );
 }
