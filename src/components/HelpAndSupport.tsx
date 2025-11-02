@@ -9,7 +9,7 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
-import { 
+import {
   ArrowLeft,
   Mail,
   Phone,
@@ -44,7 +44,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
     issueType: '',
     description: ''
   });
-  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
+  const [formErrors, setFormErrors] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
@@ -102,48 +102,65 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   };
 
   const validateForm = () => {
-    const errors: {[key: string]: string} = {};
-    
+    const errors: { [key: string]: string } = {};
+
     if (!formData.subject.trim()) {
       errors.subject = 'Subject is required';
     }
-    
+
     if (!formData.issueType) {
       errors.issueType = 'Please select an issue type';
     }
-    
+
     if (!formData.description.trim()) {
       errors.description = 'Description is required';
     } else if (formData.description.trim().length < 10) {
       errors.description = 'Description must be at least 10 characters';
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+
+    if (!validateForm()) return;
+
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+
+      const response = await fetch("http://localhost:3001/api/support", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId,
+          issueType: formData.issueType,
+          message: `${formData.subject}\n\n${formData.description}`, // combine subject + description
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to create ticket");
+
+      toast.success("Support ticket submitted successfully!");
       setShowSuccessAlert(true);
-      setFormData({ subject: '', issueType: '', description: '' });
-      toast.success('Support ticket submitted successfully!');
-      
-      // Hide success alert after 5 seconds
-      setTimeout(() => {
-        setShowSuccessAlert(false);
-      }, 5000);
-    }, 2000);
+      setFormData({ subject: "", issueType: "", description: "" });
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to submit support ticket.");
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setShowSuccessAlert(false), 5000);
+    }
   };
+
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -161,9 +178,9 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header 
+      <header
         className="border-b"
-        style={{ 
+        style={{
           backgroundColor: '#1F2937',
           borderColor: '#374151'
         }}
@@ -174,18 +191,18 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
               <h1 className="text-2xl md:text-3xl tracking-wide mb-2 text-white">
                 GET HELP &amp; SUPPORT
               </h1>
-              <p 
+              <p
                 className="text-sm md:text-base"
                 style={{ color: '#9CA3AF' }}
               >
                 Need assistance? We're here to help.
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               {/* Back to Dashboard - Desktop */}
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={onBackToDashboard}
                 className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
                 style={{
@@ -204,12 +221,12 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
       <main className="container mx-auto px-6 py-8">
         <div className="max-w-7xl mx-auto space-y-8">
-          
+
           {/* Success Alert */}
           {showSuccessAlert && (
-            <Alert 
+            <Alert
               className="border"
-              style={{ 
+              style={{
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 borderColor: '#10B981'
               }}
@@ -223,18 +240,18 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
           {/* Contact Information and Support Form */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+
             {/* Contact Information Block */}
             <div className="lg:col-span-1">
-              <Card 
+              <Card
                 className="border transition-all duration-200 hover:shadow-lg"
-                style={{ 
+                style={{
                   backgroundColor: '#1F2937',
                   borderColor: '#374151'
                 }}
               >
                 <CardHeader>
-                  <CardTitle 
+                  <CardTitle
                     className="flex items-center space-x-2"
                     style={{ color: '#9CA3AF' }}
                   >
@@ -243,7 +260,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  
+
                   {/* Email Support */}
                   <div className="flex items-start space-x-3">
                     <Mail className="h-5 w-5 mt-1" style={{ color: '#3B82F6' }} />
@@ -256,7 +273,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Phone Support */}
                   <div className="flex items-start space-x-3">
                     <Phone className="h-5 w-5 mt-1" style={{ color: '#10B981' }} />
@@ -272,7 +289,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                       </p>
                     </div>
                   </div>
-                  
+
                   {/* Office Address */}
                   <div className="flex items-start space-x-3">
                     <MapPin className="h-5 w-5 mt-1" style={{ color: '#EF4444' }} />
@@ -287,22 +304,22 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                       </div>
                     </div>
                   </div>
-                  
+
                 </CardContent>
               </Card>
             </div>
 
             {/* Support Form */}
             <div className="lg:col-span-2">
-              <Card 
+              <Card
                 className="border transition-all duration-200 hover:shadow-lg"
-                style={{ 
+                style={{
                   backgroundColor: '#1F2937',
                   borderColor: '#374151'
                 }}
               >
                 <CardHeader>
-                  <CardTitle 
+                  <CardTitle
                     className="flex items-center space-x-2"
                     style={{ color: '#9CA3AF' }}
                   >
@@ -312,10 +329,10 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
-                    
+
                     {/* Subject Field */}
                     <div className="space-y-2">
-                      <Label 
+                      <Label
                         htmlFor="subject"
                         style={{ color: '#9CA3AF' }}
                       >
@@ -327,7 +344,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                         onChange={(e) => handleInputChange('subject', e.target.value)}
                         placeholder="Brief description of your issue"
                         className={`transition-all duration-200 hover:shadow-md focus:shadow-lg text-white ${formErrors.subject ? 'border-red-500' : ''}`}
-                        style={{ 
+                        style={{
                           backgroundColor: '#374151',
                           borderColor: formErrors.subject ? '#EF4444' : '#4B5563',
                           color: '#FFFFFF'
@@ -343,19 +360,19 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
                     {/* Issue Type Dropdown */}
                     <div className="space-y-2">
-                      <Label 
+                      <Label
                         htmlFor="issueType"
                         style={{ color: '#9CA3AF' }}
                       >
                         Issue Type *
                       </Label>
-                      <Select 
-                        value={formData.issueType} 
+                      <Select
+                        value={formData.issueType}
                         onValueChange={(value) => handleInputChange('issueType', value)}
                       >
-                        <SelectTrigger 
+                        <SelectTrigger
                           className={`transition-all duration-200 hover:shadow-md text-white ${formErrors.issueType ? 'border-red-500' : ''}`}
-                          style={{ 
+                          style={{
                             backgroundColor: '#374151',
                             borderColor: formErrors.issueType ? '#EF4444' : '#4B5563',
                             color: '#FFFFFF'
@@ -383,7 +400,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
                     {/* Description Field */}
                     <div className="space-y-2">
-                      <Label 
+                      <Label
                         htmlFor="description"
                         style={{ color: '#9CA3AF' }}
                       >
@@ -396,7 +413,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                         placeholder="Please provide detailed information about your issue..."
                         rows={5}
                         className={`transition-all duration-200 hover:shadow-md focus:shadow-lg text-white ${formErrors.description ? 'border-red-500' : ''}`}
-                        style={{ 
+                        style={{
                           backgroundColor: '#374151',
                           borderColor: formErrors.description ? '#EF4444' : '#4B5563',
                           color: '#FFFFFF'
@@ -411,8 +428,8 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                     </div>
 
                     {/* Submit Button */}
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={isSubmitting}
                       className="w-full flex items-center space-x-2 text-white transition-all duration-200 hover:shadow-lg hover:scale-105"
                       style={{ backgroundColor: '#10B981' }}
@@ -436,15 +453,15 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
           </div>
 
           {/* Support Status Table */}
-          <Card 
+          <Card
             className="border transition-all duration-200 hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151'
             }}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2"
                 style={{ color: '#9CA3AF' }}
               >
@@ -473,10 +490,10 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                   </thead>
                   <tbody>
                     {supportTickets.map((ticket, index) => (
-                      <tr 
+                      <tr
                         key={ticket.id}
                         className="border-b transition-colors duration-200"
-                        style={{ 
+                        style={{
                           borderColor: '#374151',
                           backgroundColor: index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent'
                         }}
@@ -508,15 +525,15 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
           </Card>
 
           {/* Quick Help Tips */}
-          <Card 
+          <Card
             className="border transition-all duration-200 hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151'
             }}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2"
                 style={{ color: '#9CA3AF' }}
               >
@@ -527,10 +544,10 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {quickHelpTips.map((tip, index) => (
-                  <div 
+                  <div
                     key={index}
                     className="p-4 rounded-lg border transition-all duration-200 hover:shadow-md"
-                    style={{ 
+                    style={{
                       backgroundColor: '#374151',
                       borderColor: '#4B5563'
                     }}
@@ -556,7 +573,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
       {/* Mobile Back Button - Fixed Bottom */}
       <div className="md:hidden fixed bottom-6 left-6 right-6">
-        <Button 
+        <Button
           onClick={onBackToDashboard}
           className="w-full flex items-center justify-center space-x-2 shadow-lg transition-all duration-200 hover:scale-105"
           style={{

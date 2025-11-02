@@ -52,20 +52,22 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Import database helper
 const { query } = require('./config/database');
-const {authenticateToken, checkLogin} = require('./middleware/auth');
+const { authenticateToken } = require('./middleware/auth');
+const checkLogin = require('./middleware/checkLogin');
 
 // Register modular routes
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/users', require('./routes/users'));
+// app.use('/api/users', require('./routes/users')); // REDUNDANT for now
 app.use('/api/profile', require('./routes/userProfile'));
-app.use('/api/interviews', require('./routes/interviews'));
+// app.use('/api/interviews', require('./routes/interviews')); // REDUNDANT for now
 app.use('/api/questions', require('./routes/questions'));
-app.use('/api/sessions', require('./routes/sessions'));
+// app.use('/api/sessions', require('./routes/sessions')); // REDUNDANT for now
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/interview', require('./routes/interviewSetup'));
-app.use('/api/user', authenticateToken, checkLogin);
-app.use('/api/interview', authenticateToken, checkLogin);
-app.use('/api/sessions', authenticateToken, checkLogin);
+app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
+app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
+app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
+app.use('/api/support', require('./routes/supportTicket'));
 
 // ==============================
 // Test & Health Routes

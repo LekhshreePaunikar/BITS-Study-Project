@@ -1,4 +1,4 @@
-// root/backend/middleware/auth.js
+// root/backend/middleware/checkLogin.js
 module.exports = function checkLogin(req, res, next) {
     if (!req.user) {
       return res.status(401).json({

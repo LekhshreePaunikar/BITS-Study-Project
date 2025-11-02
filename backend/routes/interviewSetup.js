@@ -3,7 +3,8 @@
 const express = require('express');
 const router = express.Router();
 const { query } = require('../config/database');
-const { authenticateToken, checkLogin } = require('../middleware/auth');
+const { authenticateToken } = require('../middleware/auth');
+const checkLogin = require('../middleware/checkLogin');
 
 // -----------------------------------------------------------
 // POST: Create / Save Interview Setup (Session-based values)
