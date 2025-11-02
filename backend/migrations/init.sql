@@ -26,18 +26,18 @@ EXCEPTION WHEN duplicate_object THEN null; END $$;
 -- CORE USER MANAGEMENT TABLES
 -- ==============================
 
-CREATE TABLE IF NOT EXISTS "User" (
-    "UserID" SERIAL PRIMARY KEY,
-    "Name" VARCHAR(100) DEFAULT 'New User',
-    "Email" VARCHAR(120) UNIQUE,
-    "PasswordHash" TEXT NOT NULL,
-    "IsAdmin" BOOLEAN DEFAULT FALSE NOT NULL,
-    "IsBlacklisted" BOOLEAN DEFAULT FALSE NOT NULL,
-    "Education" TEXT,
-    "Experience" TEXT,
-    "PreferredRoles" TEXT[],
-    "PreferredLanguages" TEXT[],
-    "CreatedAt" TIMESTAMP DEFAULT NOW() NOT NULL
+CREATE TABLE users (
+  userid SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(120) UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  education TEXT,
+  experience TEXT,
+  preferred_roles TEXT[],
+  preferred_languages TEXT[],
+  created_at TIMESTAMP DEFAULT now(),
+  IsAdmin BOOLEAN DEFAULT false NOT NULL,
+  IsBlacklisted BOOLEAN DEFAULT false NOT NULL
 );
 
 -- ==============================
