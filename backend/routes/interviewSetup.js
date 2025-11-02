@@ -11,11 +11,11 @@ const checkLogin = require('../middleware/checkLogin');
 // -----------------------------------------------------------
 router.post('/setup-session', authenticateToken, checkLogin, async (req, res) => {
   try {
-    // Pull user details from active session (set by authenticateToken)
-    const userId = req.user.id;        // numeric user ID from DB
-    const username = req.user.username; // username from session
+    // Pull user details directly from verified JWT session
+    const userId = req.user.userid;    // DB user ID (from auth middleware)
+    const username = req.user.name;    // user's display name
 
-    // Extract user input (if any)
+    // Extract incoming optional fields
     const {
       mode,
       questionSource,
@@ -25,7 +25,7 @@ router.post('/setup-session', authenticateToken, checkLogin, async (req, res) =>
       preparationTime
     } = req.body;
 
-    //  Apply defaults + use "null" explicitly for missing values
+    // Apply defaults and explicitly set "null" where missing
     const finalConfig = {
       userId: userId,
       username: username || 'Unknown User',
@@ -38,7 +38,7 @@ router.post('/setup-session', authenticateToken, checkLogin, async (req, res) =>
       createdAt: new Date().toISOString()
     };
 
-    //  Optional: persist to DB if the table exists
+    // Optional: Save to DB if table exists
     // await query(`
     //   INSERT INTO interview_setup 
     //     (user_id, mode, question_source, interview_level, focus_area, specific_topics, preparation_time, created_at)
@@ -54,7 +54,7 @@ router.post('/setup-session', authenticateToken, checkLogin, async (req, res) =>
     //   finalConfig.createdAt
     // ]);
 
-    //  Send response including session-based userId
+    // Send the session-based response
     return res.status(201).json({
       message: 'Interview setup saved successfully',
       data: finalConfig
@@ -69,4 +69,5 @@ router.post('/setup-session', authenticateToken, checkLogin, async (req, res) =>
 });
 
 module.exports = router;
+
 

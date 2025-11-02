@@ -20,7 +20,8 @@ const authenticateToken = async (req, res, next) => {
     
     // Get user from database to ensure they still exist and are active
     const userResult = await query(
-      'SELECT id, username, email, is_admin, is_active FROM users WHERE id = $1',
+      `SELECT userid, name, email, "IsAdmin" AS is_admin, "IsBlacklisted" AS is_blacklisted 
+       FROM users WHERE userid = $1`,
       [decoded.userId]
     );
 
@@ -32,15 +33,21 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const user = userResult.rows[0];
-
-    if (!user.is_active) {
+// if user is blacklisted, block access
+    if (user.IsBlacklisted) {
       return res.status(401).json({ 
         message: 'Account is deactivated',
         error: 'User account is not active'
       });
     }
 
-    req.user = user;
+    req.user = {
+      id: user.userid,
+      username: user.name,
+      email: user.email,
+      isAdmin: user.IsAdmin
+    };
+
     next();
   } catch (error) {
     console.error('Token verification error:', error);
@@ -135,7 +142,8 @@ const optionalAuth = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     const userResult = await query(
-      'SELECT id, username, email, is_admin, is_active FROM users WHERE id = $1',
+      `SELECT userid, name, email, "IsAdmin" AS is_admin, "IsBlacklisted" AS is_blacklisted
+       FROM users WHERE userid = $1`,
       [decoded.userId]
     );
 
