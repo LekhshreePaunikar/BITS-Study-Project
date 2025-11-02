@@ -1,3 +1,5 @@
+// root/backend/scripts/setupDatabase.js
+
 const { query, testConnection } = require('../config/database');
 
 // SQL statements to create all necessary tables

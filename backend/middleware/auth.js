@@ -1,3 +1,5 @@
+// root/backend/middleware/auth.js
+
 const jwt = require('jsonwebtoken');
 const { query } = require('../config/database');
 

@@ -1,3 +1,4 @@
+-- root/backend/migrations/init.sql
 -- ==============================+
 -- ENUM DEFINITIONS
 -- ==============================+

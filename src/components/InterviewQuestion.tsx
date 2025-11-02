@@ -1,3 +1,5 @@
+// root/src/components/InterviewQuestion.tsx
+
 import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";

@@ -1,3 +1,5 @@
+// root/backend/services/aiService.js
+
 const OpenAI = require('openai');
 const dotenv = require('dotenv');
 const path = require('path');

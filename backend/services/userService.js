@@ -1,4 +1,5 @@
-// backend/services/userService.js
+// root/backend/services/userService.js
+
 const { query } = require('../config/database');
 
 // ==============================

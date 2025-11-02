@@ -1,4 +1,5 @@
-// backend/routes/userProfile.js
+// root/backend/routes/userProfile.js
+
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');

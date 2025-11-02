@@ -1,3 +1,5 @@
+// root/src/App.tsx
+
 import { useState, useEffect } from 'react';
 import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';

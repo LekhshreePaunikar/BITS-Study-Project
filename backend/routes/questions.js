@@ -1,3 +1,5 @@
+// root/backend/routes/questions.ja
+
 const express = require('express');
 const { query } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');

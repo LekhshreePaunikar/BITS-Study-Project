@@ -1,3 +1,5 @@
+// root/backend/routes/auth.js
+
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');

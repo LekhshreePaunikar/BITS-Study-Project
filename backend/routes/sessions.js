@@ -1,3 +1,5 @@
+// root/backend/routes/sessions.js
+
 const express = require('express');
 const { query } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
