@@ -1,22 +1,27 @@
-// root/backend/scripts/seed.js
+// backend/scripts/seed.js
+
 /**
  * Seeds the "init.sql" schema with:
  * - 1 admin + 10 users
  * - 5 roles, 5 skills, 5 programming languages
  * - 1 UserProfilePreference per user (role+skill+lang)
- * - 1 Resume per user (null/empty optional fields)
- * - 2 Evaluation models (ChatGPT, Gemini)
- * - 10 Support Tickets per (non-admin) user
+ * - 1 Resume per user (NULL optional fields)
+ * - Evaluation models: ChatGPT, Gemini
+ * - 1 Support Ticket per user (admin included) with correct UserID
+ *
+ * PKs start from 1 each run via TRUNCATE ... RESTART IDENTITY CASCADE
  * 
  * Install deps (if not already) using command in the terminal: npm i bcryptjs pg
- * to run the script use: node "backend/scripts/seed.js"
- * 
- * Uses DATABASE_URL from .env.local (try to keep the HOST, PORT, DB and URL sam. use your own pgAdmin creds):
- * --> POSTGRES_USER=postgres
- * --> POSTGRES_PASSWORD=postgres
- * --> POSTGRES_HOST=localhost
- * --> POSTGRES_PORT=5432
- * --> POSTGRES_DB=BITS_Project
+ * Run the script using:
+ *   npm i pg dotenv bcryptjs   (if not installed yet)
+ *   node "backend/scripts/seed.js"
+ *
+ * Uses DATABASE_URL from .env.local (try to keep the HOST, PORT, DB and URL same. use your own pgAdmin creds): 
+ * --> POSTGRES_USER=postgres 
+ * --> POSTGRES_PASSWORD=postgres 
+ * --> POSTGRES_HOST=localhost 
+ * --> POSTGRES_PORT=5432 
+ * --> POSTGRES_DB=BITS_Project 
  * --> DATABASE_URL=postgresql://postgres:postgres@localhost:5432/BITS_Project
  */
 
@@ -50,49 +55,46 @@ async function seed() {
   await withTx(async (db) => {
     log('Connected. Seeding…');
 
-    // --- Clean only the tables we fill (order matters due to FKs)
-    await db.query(`DELETE FROM "FlaggedContent";`);
-    await db.query(`DELETE FROM "SupportTicket";`);
-    await db.query(`DELETE FROM "PerformanceReport";`);
-    await db.query(`DELETE FROM "Feedback";`);
-    await db.query(`DELETE FROM "SessionHistory";`);
-    await db.query(`DELETE FROM "Answer";`);
-    await db.query(`DELETE FROM "Session";`);
-    await db.query(`DELETE FROM "QuestionResponseMode";`);
-    await db.query(`DELETE FROM "DynamicQuestion";`);
-    await db.query(`DELETE FROM "StaticQuestion";`);
-    await db.query(`DELETE FROM "BaseQuestion";`);
-    await db.query(`DELETE FROM "EvaluationModel";`);
-    await db.query(`DELETE FROM "Resume";`);
-    await db.query(`DELETE FROM "UserProfilePreference";`);
-    await db.query(`DELETE FROM "ProgrammingLanguage";`);
-    await db.query(`DELETE FROM "Skill";`);
-    await db.query(`DELETE FROM "Role";`);
-    await db.query(`DELETE FROM "User";`);
+    // ---- Clean slate: TRUNCATE all related tables and reset identity to 1
+    await db.query(`
+      TRUNCATE TABLE
+        "FlaggedContent",
+        "SupportTicket",
+        "PerformanceReport",
+        "Feedback",
+        "SessionHistory",
+        "Answer",
+        "Session",
+        "QuestionResponseMode",
+        "DynamicQuestion",
+        "StaticQuestion",
+        "BaseQuestion",
+        "EvaluationModel",
+        "Resume",
+        "UserProfilePreference",
+        "ProgrammingLanguage",
+        "Skill",
+        "Role",
+        "User"
+      RESTART IDENTITY CASCADE;
+    `);
 
     // --- 1) Users
     const plainPassword = '123456';
     const passwordHash = await bcrypt.hash(plainPassword, 10);
 
-    // insert admin
+    // Admin: only the specified fields; others remain NULL; created_at auto
     const adminRes = await db.query(
       `INSERT INTO "User"
-    ("name","email","password_hash","isAdmin","isBlacklisted")
-   VALUES
-    ($1,$2,$3,$4,$5)
-   RETURNING "userID","name"`,
-      [
-        'admin',
-        'admin@example.com',
-        passwordHash,
-        true,
-        false,
-      ]
+        ("name","email","password_hash","isAdmin","isBlacklisted")
+       VALUES
+        ($1,$2,$3,$4,$5)
+       RETURNING "userID","name"`,
+      ['admin', 'admin@example.com', passwordHash, true, false]
     );
     const admin = adminRes.rows[0];
 
-
-    // insert 10 users
+    // 10 normal users
     const users = [];
     for (let i = 1; i <= 10; i++) {
       const r = await db.query(
@@ -180,7 +182,7 @@ async function seed() {
 
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-    // --- 5) UserProfilePreference (1 per user, include admin too)
+    // --- 5) UserProfilePreference (1 per user, include admin)
     for (const u of [admin, ...users]) {
       const role = pick(roles);
       const skill = pick(skills);
@@ -208,29 +210,27 @@ async function seed() {
     log(`Inserted resumes: ${users.length + 1}`);
 
     // --- 7) Evaluation models
-    await db.query(`INSERT INTO "EvaluationModel" ("modelName","description") VALUES ($1,$2)`, [
-      'ChatGPT',
-      'OpenAI ChatGPT model',
-    ]);
-    await db.query(`INSERT INTO "EvaluationModel" ("modelName","description") VALUES ($1,$2)`, [
-      'Gemini',
-      'Google Gemini model',
-    ]);
+    await db.query(
+      `INSERT INTO "EvaluationModel" ("modelName","description") VALUES ($1,$2)`,
+      ['ChatGPT', 'OpenAI ChatGPT model']
+    );
+    await db.query(
+      `INSERT INTO "EvaluationModel" ("modelName","description") VALUES ($1,$2)`,
+      ['Gemini', 'Google Gemini model']
+    );
     log('Inserted evaluation models: ChatGPT, Gemini');
 
-    // --- 8) Support tickets (10 per non-admin user)
+    // --- 8) Support tickets: exactly 1 per user (admin included)
     const issueTypes = ['Login', 'Billing', 'Bug', 'Feature Request', 'Other'];
-    for (const u of users) {
-      for (let i = 1; i <= 10; i++) {
-        const it = pick(issueTypes);
-        await db.query(
-          `INSERT INTO "SupportTicket" ("UserID","IssueType","Message","Status","CreatedAt","UpdatedAt")
-           VALUES ($1,$2,$3,'open', NOW(), NOW())`,
-          [u.userID, it, `Dummy ${it} ticket #${i} from ${u.name}`]
-        );
-      }
+    for (const u of [admin, ...users]) {
+      const it = pick(issueTypes);
+      await db.query(
+        `INSERT INTO "SupportTicket" ("UserID","IssueType","Message","Status","CreatedAt","UpdatedAt")
+         VALUES ($1,$2,$3,'open', NOW(), NOW())`,
+        [u.userID, it, `Dummy ${it} ticket from ${u.name}`]
+      );
     }
-    log(`Inserted support tickets: ${users.length * 10}`);
+    log(`Inserted support tickets: ${1 + users.length}`);
 
     log('SEEDING SUCCESSFULLY COMPLETED.');
   });
