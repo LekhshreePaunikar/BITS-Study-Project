@@ -78,11 +78,11 @@ app.get('/api/test-db', async (req, res) => {
   try {
     const result = await query('SELECT NOW() AS current_time');
     res.json({
-      message: '✅ Database connection successful!',
+      message: 'Database connection successful!',
       server_time: result.rows[0].current_time,
     });
   } catch (error) {
-    console.error('❌ Database test failed:', error);
+    console.error('Database test failed:', error);
     res.status(500).json({ error: 'Database test failed' });
   }
 });
