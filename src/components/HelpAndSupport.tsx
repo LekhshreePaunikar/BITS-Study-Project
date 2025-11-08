@@ -9,6 +9,8 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Alert, AlertDescription } from './ui/alert';
+import { supportAPI } from '../utils/api';
+
 import {
   ArrowLeft,
   Mail,
@@ -122,44 +124,34 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
 
-    if (!validateForm()) return;
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-    setIsSubmitting(true);
+  setIsSubmitting(true);
+  try {
+    const res = await supportAPI.createTicket({
+      subject: formData.subject,
+      issueType: formData.issueType,
+      description: formData.description,
+    });
 
-    try {
-      const token = localStorage.getItem("token");
-      const userId = localStorage.getItem("userId");
-
-      const response = await fetch("http://localhost:3001/api/support", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId,
-          issueType: formData.issueType,
-          message: `${formData.subject}\n\n${formData.description}`, // combine subject + description
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to create ticket");
-
-      toast.success("Support ticket submitted successfully!");
-      setShowSuccessAlert(true);
-      setFormData({ subject: "", issueType: "", description: "" });
-    } catch (error: any) {
-      console.error(error);
-      toast.error(error.message || "Failed to submit support ticket.");
-    } finally {
-      setIsSubmitting(false);
-      setTimeout(() => setShowSuccessAlert(false), 5000);
-    }
-  };
+    toast.success(`Support ticket submitted! #${res?.ticket?.TicketID ?? ''}`);
+    setShowSuccessAlert(true);
+    setFormData({ subject: '', issueType: '', description: '' });
+  } catch (err: any) {
+    const msg =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.message ||
+      'Failed to submit support ticket.';
+    toast.error(msg);
+  } finally {
+    setIsSubmitting(false);
+    setTimeout(() => setShowSuccessAlert(false), 5000);
+  }
+};
 
 
   const getStatusBadge = (status: string) => {
@@ -381,14 +373,13 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                           <SelectValue placeholder="Select an issue type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="login-issue">Login Issue</SelectItem>
-                          <SelectItem value="feedback">General Feedback</SelectItem>
-                          <SelectItem value="bug-report">Bug Report</SelectItem>
-                          <SelectItem value="resume-upload">Resume Upload Problem</SelectItem>
-                          <SelectItem value="interview-technical">Interview Technical Issue</SelectItem>
-                          <SelectItem value="performance-issue">Performance Issue</SelectItem>
-                          <SelectItem value="others">Others</SelectItem>
+                          <SelectItem value="Login">Login</SelectItem>
+                          <SelectItem value="Billing">Billing</SelectItem>
+                          <SelectItem value="Bug">Bug</SelectItem>
+                          <SelectItem value="Feature Request">Feature Request</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
                         </SelectContent>
+
                       </Select>
                       {formErrors.issueType && (
                         <p className="text-sm flex items-center space-x-1" style={{ color: '#EF4444' }}>
