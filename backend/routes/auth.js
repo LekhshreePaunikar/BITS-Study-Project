@@ -20,68 +20,69 @@ router.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({
         message: 'Missing required fields',
-        error: 'Username, email, and password are required'
+        error: 'Username, email, and password are required',
       });
     }
 
     if (!validator.isEmail(email)) {
       return res.status(400).json({
         message: 'Invalid email format',
-        error: 'Please provide a valid email address'
+        error: 'Please provide a valid email address',
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
         message: 'Password too short',
-        error: 'Password must be at least 6 characters long'
+        error: 'Password must be at least 6 characters long',
       });
     }
 
     // Check if user already exists
     const existingUser = await query(
-      'SELECT userid FROM users WHERE email = $1 OR name = $2',
+      `SELECT "UserID" FROM "User" WHERE "Email" = $1 OR "Name" = $2`,
       [email, username]
     );
 
     if (existingUser.rows.length > 0) {
       return res.status(409).json({
         message: 'User already exists',
-        error: 'Email or username is already taken'
+        error: 'Email or username is already taken',
       });
     }
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create new normal user (non-admin by default)
     const newUser = await query(
-      `INSERT INTO users (name, email, password_hash)
-       VALUES ($1, $2, $3)
-       RETURNING userid, name, email, created_at`,
-      [username, email, passwordHash]
+      `INSERT INTO "User" ("Name", "Email", "Password_Hash", "Is_Admin", "Is_Blacklisted")
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING "UserID", "Name", "Email", "Created_At", "Is_Admin"`,
+      [username, email, passwordHash, false, false]
     );
 
     const user = newUser.rows[0];
 
-    // Generate token
-    const token = generateToken(user.userid, user.name, user.email, false);
+    // Generate JWT token (include admin flag)
+    const token = generateToken(user.UserID, user.Name, user.Email, user.Is_Admin);
 
     res.status(201).json({
       message: 'User registered successfully',
       user: {
-        id: user.userid,
-        username: user.name,
-        email: user.email,
-        createdAt: user.created_at
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        createdAt: user.Created_At,
+        isAdmin: user.Is_Admin,
       },
-      token
+      token,
     });
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({
       message: 'Registration failed',
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -96,50 +97,62 @@ router.post('/login', async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         message: 'Missing credentials',
-        error: 'Email and password are required'
+        error: 'Email and password are required',
       });
     }
 
+    // Fetch user by email
     const userResult = await query(
-      `SELECT userid, name, email, password_hash 
-       FROM users 
-       WHERE email = $1`,
+      `SELECT "UserID", "Name", "Email", "Password_Hash", "Is_Admin", "Is_Blacklisted"
+       FROM "User"
+       WHERE "Email" = $1`,
       [email]
     );
 
     if (userResult.rows.length === 0) {
       return res.status(401).json({
         message: 'Invalid credentials',
-        error: 'Email or password is incorrect'
+        error: 'Email or password is incorrect',
       });
     }
 
     const user = userResult.rows[0];
-    const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
-    if (!isValidPassword) {
-      return res.status(401).json({
-        message: 'Invalid credentials',
-        error: 'Email or password is incorrect'
+    // Block blacklisted users
+    if (user.Is_Blacklisted) {
+      return res.status(403).json({
+        message: 'Account disabled',
+        error: 'Your account has been blacklisted. Contact support.',
       });
     }
 
-    const token = generateToken(user.userid, user.name, user.email, false);
+    // Validate password
+    const isValidPassword = await bcrypt.compare(password, user.Password_Hash);
+    if (!isValidPassword) {
+      return res.status(401).json({
+        message: 'Invalid credentials',
+        error: 'Email or password is incorrect',
+      });
+    }
+
+    // Generate token with admin flag
+    const token = generateToken(user.UserID, user.Name, user.Email, user.Is_Admin);
 
     res.json({
       message: 'Login successful',
       user: {
-        id: user.userid,
-        username: user.name,
-        email: user.email
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        isAdmin: user.Is_Admin,
       },
-      token
+      token,
     });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
       message: 'Login failed',
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
@@ -150,14 +163,16 @@ router.post('/login', async (req, res) => {
 router.get('/me', authenticateToken, async (req, res) => {
   try {
     const userResult = await query(
-      `SELECT userid, name, email, created_at FROM users WHERE userid = $1`,
+      `SELECT "UserID", "Name", "Email", "Created_At", "Is_Admin", "Is_Blacklisted"
+       FROM "User"
+       WHERE "UserID" = $1`,
       [req.user.id]
     );
 
     if (userResult.rows.length === 0) {
       return res.status(404).json({
         message: 'User not found',
-        error: 'User profile not found'
+        error: 'User profile not found',
       });
     }
 
@@ -165,17 +180,19 @@ router.get('/me', authenticateToken, async (req, res) => {
 
     res.json({
       user: {
-        id: user.userid,
-        username: user.name,
-        email: user.email,
-        createdAt: user.created_at
-      }
+        id: user.UserID,
+        username: user.Name,
+        email: user.Email,
+        createdAt: user.Created_At,
+        isAdmin: user.Is_Admin,
+        isBlacklisted: user.Is_Blacklisted,
+      },
     });
   } catch (error) {
     console.error('Get profile error:', error);
     res.status(500).json({
       message: 'Failed to get user profile',
-      error: 'Internal server error'
+      error: 'Internal server error',
     });
   }
 });
