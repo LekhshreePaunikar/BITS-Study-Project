@@ -366,7 +366,7 @@ export const supportAPI = {
    * shape: { subject: string, issueType: 'Login'|'Billing'|'Bug'|'Feature Request'|'Other', description: string }
    */
   createTicket: async ({ subject, issueType, description }) => {
-    const response = await api.post('/support', { subject, issueType, description });
+    const response = await api.post('/support-ticket', { subject, issueType, description });
     return response.data;
   },
 };

@@ -8,6 +8,12 @@ const { authenticateToken, requireAdmin } = require('../middleware/auth');
 
 const checkLogin = require('../middleware/checkLogin');
 
+console.log('supportTicket.js loaded');
+router.get('/test', (req, res) => {
+  res.json({ message: 'Support ticket route reached ✅' });
+});
+
+
 // ================================================
 // POST /api/support
 // Create a new support ticket for logged-in, non-admin, non-blacklisted users
@@ -39,9 +45,9 @@ router.post('/', authenticateToken, checkLogin, async (req, res) => {
     // Insert row with next TicketID, Status=open, timestamps = NOW()
     const insertQuery = `
       INSERT INTO "SupportTicket"
-        ("UserID", "IssueType", "Message", "Status", "CreatedAt", "UpdatedAt")
+        (user_id, issue_type, message, status, created_at, updated_at)
       VALUES ($1, $2, $3, 'open', NOW(), NOW())
-      RETURNING "TicketID", "UserID", "IssueType", "Message", "Status", "CreatedAt", "UpdatedAt";
+      RETURNING ticket_id, user_id, issue_type, message, status, created_at, updated_at;
     `;
     const result = await query(insertQuery, [userId, issueType, message]);
 
@@ -78,9 +84,9 @@ router.patch('/:ticketId/status', authenticateToken, requireAdmin, async (req, r
     // Update DB
     const updateQuery = `
       UPDATE "SupportTicket"
-      SET "Status" = $1, "UpdatedAt" = NOW()
-      WHERE "TicketID" = $2
-      RETURNING "TicketID", "Status", "UpdatedAt";
+      SET status = $1, updated_at = NOW()
+      WHERE ticket_id = $2
+      RETURNING ticket_id, status, updated_at;
     `;
     const result = await query(updateQuery, [status, ticketId]);
 

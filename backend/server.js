@@ -37,7 +37,7 @@ app.use('/api', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
 }));
 
@@ -67,13 +67,13 @@ app.use('/api/interview', require('./routes/interviewSetup'));
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
-app.use('/api/support', require('./routes/supportTicket'));
+app.use('/api/support-ticket', require('./routes/supportTicket'));
 
 // ==============================
 // Test & Health Routes
 // ==============================
 
-// ✅ Database connection test route
+// Database connection test route
 app.get('/api/test-db', async (req, res) => {
   try {
     const result = await query('SELECT NOW() AS current_time');
@@ -102,11 +102,16 @@ app.get('/api/health', (req, res) => {
 
 // Global error handler
 app.use((err, req, res, next) => {
-  console.error('❌ Server Error:', err.stack);
+  console.error('Server Error:', err.stack);
   res.status(500).json({
     message: 'Internal server error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
+});
+
+app.use((req, res, next) => {
+  console.log("Unmatched route:", req.method, req.originalUrl);
+  next();
 });
 
 // Handle undefined routes
