@@ -25,7 +25,7 @@ router.post('/', authenticateToken, checkLogin, async (req, res) => {
     const { subject, issueType, description } = req.body;
 
     // For now, force UserID = 1
-    const userId = 1;
+    const userId = req.user.id; // user id from JWT
 
     // Basic validation
     const validIssueTypes = ['Login', 'Billing', 'Bug', 'Feature Request', 'Other'];
@@ -106,5 +106,35 @@ router.patch('/:ticketId/status', authenticateToken, requireAdmin, async (req, r
     res.status(500).json({ message: 'Internal server error', error: err.message });
   }
 });
+
+// ================================================
+// GET /api/support
+// Fetch all support tickets for the logged-in user
+// ================================================
+router.get('/', authenticateToken, checkLogin, async (req, res) => {
+  try {
+    const userId = req.user.id; // user id from JWT
+
+    const fetchQuery = `
+      SELECT ticket_id AS "TicketID",
+       issue_type AS "IssueType",
+       message AS "Message",
+       status AS "Status",
+       created_at AS "CreatedAt"
+FROM "SupportTicket"
+WHERE user_id = $1
+ORDER BY created_at DESC;
+    `;
+    const result = await query(fetchQuery, [userId]);
+
+    return res.status(200).json({
+      tickets: result.rows
+    });
+  } catch (err) {
+    console.error("Error fetching support tickets:", err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+});
+
 
 module.exports = router;

@@ -29,21 +29,39 @@ api.interceptors.request.use(
   }
 );
 
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response interceptor to handle common errors
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
+    // if token invalid OR expired
     if (error.response?.status === 401) {
-      // Token expired or invalid
+      // ⚠️ DO NOT logout user if request belongs to support ticket
+      if (error.config?.url?.includes('/support-ticket')) {
+        // return error so page stays but no logout happens
+        return Promise.reject(error);
+      }
+
+      // normal case — logout user
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
+
 
 // Authentication API
 export const authAPI = {
@@ -361,12 +379,6 @@ export default api;
 
 // Support API
 export const supportAPI = {
-  /**
-   * Create a support ticket.
-   * shape: { subject: string, issueType: 'Login'|'Billing'|'Bug'|'Feature Request'|'Other', description: string }
-   */
-  createTicket: async ({ subject, issueType, description }) => {
-    const response = await api.post('/support-ticket', { subject, issueType, description });
-    return response.data;
-  },
+  createTicket: (data) => api.post('/support-ticket', data),
+  getTickets: () => api.get('/support-ticket')
 };

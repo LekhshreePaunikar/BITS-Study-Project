@@ -1,6 +1,6 @@
 // root/src/components/HelpAndSupport.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -50,27 +50,23 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
-  // Mock support tickets data
-  const supportTickets: SupportTicket[] = [
-    {
-      id: '#1123',
-      subject: 'Resume not uploading',
-      date: '18 Jul 2025',
-      status: 'resolved'
-    },
-    {
-      id: '#1124',
-      subject: 'Mic not working during interview',
-      date: '19 Jul 2025',
-      status: 'pending'
-    },
-    {
-      id: '#1125',
-      subject: 'Slow performance during evaluation',
-      date: '20 Jul 2025',
-      status: 'in-progress'
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[] | null>(null);
+const [loadingTickets, setLoadingTickets] = useState(true);
+
+useEffect(() => {
+  async function fetchTickets() {
+    try {
+      const res = await supportAPI.getTickets();
+      setSupportTickets(res?.tickets || []);
+    } catch (err) {
+      console.error(err);
+      setSupportTickets([]);
+    } finally {
+      setLoadingTickets(false);
     }
-  ];
+  }
+  fetchTickets();
+}, []);
 
   const quickHelpTips = [
     {
@@ -480,36 +476,41 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </tr>
                   </thead>
                   <tbody>
-                    {supportTickets.map((ticket, index) => (
-                      <tr
-                        key={ticket.id}
-                        className="border-b transition-colors duration-200"
-                        style={{
-                          borderColor: '#374151',
-                          backgroundColor: index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent';
-                        }}
-                      >
-                        <td className="p-3" style={{ color: '#9CA3AF' }}>
-                          {ticket.id}
-                        </td>
-                        <td className="p-3 text-white">
-                          {ticket.subject}
-                        </td>
-                        <td className="p-3" style={{ color: '#9CA3AF' }}>
-                          {ticket.date}
-                        </td>
-                        <td className="p-3">
-                          {getStatusBadge(ticket.status)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
+  {loadingTickets ? (
+    <tr>
+      <td colSpan={4} className="p-4 text-center text-gray-400">
+        Loading tickets...
+      </td>
+    </tr>
+  ) : supportTickets && supportTickets.length > 0 ? (
+    supportTickets.map((ticket, index) => {
+      const [subject] = ticket.Message?.split("||") ?? ["(No subject)"];
+      const formattedDate = new Date(ticket.CreatedAt).toLocaleDateString();
+      return (
+        <tr
+          key={ticket.TicketID}
+          className="border-b"
+          style={{
+            borderColor: '#374151',
+            backgroundColor: index % 2 === 0 ? 'rgba(55,65,81,.2)' : 'transparent'
+          }}
+        >
+          <td className="p-3 text-gray-300">#{ticket.TicketID}</td>
+          <td className="p-3 text-white">{subject}</td>
+          <td className="p-3 text-gray-300">{formattedDate}</td>
+          <td className="p-3">{getStatusBadge(ticket.Status)}</td>
+        </tr>
+      );
+    })
+  ) : (
+    <tr>
+      <td colSpan={4} className="p-4 text-center text-gray-400">
+        🌟 <strong>No tickets generated yet</strong>
+      </td>
+    </tr>
+  )}
+</tbody>
+
                 </table>
               </div>
             </CardContent>
