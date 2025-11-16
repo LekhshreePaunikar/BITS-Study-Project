@@ -322,8 +322,9 @@ router.delete('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (r
         message: 'Invalid user ID',
         error: 'User ID must be a number'
       });
-    }
-
+    }    
+    
+  
     // Soft delete - deactivate account
     const result = await query(
       'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING username',
@@ -347,6 +348,54 @@ router.delete('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (r
       message: 'Failed to deactivate account',
       error: 'Internal server error'
     });
+  }
+});
+
+// ADD SETUP ROUTE HERE (before module.exports)
+router.put('/:id/setup', authenticateToken, requireOwnershipOrAdmin('id'), async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id);
+    const {
+      fullName,
+      email,
+      preferredRole,
+      skills,
+      programmingLanguages,
+      experienceLevel,
+      education,
+      phone,
+      location,
+      hobbies,
+      linkedinProfile,
+      githubProfile,
+      portfolio
+    } = req.body;
+
+    await query(`
+      UPDATE "User"
+      SET 
+        name = $1,
+        email = $2,
+        education = $3,
+        experience = $4,
+        preferred_roles = $5,
+        preferred_languages = $6
+      WHERE user_id = $7
+    `, [
+      fullName,
+      email,
+      education,
+      experienceLevel,
+      skills,                 // TEXT[]
+      programmingLanguages,   // TEXT[]
+      userId
+    ]);
+
+    res.json({ message: "Profile setup saved" });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to save profile" });
   }
 });
 

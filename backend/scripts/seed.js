@@ -114,13 +114,22 @@ async function seed() {
     log(`Inserted users: ${1 + users.length}`);
 
     // Roles
-    const rolesSeed = [
-      ['Frontend', 'Client-side engineering'],
-      ['Backend', 'Server-side engineering'],
-      ['Fullstack', 'End-to-end application development'],
-      ['DevOps', 'Deployment/Infra/CI/CD'],
-      ['Data Engineer', 'Pipelines and data systems'],
-    ];
+    // Roles - full match with frontend
+const rolesSeed = [
+  ['Frontend Developer', 'Client-side engineering'],
+  ['Backend Developer', 'Server-side engineering'],
+  ['Full Stack Developer', 'Both frontend and backend'],
+  ['Cloud Engineer', 'Cloud infrastructure and services'],
+  ['DevOps Engineer', 'CI/CD, automation, infrastructure'],
+  ['Data Scientist', 'Data modeling and analytics'],
+  ['Machine Learning Engineer', 'ML systems and pipelines'],
+  ['Mobile Developer', 'Android/iOS app development'],
+  ['UI/UX Designer', 'Design and user experience'],
+  ['Product Manager', 'Product strategy and planning'],
+  ['Software Architect', 'High-level system design'],
+  ['Quality Assurance Engineer', 'Testing and QA']
+];
+
     const roles = [];
     for (const [role_name, role_description] of rolesSeed) {
       const r = await db.query(
@@ -136,13 +145,25 @@ async function seed() {
     log(`Inserted roles: ${roles.length}`);
 
     // Skills
-    const skillsSeed = [
-      ['DSA', 'Data Structures & Algorithms'],
-      ['AWS', 'Amazon Web Services'],
-      ['AI-ML', 'Artificial Intelligence & Machine Learning'],
-      ['System Design', 'High-level architecture and design'],
-      ['Database', 'SQL/NoSQL design & optimization'],
-    ];
+    // Skills - full match with frontend
+const skillsSeed = [
+  ['UI/UX Design', 'Designing user experiences and interfaces'],
+  ['Data Analytics', 'Analyzing and interpreting complex data'],
+  ['Data Structures & Algorithms', 'Core problem-solving skills'],
+  ['Problem Solving', 'Logical and analytical thinking'],
+  ['System Design', 'High-level architecture and systems'],
+  ['Database Management', 'SQL/NoSQL database design'],
+  ['API Development', 'Building REST/GraphQL APIs'],
+  ['Cloud Computing', 'Cloud services and architectures'],
+  ['Machine Learning', 'ML models and pipelines'],
+  ['Project Management', 'Planning and executing projects'],
+  ['Version Control (Git)', 'Git workflows and tools'],
+  ['Testing & QA', 'Software testing and quality assurance'],
+  ['Agile Methodologies', 'Scrum, Kanban, agile frameworks'],
+  ['Communication Skills', 'Effective team communication'],
+  ['Leadership', 'Team leadership and decision-making']
+];
+
     const skills = [];
     for (const [skill_name, skill_description] of skillsSeed) {
       const r = await db.query(
@@ -158,13 +179,28 @@ async function seed() {
     log(`Inserted skills: ${skills.length}`);
 
     // Programming languages
-    const langsSeed = [
-      ['Python', 'General-purpose scripting language'],
-      ['C++', 'High-performance compiled language'],
-      ['Java', 'JVM-based language for enterprise apps'],
-      ['JavaScript', 'Web language (Node/Browser)'],
-      ['Go', 'Systems & cloud services language'],
-    ];
+    // Programming languages - full match with frontend
+const langsSeed = [
+  ['JavaScript', 'Web and backend language'],
+  ['Python', 'General-purpose scripting'],
+  ['Java', 'Enterprise backend development'],
+  ['C++', 'High-performance systems'],
+  ['C#', '.NET architecture development'],
+  ['TypeScript', 'Typed JavaScript'],
+  ['Go', 'Cloud and systems language'],
+  ['Rust', 'Memory-safe high-performance language'],
+  ['Swift', 'iOS/macOS development'],
+  ['Kotlin', 'Android development'],
+  ['PHP', 'Backend scripting language'],
+  ['Ruby', 'Ruby on Rails ecosystem'],
+  ['SQL', 'Database querying language'],
+  ['HTML/CSS', 'Frontend markup and styling'],
+  ['React', 'UI component framework'],
+  ['Node.js', 'JavaScript backend runtime'],
+  ['Angular', 'Frontend framework'],
+  ['Vue.js', 'Progressive UI framework']
+];
+
     const langs = [];
     for (const [lang_name, lang_description] of langsSeed) {
       const r = await db.query(
