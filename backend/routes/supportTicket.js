@@ -25,7 +25,7 @@ router.post('/', authenticateToken, checkLogin, async (req, res) => {
     const { subject, issueType, description } = req.body;
 
     // For now, force UserID = 1
-    const userId = req.user.id; // user id from JWT
+   const userId = req.user.userId || req.user.id; // user id from JWT
 
     // Basic validation
     const validIssueTypes = ['Login', 'Billing', 'Bug', 'Feature Request', 'Other'];
@@ -113,7 +113,8 @@ router.patch('/:ticketId/status', authenticateToken, requireAdmin, async (req, r
 // ================================================
 router.get('/', authenticateToken, checkLogin, async (req, res) => {
   try {
-    const userId = req.user.id; // user id from JWT
+    const userId = req.user.userId || req.user.id; // handle both user id from JWT
+    console.log("Fetching tickets for user:", req.user);
 
     const fetchQuery = `
       SELECT ticket_id AS "TicketID",
