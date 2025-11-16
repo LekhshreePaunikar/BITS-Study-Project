@@ -14,7 +14,9 @@ const interviewSetupRoutes = require("./routes/interviewSetup");
 
 
 // Load environment variables
-dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
+// dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 
 // Initialize Express app
 const app = express();
@@ -67,7 +69,7 @@ app.use('/api/interview', require('./routes/interviewSetup'));
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
-app.use('/api/support-ticket', require('./routes/supportTicket'));
+app.use('/api/support', require('./routes/supportTicket'));
 
 // ==============================
 // Test & Health Routes
