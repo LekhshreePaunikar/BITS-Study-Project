@@ -79,11 +79,11 @@ router.post('/register', async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-res.status(500).json({
-  message: 'Registration failed',
-  error: error.message,
-  stack: error.stack,
-});
+    res.status(500).json({
+      message: 'Registration failed',
+      error: error.message,
+      stack: error.stack,
+    });
 
   }
 });
@@ -146,9 +146,11 @@ router.post('/login', async (req, res) => {
         username: user.name,
         email: user.email,
         isAdmin: user.is_admin,
+        isBlacklisted: user.is_blacklisted,
       },
       token,
     });
+
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({
