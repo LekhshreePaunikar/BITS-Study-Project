@@ -19,14 +19,16 @@ const authenticateToken = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Decoded JWT payload:', decoded);
 
     // Validate user exists and is active
     const userResult = await query(
       `SELECT user_id, name, email, is_admin, is_blacklisted
-       FROM "User"
-       WHERE user_id = $1`,
-      [decoded.userId]
+   FROM "User"
+   WHERE user_id = $1`,
+      [decoded.userId || decoded.id]
     );
+
 
     if (userResult.rows.length === 0) {
       return res.status(401).json({
@@ -153,13 +155,15 @@ const optionalAuth = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Decoded JWT payload:', decoded);
 
     const userResult = await query(
       `SELECT user_id, name, email, is_admin, is_blacklisted
-       FROM "User"
-       WHERE user_id = $1`,
-      [decoded.userId]
+   FROM "User"
+   WHERE user_id = $1`,
+      [decoded.userId || decoded.id]
     );
+
 
     if (userResult.rows.length > 0 && !userResult.rows[0].is_blacklisted) {
       req.user = userResult.rows[0];
