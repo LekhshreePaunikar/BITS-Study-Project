@@ -46,17 +46,18 @@ api.interceptors.response.use(
   (error) => {
     // if token invalid OR expired
     if (error.response?.status === 401) {
-      // ⚠️ DO NOT logout user if request belongs to support ticket
-      if (error.config?.url?.includes('/support-ticket')) {
-        // return error so page stays but no logout happens
+      const url = error.config?.url || '';
+      // Skip logout for any support-related API
+      if (url.includes('/support')) {
         return Promise.reject(error);
       }
 
-      // normal case — logout user
+      // Otherwise, logout normally
       localStorage.removeItem('authToken');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+
 
     return Promise.reject(error);
   }
@@ -72,14 +73,21 @@ export const authAPI = {
   },
 
   // User login
-  login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    if (response.data.token) {
-      localStorage.setItem('authToken', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-    }
-    return response.data;
-  },
+login: async (credentials) => {
+  const response = await api.post('/auth/login', credentials);
+  console.log('Login API response:', response.data);
+
+  if (response.data.token) {
+    console.log('Saving token to localStorage:', response.data.token);
+    localStorage.setItem('authToken', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
+  } else {
+    console.warn('No token found in response');
+  }
+
+  return response.data;
+},
+
 
   // Google OAuth login
   googleLogin: async (credential) => {
@@ -332,7 +340,7 @@ export const apiUtils = {
   // Handle API errors
   handleError: (error) => {
     console.error('API Error:', error);
-    
+
     if (error.response) {
       // Server responded with error status
       const { status, data } = error.response;
@@ -379,6 +387,6 @@ export default api;
 
 // Support API
 export const supportAPI = {
-  createTicket: (data) => api.post('/support-ticket', data),
-  getTickets: () => api.get('/support-ticket')
+  createTicket: (data) => api.post('/support', data),
+  getTickets: () => api.get('/support')
 };

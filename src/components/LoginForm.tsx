@@ -13,6 +13,7 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { authAPI } from "@/utils/api";
 
 interface LoginFormProps {
   onSwitchToSignUp: () => void;
@@ -39,58 +40,54 @@ export default function LoginForm({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Check for admin credentials
-    const isAdmin =
-      formData.email.toLowerCase() === "admin@email.com" &&
-      formData.password === "admin1234";
+    try {
+      // Use central authAPI instead of raw fetch
+      const data = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
+      });
 
-    console.log(
-      "Login attempt:",
-      { email: formData.email, isAdmin },
-      "Remember me:",
-      rememberMe,
-    );
+      console.log("Login API response:", data);
 
-    // Simulate successful login
-    if (formData.email && formData.password) {
-      // Extract username from email for display purposes (before @ symbol)
-      const username = isAdmin
-        ? "admin"
-        : formData.email.split("@")[0];
+      const user = data.user;
 
-      // Handle remember me functionality
+      // Block blacklisted users
+      if (user.isBlacklisted) {
+        alert("Your account is blacklisted. Contact support.");
+        return;
+      }
+
+      // Remember me logic (optional, safe to keep)
       if (rememberMe) {
-        // Store user preferences in localStorage for future sessions
         localStorage.setItem(
           "rememberUser",
           JSON.stringify({
-            username: username,
-            email: formData.email,
+            username: user.username,
+            email: user.email,
             rememberMe: true,
-            isAdmin: isAdmin,
-          }),
+            isAdmin: user.isAdmin,
+          })
         );
+      } else {
+        localStorage.removeItem("rememberUser");
       }
 
-      // Route to appropriate dashboard
-      if (isAdmin && onAdminLoginSuccess) {
-        console.log(
-          "Calling onAdminLoginSuccess with username:",
-          username,
-        );
-        onAdminLoginSuccess(username);
+      // Redirect based on admin
+      if (user.isAdmin && onAdminLoginSuccess) {
+        onAdminLoginSuccess(user.username);
       } else {
-        console.log(
-          "Calling onLoginSuccess with username:",
-          username,
-        );
-        onLoginSuccess(username);
+        onLoginSuccess(user.username);
       }
+    } catch (err: any) {
+      console.error("Login failed:", err);
+      alert(err.response?.data?.error || "Login failed. Please try again.");
     }
   };
+
+
 
   return (
     <Card
