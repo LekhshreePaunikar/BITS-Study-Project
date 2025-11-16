@@ -51,22 +51,23 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
   const [supportTickets, setSupportTickets] = useState<SupportTicket[] | null>(null);
-const [loadingTickets, setLoadingTickets] = useState(true);
+  const [loadingTickets, setLoadingTickets] = useState(true);
 
-useEffect(() => {
-  async function fetchTickets() {
-    try {
-      const res = await supportAPI.getTickets();
-      setSupportTickets(res?.tickets || []);
-    } catch (err) {
-      console.error(err);
-      setSupportTickets([]);
-    } finally {
-      setLoadingTickets(false);
+  useEffect(() => {
+    async function fetchTickets() {
+      try {
+        const res = await supportAPI.getTickets();
+        console.log("Fetched tickets:", res);
+        setSupportTickets(res?.data?.tickets || []);
+      } catch (err) {
+        console.error(err);
+        setSupportTickets([]);
+      } finally {
+        setLoadingTickets(false);
+      }
     }
-  }
-  fetchTickets();
-}, []);
+    fetchTickets();
+  }, []);
 
   const quickHelpTips = [
     {
@@ -121,33 +122,33 @@ useEffect(() => {
   };
 
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-  setIsSubmitting(true);
-  try {
-    const res = await supportAPI.createTicket({
-      subject: formData.subject,
-      issueType: formData.issueType,
-      description: formData.description,
-    });
+    setIsSubmitting(true);
+    try {
+      const res = await supportAPI.createTicket({
+        subject: formData.subject,
+        issueType: formData.issueType,
+        description: formData.description,
+      });
 
-    toast.success(`Support ticket submitted! #${res?.ticket?.TicketID ?? ''}`);
-    setShowSuccessAlert(true);
-    setFormData({ subject: '', issueType: '', description: '' });
-  } catch (err: any) {
-    const msg =
-      err?.response?.data?.message ||
-      err?.response?.data?.error ||
-      err?.message ||
-      'Failed to submit support ticket.';
-    toast.error(msg);
-  } finally {
-    setIsSubmitting(false);
-    setTimeout(() => setShowSuccessAlert(false), 5000);
-  }
-};
+      toast.success(`Support ticket submitted! #${res?.ticket?.TicketID ?? ''}`);
+      setShowSuccessAlert(true);
+      setFormData({ subject: '', issueType: '', description: '' });
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        err?.message ||
+        'Failed to submit support ticket.';
+      toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => setShowSuccessAlert(false), 5000);
+    }
+  };
 
 
   const getStatusBadge = (status: string) => {
@@ -476,40 +477,45 @@ const handleSubmit = async (e: React.FormEvent) => {
                     </tr>
                   </thead>
                   <tbody>
-  {loadingTickets ? (
-    <tr>
-      <td colSpan={4} className="p-4 text-center text-gray-400">
-        Loading tickets...
-      </td>
-    </tr>
-  ) : supportTickets && supportTickets.length > 0 ? (
-    supportTickets.map((ticket, index) => {
-      const [subject] = ticket.Message?.split("||") ?? ["(No subject)"];
-      const formattedDate = new Date(ticket.CreatedAt).toLocaleDateString();
-      return (
-        <tr
-          key={ticket.TicketID}
-          className="border-b"
-          style={{
-            borderColor: '#374151',
-            backgroundColor: index % 2 === 0 ? 'rgba(55,65,81,.2)' : 'transparent'
-          }}
-        >
-          <td className="p-3 text-gray-300">#{ticket.TicketID}</td>
-          <td className="p-3 text-white">{subject}</td>
-          <td className="p-3 text-gray-300">{formattedDate}</td>
-          <td className="p-3">{getStatusBadge(ticket.Status)}</td>
-        </tr>
-      );
-    })
-  ) : (
-    <tr>
-      <td colSpan={4} className="p-4 text-center text-gray-400">
-        🌟 <strong>No tickets generated yet</strong>
-      </td>
-    </tr>
-  )}
-</tbody>
+                    {loadingTickets ? (
+                      <tr>
+                        <td colSpan={4} className="p-4 text-center text-gray-400">
+                          Loading tickets...
+                        </td>
+                      </tr>
+                    ) : supportTickets && supportTickets.length > 0 ? (
+                      supportTickets.map((ticket: any, index) => {
+                        // Adapt to backend key casing (TicketID, Message, CreatedAt, Status)
+                        const subject = ticket.Message || '(No subject)';
+                        const formattedDate = ticket.CreatedAt
+                          ? new Date(ticket.CreatedAt).toLocaleDateString()
+                          : 'N/A';
+                        const status = ticket.Status || 'open';
+
+                        return (
+                          <tr
+                            key={ticket.TicketID || index}
+                            className="border-b"
+                            style={{
+                              borderColor: '#374151',
+                              backgroundColor: index % 2 === 0 ? 'rgba(55,65,81,.2)' : 'transparent'
+                            }}
+                          >
+                            <td className="p-3 text-gray-300">#{ticket.TicketID}</td>
+                            <td className="p-3 text-white">{subject}</td>
+                            <td className="p-3 text-gray-300">{formattedDate}</td>
+                            <td className="p-3">{getStatusBadge(status)}</td>
+                          </tr>
+                        );
+                      })
+                    ) : (
+                      <tr>
+                        <td colSpan={4} className="p-4 text-center text-gray-400">
+                          🌟 <strong>No tickets generated yet</strong>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
 
                 </table>
               </div>
