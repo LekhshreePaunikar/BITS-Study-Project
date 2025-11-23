@@ -65,12 +65,22 @@ export default function App() {
     setCurrentUser(username);
     setIsAdmin(false);
     setCurrentView('dashboard');
+    localStorage.setItem('rememberUser', JSON.stringify({
+      rememberMe: true,
+      username,
+      isAdmin: false
+    }));
   };
 
   const handleAdminLoginSuccess = (username: string) => {
     setCurrentUser(username);
     setIsAdmin(true);
     setCurrentView('admin-dashboard');
+    localStorage.setItem('rememberUser', JSON.stringify({
+      rememberMe: true,
+      username,
+      isAdmin: true
+    }));
   };
 
   const handleLogout = () => {
