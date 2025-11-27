@@ -10,7 +10,7 @@ const userService = require('../services/userService');
 // ==============================
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const user = await userService.getUserProfile(req.user.UserID);
+    const user = await userService.getUserProfile(req.user.userID);
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (err) {
@@ -24,7 +24,7 @@ router.get('/', authenticateToken, async (req, res) => {
 // ==============================
 router.put('/', authenticateToken, async (req, res) => {
   try {
-    await userService.updateUserProfile(req.user.UserID, req.body);
+    await userService.updateUserProfile(req.user.userID, req.body);
     res.json({ message: 'Profile updated successfully' });
   } catch (err) {
     console.error('Error updating profile:', err);
