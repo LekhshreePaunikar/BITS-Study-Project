@@ -73,20 +73,20 @@ export const authAPI = {
   },
 
   // User login
-login: async (credentials) => {
-  const response = await api.post('/auth/login', credentials);
-  console.log('Login API response:', response.data);
+  login: async (credentials) => {
+    const response = await api.post('/auth/login', credentials);
+    console.log('Login API response:', response.data);
 
-  if (response.data.token) {
-    console.log('Saving token to localStorage:', response.data.token);
-    localStorage.setItem('authToken', response.data.token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
-  } else {
-    console.warn('No token found in response');
-  }
+    if (response.data.token) {
+      console.log('Saving token to localStorage:', response.data.token);
+      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+    } else {
+      console.warn('No token found in response');
+    }
 
-  return response.data;
-},
+    return response.data;
+  },
 
 
   // Google OAuth login
@@ -316,6 +316,17 @@ export const adminAPI = {
     const response = await api.get('/admin/flagged-content');
     return response.data;
   },
+
+  getSupportTickets: async () => {
+    const response = await api.get("/admin/support-tickets");
+    return response.data;
+  },
+
+  updateSupportTicketStatus: async (ticketId, status) => {
+    const response = await api.patch(`/admin/support-tickets/${ticketId}`, { status });
+    return response.data;
+  },
+
 };
 
 // Utility functions

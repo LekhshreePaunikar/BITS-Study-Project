@@ -1,6 +1,5 @@
 // root/src/components/FlaggedContentModeration.tsx
 
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -23,6 +22,7 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Input } from './ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { useState, useEffect } from "react";
 
 interface FlaggedContentModerationProps {
   username: string;
@@ -41,12 +41,23 @@ interface FlaggedItem {
   questionText?: string;
 }
 
+interface SupportTicket {
+  ticket_id: number;
+  user_id: number;
+  issue_type: string;
+  message: string;
+  created_at: string;
+  status: "open" | "in_progress" | "closed";
+}
+
+
 export default function FlaggedContentModeration({ username, onBackToAdminDashboard }: FlaggedContentModerationProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   // For modal and selection
-  const [selectedTicket, setSelectedTicket] = useState<FlaggedItem | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Mock flagged content data
@@ -108,6 +119,10 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
     }
   ]);
 
+  // Support Tickets State
+  const [supportTickets, setSupportTickets] = useState<any[]>([]);
+
+
   const handleStatusChange = async (flagId: string, newStatus: 'resolved' | 'pending' | 'in-progress') => {
     try {
       // Convert UI status names to backend format
@@ -136,6 +151,51 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
       alert('Failed to update ticket status. Please try again.');
     }
   };
+
+  // Fetch support tickets for admin
+  const fetchSupportTickets = async () => {
+    try {
+      const response = await fetch("http://localhost:3001/api/admin/support-tickets", {
+        headers: {
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        }
+      });
+
+      const data = await response.json();
+      if (Array.isArray(data)) {
+        setSupportTickets(data);
+      } else {
+        console.error("Support tickets API returned non-array:", data);
+        setSupportTickets([]); // fallback to empty list so UI does not crash
+      }
+
+    } catch (err) {
+      console.error("Failed to load support tickets:", err);
+    }
+  };
+
+  const handleTicketStatusChange = async (ticketId: number, newStatus: string) => {
+    try {
+      await fetch(`http://localhost:3001/api/admin/support-tickets/${ticketId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      // Update UI after backend update
+      setSupportTickets(prev =>
+        prev.map(t =>
+          t.ticket_id === ticketId ? { ...t, status: newStatus } : t
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update ticket:", err);
+    }
+  };
+
 
 
   const handleViewDetails = (item: FlaggedItem) => {
@@ -215,6 +275,10 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  useEffect(() => {
+    fetchSupportTickets();
+  }, []);
+
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -257,6 +321,109 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
 
         {/* Main Content */}
         <main className="container mx-auto px-6 py-8">
+
+          {/* ===================== Support Ticket Monitoring (NEW SECTION) ===================== */}
+
+          <div className="mb-10">
+            <h2 className="text-2xl md:text-3xl text-white mb-4">
+              Support Ticket Monitoring
+            </h2>
+
+            {supportTickets.length === 0 ? (
+              <Card
+                className="border text-center py-10"
+                style={{ backgroundColor: '#1F2937', borderColor: '#374151' }}
+              >
+                <CardContent>
+                  <AlertTriangle className="h-12 w-12 mx-auto mb-4" style={{ color: '#6B7280' }} />
+                  <h3 className="text-lg text-white mb-2">No Support Tickets</h3>
+                  <p style={{ color: '#9CA3AF' }}>There are no support issues raised.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card
+                className="border"
+                style={{ backgroundColor: '#1F2937', borderColor: '#374151' }}
+              >
+                <CardContent className="p-0">
+                  <table className="w-full">
+                    <thead>
+                      <tr
+                        className="border-b"
+                        style={{ borderColor: '#374151', backgroundColor: '#374151' }}
+                      >
+                        <th className="p-4 text-left text-gray-400">Ticket ID</th>
+                        <th className="p-4 text-left text-gray-400">User</th>
+                        <th className="p-4 text-left text-gray-400">Issue Type</th>
+                        <th className="p-4 text-left text-gray-400">Message</th>
+                        <th className="p-4 text-left text-gray-400">Timestamp</th>
+                        <th className="p-4 text-left text-gray-400">Status</th>
+                        <th className="p-4 text-left text-gray-400">Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {supportTickets.map((ticket, index) => (
+                        <tr
+                          key={ticket.ticket_id}
+                          style={{
+                            backgroundColor:
+                              index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent',
+                          }}
+                        >
+                          <td className="p-4 text-gray-300">#{ticket.ticket_id}</td>
+                          <td className="p-4 text-gray-300">USR_{ticket.user_id}</td>
+                          <td className="p-4 text-gray-300">{ticket.issue_type}</td>
+                          <td className="p-4 text-gray-400">
+                            {ticket.message.length > 60
+                              ? ticket.message.slice(0, 60) + '...'
+                              : ticket.message}
+                          </td>
+                          <td className="p-4 text-gray-400">
+                            {new Date(ticket.created_at).toLocaleString()}
+                          </td>
+
+                          <td className="p-4">
+                            <Badge
+                              className="px-3 py-1 text-xs"
+                              style={{
+                                backgroundColor:
+                                  ticket.status === 'open'
+                                    ? '#F59E0B'
+                                    : ticket.status === 'in_progress'
+                                      ? '#3B82F6'
+                                      : '#10B981',
+                                color: 'white',
+                              }}
+                            >
+                              {ticket.status.replace('_', ' ')}
+                            </Badge>
+                          </td>
+
+                          <td className="p-4">
+                            <select
+                              className="bg-gray-800 text-gray-200 p-2 rounded"
+                              value={ticket.status}
+                              onChange={(e) =>
+                                handleTicketStatusChange(ticket.ticket_id, e.target.value)
+                              }
+                            >
+                              <option value="open">Open</option>
+                              <option value="in_progress">In Progress</option>
+                              <option value="closed">Closed</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* ===================== END Support Ticket Section ===================== */}
+
 
           {/* Filters and Search */}
           <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
@@ -539,7 +706,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                                 </DropdownMenuItem> */}
                                   <DropdownMenuItem
                                     onClick={() => {
-                                      setSelectedTicket(item);
+                                      setSelectedTicket(ticket);;
                                       setIsModalOpen(true);
                                     }}
                                     className="cursor-pointer text-white transition-colors duration-200"
@@ -711,7 +878,7 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
                               </DropdownMenuItem> */}
                               <DropdownMenuItem
                                 onClick={() => {
-                                  setSelectedTicket(item);
+                                  setSelectedTicket(ticket);;
                                   setIsModalOpen(true);
                                 }}
                                 className="cursor-pointer text-white transition-colors duration-200"
@@ -747,17 +914,23 @@ export default function FlaggedContentModeration({ username, onBackToAdminDashbo
             <DialogTitle>Update Ticket Status</DialogTitle>
           </DialogHeader>
           <p className="text-gray-400 mb-4">
-            Choose a new status for <strong>{selectedTicket?.flagId}</strong>
+            Choose a new status for <strong>Ticket #{selectedTicket?.ticket_id}</strong>
           </p>
           <DialogFooter className="flex justify-end gap-3">
             <Button
-              onClick={() => selectedTicket && handleStatusChange(selectedTicket.flagId, 'in-progress')}
+              onClick={() =>
+                selectedTicket && handleTicketStatusChange(selectedTicket.ticket_id, "in_progress")
+              }
+
               className="bg-blue-600 hover:bg-blue-700"
             >
               In Progress
             </Button>
             <Button
-              onClick={() => selectedTicket && handleStatusChange(selectedTicket.flagId, 'resolved')}
+              onClick={() =>
+                selectedTicket && handleTicketStatusChange(selectedTicket.ticket_id, "closed")
+              }
+
               className="bg-green-600 hover:bg-green-700"
             >
               Closed
