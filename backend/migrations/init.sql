@@ -55,6 +55,17 @@ CREATE TABLE IF NOT EXISTS "User" (
     experience TEXT,
     preferred_roles TEXT[],
     preferred_languages TEXT[],
+    address TEXT,
+    preferred_role TEXT,
+    skills TEXT[],
+    programming_languages TEXT[],
+    phone TEXT,
+    location TEXT,
+    hobbies TEXT,
+    linkedin_profile TEXT,
+    github_profile TEXT,
+    portfolio TEXT,
+
     created_at TIMESTAMP DEFAULT NOW(),
     is_admin BOOLEAN DEFAULT FALSE NOT NULL,
     is_blacklisted BOOLEAN DEFAULT FALSE NOT NULL

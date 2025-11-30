@@ -76,10 +76,12 @@ async function seed() {
     const adminRes = await db.query(
       `
       INSERT INTO "User"
-        (name, email, password_hash, is_admin, is_blacklisted)
-      VALUES
-        ($1, $2, $3, $4, $5)
-      RETURNING user_id, name
+  (name, email, password_hash,
+   address, preferred_role, skills, programming_languages,
+   is_admin, is_blacklisted)
+VALUES
+  ($1, $2, $3, NULL, NULL, NULL, NULL, $4, $5)
+RETURNING user_id, name
       `,
       ['admin', 'admin@example.com', passwordHash, true, false]
     );
@@ -89,26 +91,49 @@ async function seed() {
     const users = [];
     for (let i = 1; i <= 10; i++) {
       const r = await db.query(
-        `
-        INSERT INTO "User"
-          (name, email, password_hash, education, experience,
-           preferred_roles, preferred_languages, is_admin, is_blacklisted)
-        VALUES
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        RETURNING user_id, name
-        `,
-        [
-          `user${i}`,
-          `user${i}@example.com`,
-          passwordHash,
-          'B.Tech Computer Science',
-          '1–3 years in backend development',
-          ['Software Developer', 'Backend Developer'],
-          ['JavaScript', 'Python', 'SQL'],
-          false,
-          false,
-        ]
-      );
+  `
+  INSERT INTO "User"
+    (
+      name, email, password_hash, education, experience,
+      preferred_roles, preferred_languages,
+      address, preferred_role, skills, programming_languages,
+      phone, location, hobbies, linkedin_profile, github_profile, portfolio,
+      is_admin, is_blacklisted
+    )
+  VALUES
+    ($1, $2, $3, $4, $5,
+     $6, $7,
+     $8, $9, $10, $11,
+     $12, $13, $14, $15, $16, $17,
+     $18, $19)
+  RETURNING user_id, name
+  `,
+  [
+    `user${i}`,
+    `user${i}@example.com`,
+    passwordHash,
+    'B.Tech Computer Science',
+    '1–3 years in backend development',
+
+    ['Software Developer', 'Backend Developer'],
+    ['JavaScript', 'Python', 'SQL'],
+
+    'Delhi, India',                           // address
+    'Backend Developer',                       // preferred_role
+    ['UI/UX Design', 'Data Analytics'],        // skills
+    ['JavaScript', 'Python', 'SQL'],           // programming_languages
+
+    '+91 999000111',                            // phone
+    'India',                                    // location
+    'Reading, Coding',                          // hobbies
+    `https://linkedin.com/in/user${i}`,         // linkedin_profile
+    `https://github.com/user${i}`,              // github_profile
+    `https://user${i}.portfolio.com`,           // portfolio
+
+    false,
+    false
+  ]
+);
       users.push(r.rows[0]);
     }
     log(`Inserted users: ${1 + users.length}`);
