@@ -57,19 +57,25 @@ const { query } = require('./config/database');
 const { authenticateToken } = require('./middleware/auth');
 const checkLogin = require('./middleware/checkLogin');
 
+// ==============================
 // Register modular routes
+// ==============================
+
+// PUBLIC ROUTES
 app.use('/api/auth', require('./routes/auth'));
-// app.use('/api/users', require('./routes/users')); // REDUNDANT for now
-app.use('/api/profile', require('./routes/userProfile'));
-// app.use('/api/interviews', require('./routes/interviews')); // REDUNDANT for now
+app.use('/api/support', require('./routes/supportTicket')); // user creates tickets
 app.use('/api/questions', require('./routes/questions'));
-// app.use('/api/sessions', require('./routes/sessions')); // REDUNDANT for now
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/interview', require('./routes/interviewSetup'));
+
+// ADMIN ROUTES
+app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets')); // specific first
+app.use('/api/admin', require('./routes/admin')); // general admin routes
+
+// PROTECTED USER ROUTES
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
-app.use('/api/support', require('./routes/supportTicket'));
+
+
 
 // ==============================
 // Test & Health Routes

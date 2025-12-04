@@ -4,12 +4,13 @@
 import axios from 'axios';
 
 // Base configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:3001/api';
 
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000, // 30 seconds timeout
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -18,27 +19,21 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+    const token = localStorage.getItem("authToken");
 
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('authToken');
-    if (token) {
+    // never send an invalid token
+    if (!token || token === "null" || token === "undefined" || token.trim() === "") {
+      delete config.headers.Authorization;
+    } else {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
+
+
 
 // Response interceptor to handle common errors
 api.interceptors.response.use(

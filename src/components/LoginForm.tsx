@@ -40,10 +40,16 @@ export default function LoginForm({
     }));
   };
 
+  localStorage.removeItem("authToken");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // PREVENT STALE TOKENS FROM OLD PROJECT RUNS
+    localStorage.removeItem("authToken");
+
     try {
+
       // Use central authAPI instead of raw fetch
       const data = await authAPI.login({
         email: formData.email,

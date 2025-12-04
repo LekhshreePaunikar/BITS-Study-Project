@@ -7,15 +7,26 @@ const { query } = require('../config/database');
 // Middleware to verify JWT token
 // ==============================
 const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-  if (!token) {
-    return res.status(401).json({
-      message: 'Access token required',
-      error: 'No token provided',
-    });
+  if (req.headers.authorization) {
+    console.log("Incoming Authorization:", req.headers.authorization);
   }
+
+const authHeader = req.headers['authorization'];
+const token = authHeader?.startsWith("Bearer ")
+  ? authHeader.split(" ")[1]
+  : null;
+
+// Final safe validation
+if (!token || token === "null" || token === "undefined") {
+  return res.status(401).json({
+    message: "Access token required",
+    error: "No valid token provided",
+  });
+}
+
+
+
+
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -146,7 +157,17 @@ const generateToken = (userId, username, email, isAdmin = false) => {
 // ==============================
 const optionalAuth = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = authHeader?.startsWith("Bearer ") 
+  ? authHeader.split(" ")[1]
+  : null;
+
+if (!token || token === "null" || token === "undefined") {
+  return res.status(401).json({
+    message: "Access token required",
+    error: "No valid token provided",
+  });
+}
+
 
   if (!token) {
     req.user = null;

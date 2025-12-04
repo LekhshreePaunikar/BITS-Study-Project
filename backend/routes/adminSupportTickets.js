@@ -1,10 +1,35 @@
+// root/backend/routes/adminSupportTickets.js
+
 const express = require("express");
 const router = express.Router();
 const { query } = require("../config/database");
 const { authenticateToken, requireAdmin } = require("../middleware/auth");
 
-// Get ALL user support tickets (admin view)
-router.get("/", authenticateToken, requireAdmin, async (req, res) => {
+/**
+ * SAFE AUTH WRAPPER
+ * Prevents the server from throwing "jwt malformed"
+ * when the frontend loads BEFORE a token exists.
+ */
+const safeAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader || authHeader === "Bearer null" || authHeader === "Bearer undefined") {
+    return res.status(401).json({
+      message: "Authentication required",
+      error: "Token missing or invalid",
+    });
+  }
+
+  return authenticateToken(req, res, next);
+};
+
+/**
+ * ======================
+ * GET ALL SUPPORT TICKETS
+ * ======================
+ * (Only accessible after admin logs in successfully)
+ */
+router.get("/", safeAuth, requireAdmin, async (req, res) => {
   try {
     const sql = `
       SELECT 
@@ -18,6 +43,7 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
       FROM "SupportTicket"
       ORDER BY created_at DESC;
     `;
+
     const result = await query(sql);
     res.json(result.rows);
 
@@ -27,8 +53,12 @@ router.get("/", authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// Update ticket status
-router.patch("/:ticketId", authenticateToken, requireAdmin, async (req, res) => {
+/**
+ * ======================
+ * UPDATE TICKET STATUS
+ * ======================
+ */
+router.patch("/:ticketId", safeAuth, requireAdmin, async (req, res) => {
   try {
     const { ticketId } = req.params;
     const { status } = req.body;
@@ -46,6 +76,10 @@ router.patch("/:ticketId", authenticateToken, requireAdmin, async (req, res) => 
     `;
 
     const result = await query(sql, [status, ticketId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Ticket not found" });
+    }
 
     res.json(result.rows[0]);
 
