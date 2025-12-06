@@ -91,7 +91,7 @@ RETURNING user_id, name
     const users = [];
     for (let i = 1; i <= 10; i++) {
       const r = await db.query(
-  `
+        `
   INSERT INTO "User"
     (
       name, email, password_hash, education, experience,
@@ -108,52 +108,52 @@ RETURNING user_id, name
      $18, $19)
   RETURNING user_id, name
   `,
-  [
-    `user${i}`,
-    `user${i}@example.com`,
-    passwordHash,
-    'B.Tech Computer Science',
-    '1–3 years in backend development',
+        [
+          `user${i}`,
+          `user${i}@example.com`,
+          passwordHash,
+          'B.Tech Computer Science',
+          '1–3 years in backend development',
 
-    ['Software Developer', 'Backend Developer'],
-    ['JavaScript', 'Python', 'SQL'],
+          ['Software Developer', 'Backend Developer'],
+          ['JavaScript', 'Python', 'SQL'],
 
-    'Delhi, India',                           // address
-    'Backend Developer',                       // preferred_role
-    ['UI/UX Design', 'Data Analytics'],        // skills
-    ['JavaScript', 'Python', 'SQL'],           // programming_languages
+          'Delhi, India',                           // address
+          'Backend Developer',                       // preferred_role
+          ['UI/UX Design', 'Data Analytics'],        // skills
+          ['JavaScript', 'Python', 'SQL'],           // programming_languages
 
-    '+91 999000111',                            // phone
-    'India',                                    // location
-    'Reading, Coding',                          // hobbies
-    `https://linkedin.com/in/user${i}`,         // linkedin_profile
-    `https://github.com/user${i}`,              // github_profile
-    `https://user${i}.portfolio.com`,           // portfolio
+          '+91 999000111',                            // phone
+          'India',                                    // location
+          'Reading, Coding',                          // hobbies
+          `https://linkedin.com/in/user${i}`,         // linkedin_profile
+          `https://github.com/user${i}`,              // github_profile
+          `https://user${i}.portfolio.com`,           // portfolio
 
-    false,
-    false
-  ]
-);
+          false,
+          false
+        ]
+      );
       users.push(r.rows[0]);
     }
     log(`Inserted users: ${1 + users.length}`);
 
     // Roles
     // Roles - full match with frontend
-const rolesSeed = [
-  ['Frontend Developer', 'Client-side engineering'],
-  ['Backend Developer', 'Server-side engineering'],
-  ['Full Stack Developer', 'Both frontend and backend'],
-  ['Cloud Engineer', 'Cloud infrastructure and services'],
-  ['DevOps Engineer', 'CI/CD, automation, infrastructure'],
-  ['Data Scientist', 'Data modeling and analytics'],
-  ['Machine Learning Engineer', 'ML systems and pipelines'],
-  ['Mobile Developer', 'Android/iOS app development'],
-  ['UI/UX Designer', 'Design and user experience'],
-  ['Product Manager', 'Product strategy and planning'],
-  ['Software Architect', 'High-level system design'],
-  ['Quality Assurance Engineer', 'Testing and QA']
-];
+    const rolesSeed = [
+      ['Frontend Developer', 'Client-side engineering'],
+      ['Backend Developer', 'Server-side engineering'],
+      ['Full Stack Developer', 'Both frontend and backend'],
+      ['Cloud Engineer', 'Cloud infrastructure and services'],
+      ['DevOps Engineer', 'CI/CD, automation, infrastructure'],
+      ['Data Scientist', 'Data modeling and analytics'],
+      ['Machine Learning Engineer', 'ML systems and pipelines'],
+      ['Mobile Developer', 'Android/iOS app development'],
+      ['UI/UX Designer', 'Design and user experience'],
+      ['Product Manager', 'Product strategy and planning'],
+      ['Software Architect', 'High-level system design'],
+      ['Quality Assurance Engineer', 'Testing and QA']
+    ];
 
     const roles = [];
     for (const [role_name, role_description] of rolesSeed) {
@@ -171,23 +171,23 @@ const rolesSeed = [
 
     // Skills
     // Skills - full match with frontend
-const skillsSeed = [
-  ['UI/UX Design', 'Designing user experiences and interfaces'],
-  ['Data Analytics', 'Analyzing and interpreting complex data'],
-  ['Data Structures & Algorithms', 'Core problem-solving skills'],
-  ['Problem Solving', 'Logical and analytical thinking'],
-  ['System Design', 'High-level architecture and systems'],
-  ['Database Management', 'SQL/NoSQL database design'],
-  ['API Development', 'Building REST/GraphQL APIs'],
-  ['Cloud Computing', 'Cloud services and architectures'],
-  ['Machine Learning', 'ML models and pipelines'],
-  ['Project Management', 'Planning and executing projects'],
-  ['Version Control (Git)', 'Git workflows and tools'],
-  ['Testing & QA', 'Software testing and quality assurance'],
-  ['Agile Methodologies', 'Scrum, Kanban, agile frameworks'],
-  ['Communication Skills', 'Effective team communication'],
-  ['Leadership', 'Team leadership and decision-making']
-];
+    const skillsSeed = [
+      ['UI/UX Design', 'Designing user experiences and interfaces'],
+      ['Data Analytics', 'Analyzing and interpreting complex data'],
+      ['Data Structures & Algorithms', 'Core problem-solving skills'],
+      ['Problem Solving', 'Logical and analytical thinking'],
+      ['System Design', 'High-level architecture and systems'],
+      ['Database Management', 'SQL/NoSQL database design'],
+      ['API Development', 'Building REST/GraphQL APIs'],
+      ['Cloud Computing', 'Cloud services and architectures'],
+      ['Machine Learning', 'ML models and pipelines'],
+      ['Project Management', 'Planning and executing projects'],
+      ['Version Control (Git)', 'Git workflows and tools'],
+      ['Testing & QA', 'Software testing and quality assurance'],
+      ['Agile Methodologies', 'Scrum, Kanban, agile frameworks'],
+      ['Communication Skills', 'Effective team communication'],
+      ['Leadership', 'Team leadership and decision-making']
+    ];
 
     const skills = [];
     for (const [skill_name, skill_description] of skillsSeed) {
@@ -205,26 +205,26 @@ const skillsSeed = [
 
     // Programming languages
     // Programming languages - full match with frontend
-const langsSeed = [
-  ['JavaScript', 'Web and backend language'],
-  ['Python', 'General-purpose scripting'],
-  ['Java', 'Enterprise backend development'],
-  ['C++', 'High-performance systems'],
-  ['C#', '.NET architecture development'],
-  ['TypeScript', 'Typed JavaScript'],
-  ['Go', 'Cloud and systems language'],
-  ['Rust', 'Memory-safe high-performance language'],
-  ['Swift', 'iOS/macOS development'],
-  ['Kotlin', 'Android development'],
-  ['PHP', 'Backend scripting language'],
-  ['Ruby', 'Ruby on Rails ecosystem'],
-  ['SQL', 'Database querying language'],
-  ['HTML/CSS', 'Frontend markup and styling'],
-  ['React', 'UI component framework'],
-  ['Node.js', 'JavaScript backend runtime'],
-  ['Angular', 'Frontend framework'],
-  ['Vue.js', 'Progressive UI framework']
-];
+    const langsSeed = [
+      ['JavaScript', 'Web and backend language'],
+      ['Python', 'General-purpose scripting'],
+      ['Java', 'Enterprise backend development'],
+      ['C++', 'High-performance systems'],
+      ['C#', '.NET architecture development'],
+      ['TypeScript', 'Typed JavaScript'],
+      ['Go', 'Cloud and systems language'],
+      ['Rust', 'Memory-safe high-performance language'],
+      ['Swift', 'iOS/macOS development'],
+      ['Kotlin', 'Android development'],
+      ['PHP', 'Backend scripting language'],
+      ['Ruby', 'Ruby on Rails ecosystem'],
+      ['SQL', 'Database querying language'],
+      ['HTML/CSS', 'Frontend markup and styling'],
+      ['React', 'UI component framework'],
+      ['Node.js', 'JavaScript backend runtime'],
+      ['Angular', 'Frontend framework'],
+      ['Vue.js', 'Progressive UI framework']
+    ];
 
     const langs = [];
     for (const [lang_name, lang_description] of langsSeed) {
@@ -272,6 +272,53 @@ const langsSeed = [
       );
     }
     log(`Inserted resumes: ${users.length + 1}`);
+
+    // -------------------------------------------------------
+    // INSERT 5 DUMMY SESSIONS FOR user1 → user5
+    // -------------------------------------------------------
+    log("Creating 5 dummy sessions for first 5 users...");
+
+    // Pick the first 5 users (user1, user2, user3, user4, user5)
+    const topFiveUsers = users.slice(0, 5);
+
+    for (const u of topFiveUsers) {
+      await db.query(
+        `
+    INSERT INTO "Session"
+      (user_id,
+        interview_mode,
+        question_source,
+        selected_difficulty,
+        focus_area,
+        prep_time_minutes,
+        keywords,
+        start_time,
+        end_time,
+        difficulty_level_start,
+        difficulty_level_end,
+        total_score
+      )
+    VALUES
+      (
+        $1,
+        'text',
+        'predefined',
+        'intermediate',
+        'System Design',
+        2,
+        ARRAY['APIs', 'React'],
+        NOW(),
+        NOW(),
+        'easy',
+        'easy',
+        NULL
+      )
+    `
+        , [u.user_id]
+      );
+    }
+
+    log("Inserted dummy sessions for top 5 users.");
 
     // Evaluation models
     await db.query(

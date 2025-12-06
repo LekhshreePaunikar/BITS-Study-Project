@@ -159,6 +159,12 @@ CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
 CREATE TABLE IF NOT EXISTS "Session" (
     session_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
+    interview_mode VARCHAR(50),
+    question_source VARCHAR(50),
+    selected_difficulty VARCHAR(50),
+    focus_area VARCHAR(255),
+    prep_time_minutes INT,
+    keywords TEXT[],
     start_time TIMESTAMP DEFAULT NOW() NOT NULL,
     end_time TIMESTAMP DEFAULT NOW() NOT NULL,
     difficulty_level_start "DifficultyLevelType" DEFAULT 'easy',
