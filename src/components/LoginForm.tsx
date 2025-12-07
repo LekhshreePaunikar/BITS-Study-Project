@@ -40,8 +40,6 @@ export default function LoginForm({
     }));
   };
 
-  localStorage.removeItem("authToken");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -59,7 +57,6 @@ export default function LoginForm({
       console.log("Login API response:", data);
 
       const user = data.user;
-
       // Block blacklisted users
       if (user.isBlacklisted) {
         alert("Your account is blacklisted. Contact support.");

@@ -7,35 +7,50 @@ const { query } = require('../config/database');
 // ==============================
 exports.getUserProfile = async (userId) => {
   const result = await query(
-    `SELECT "UserID", "Name", "Email", "Phone", "Location", "Gender",
-            "Education", "University", "GraduationYear", "ExperienceLevel",
-            "PreferredRole", "Skills", "ProgrammingLanguages",
-            "Hobbies", "LinkedInProfile", "GithubProfile", "Portfolio"
+    `SELECT 
+        user_id,
+        name,
+        email,
+        phone,
+        location,
+        gender,
+        education,
+        university,
+        graduation_year,
+        experience,
+        experience_level,
+        preferred_role,
+        skills,
+        programming_languages,
+        hobbies,
+        linkedin_profile,
+        github_profile,
+        portfolio
      FROM "User"
-     WHERE "UserID" = $1`,
+     WHERE user_id = $1`,
     [userId]
   );
-  // Map DB column names to frontend state keys (if different)
+
   if (!result.rows[0]) return null;
-  const user = result.rows[0];
+  const u = result.rows[0];
+
   return {
-    fullName: user.Name,
-    email: user.Email,
-    phone: user.Phone,
-    location: user.Location,
-    gender: user.Gender,
-    education: user.Education,
-    university: user.University,
-    graduationYear: user.GraduationYear,
-    experienceLevel: user.ExperienceLevel,
-    preferredRole: user.PreferredRole,
-    skills: user.Skills || [], // Assume skills/languages are stored as arrays
-    programmingLanguages: user.ProgrammingLanguages || [],
-    hobbies: user.Hobbies,
-    linkedinProfile: user.LinkedInProfile,
-    githubProfile: user.GithubProfile,
-    portfolio: user.Portfolio,
-    // Note: Password and ResumeFile are not fetched
+    fullName: u.name,
+    email: u.email,
+    phone: u.phone,
+    location: u.location,
+    gender: u.gender,
+    education: u.education,
+    university: u.university,
+    graduationYear: u.graduation_year,
+    experienceLevel: u.experience_level,
+    preferredRole: u.preferred_role,
+    skills: u.skills || [],
+    programmingLanguages: u.programming_languages || [],
+    hobbies: u.hobbies,
+    linkedinProfile: u.linkedin_profile,
+    githubProfile: u.github_profile,
+    portfolio: u.portfolio,
   };
 };
 
@@ -44,42 +59,52 @@ exports.getUserProfile = async (userId) => {
 // ==============================
 exports.updateUserProfile = async (userId, data) => {
   const {
-    fullName, email, password, gender, phone, location,
+    fullName, email, gender, phone, location,
     preferredRole, skills, programmingLanguages, experienceLevel,
     education, university, graduationYear,
-    hobbies, linkedinProfile, githubProfile, portfolio,
-    // Note: resumeFile is typically handled by a separate file upload service
+    hobbies, linkedinProfile, githubProfile, portfolio
   } = data;
-
-  // IMPORTANT: For simplicity, we are NOT updating the password or email here.
-  // Password updates should use a separate secure route. Email changes usually require verification.
 
   const sql = `
     UPDATE "User"
     SET
-      "Name" = $1,
-      "Phone" = $2,
-      "Location" = $3,
-      "Gender" = $4,
-      "PreferredRole" = $5,
-      "Skills" = $6,
-      "ProgrammingLanguages" = $7,
-      "ExperienceLevel" = $8,
-      "Education" = $9,
-      "University" = $10,
-      "GraduationYear" = $11,
-      "Hobbies" = $12,
-      "LinkedInProfile" = $13,
-      "GithubProfile" = $14,
-      "Portfolio" = $15
-    WHERE "UserID" = $16
+      name = $1,
+      email = $2,
+      phone = $3,
+      location = $4,
+      gender = $5,
+      preferred_role = $6,
+      skills = $7,
+      programming_languages = $8,
+      experience_level = $9,
+      education = $10,
+      university = $11,
+      graduation_year = $12,
+      hobbies = $13,
+      linkedin_profile = $14,
+      github_profile = $15,
+      portfolio = $16,
+      updated_at = NOW()
+    WHERE user_id = $17
   `;
 
   const params = [
-    fullName, phone, location, gender,
-    preferredRole, skills, programmingLanguages, experienceLevel,
-    education, university, graduationYear,
-    hobbies, linkedinProfile, githubProfile, portfolio,
+    fullName,
+    email,
+    phone,
+    location,
+    gender,
+    preferredRole,
+    skills,
+    programmingLanguages,
+    experienceLevel,
+    education,
+    university,
+    graduationYear,
+    hobbies,
+    linkedinProfile,
+    githubProfile,
+    portfolio,
     userId
   ];
 

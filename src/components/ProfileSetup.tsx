@@ -8,6 +8,8 @@ import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import api from "../utils/api";
+
 import {
   ArrowLeft,
   User,
@@ -156,11 +158,33 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Profile data:', profileData);
-    // Handle profile save logic here
-  };
+    console.log("Profile data:", profileData);
+
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    alert("Not logged in");
+    return;
+  }
+
+  const decoded = JSON.parse(atob(token.split(".")[1]));
+  const userId = decoded.userId;
+
+  try {
+
+    const response = await api.put('/user', profileData); 
+    console.log("Saved:", response.data);
+    alert("Profile saved successfully!");
+
+  } catch (error) {
+    console.error("Error saving profile:", error);
+      
+    alert("Failed to save profile");
+  }
+};
+
+   
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>

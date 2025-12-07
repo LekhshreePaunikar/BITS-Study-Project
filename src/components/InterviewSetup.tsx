@@ -9,6 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Textarea } from './ui/textarea';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
+import api from "../utils/api";
+
+
 import { 
   ArrowLeft, 
   Play, 
@@ -48,13 +51,40 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
     preparationTime: 2
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!config.focusArea) {
       alert('Please select a focus area before starting the interview.');
       return;
     }
-    onStartInterview(config);
+    const payload = {
+      ...config,
+      startTime: new Date().toISOString(),
+    };
+  
+    console.log("Interview Config Payload:", payload);
+  
+    try {
+      // STEP 1 → Create config
+      const configRes = await api.post("/interview/config", payload);
+      console.log("Config Created:", configRes.data);
+  
+      // STEP 2 → Start session
+      const sessionRes = await api.post("/interview/start", {
+        configId: configRes.data.id,
+      });
+      console.log("Session Started:", sessionRes.data);
+  
+      // Notify parent
+      onStartInterview({
+        ...payload,
+        configId: configRes.data.id,
+        sessionId: sessionRes.data.sessionId,
+      });
+  
+    } catch (err) {
+      console.error("Error starting interview:", err);
+    }
   };
 
   const getDurationText = (level: string) => {

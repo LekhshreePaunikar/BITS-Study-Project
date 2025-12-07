@@ -3,6 +3,7 @@
 // API utility functions for the AI Mock Interview Platform
 import axios from 'axios';
 
+
 // Base configuration
 const API_BASE_URL = 'http://localhost:3001/api';
 

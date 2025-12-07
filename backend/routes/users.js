@@ -22,7 +22,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     const userResult = await query(
       `SELECT id, username, email, full_name, profile_picture, created_at
-       FROM users WHERE id = $1 AND is_active = true`,
+       FROM "User" WHERE id = $1 AND is_active = true`,
       [userId]
     );
 
@@ -37,12 +37,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
     res.json({
       user: {
-        id: user.id,
-        username: user.username,
+        id: user.user_id,
+        name: user.name,
         email: user.email,
-        fullName: user.full_name,
-        profilePicture: user.profile_picture,
-        createdAt: user.created_at
+        education: user.education,
+        experience: user.experience,
+        preferredRoles: user.preferred_roles,
+        preferredLanguages: user.preferred_languages
       }
     });
   } catch (error) {
@@ -75,7 +76,7 @@ router.put('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (req,
     if (username) {
       // Check if username is already taken by another user
       const existingUser = await query(
-        'SELECT id FROM users WHERE username = $1 AND id != $2',
+        'SELECT id FROM "User" WHERE username = $1 AND id != $2',
         [username, userId]
       );
 
@@ -105,7 +106,7 @@ router.put('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (req,
 
       // Check if email is already taken by another user
       const existingEmail = await query(
-        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        'SELECT id FROM "User" WHERE email = $1 AND id != $2',
         [email, userId]
       );
 
@@ -132,7 +133,7 @@ router.put('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (req,
     values.push(userId);
 
     const updateQuery = `
-      UPDATE users 
+      UPDATE "User"
       SET ${updateFields.join(', ')} 
       WHERE id = $${paramCount}
       RETURNING id, username, email, full_name, profile_picture, updated_at
@@ -198,7 +199,7 @@ router.put('/:id/password', authenticateToken, requireOwnershipOrAdmin('id'), as
 
     // Get current password hash
     const userResult = await query(
-      'SELECT password_hash FROM users WHERE id = $1',
+      'SELECT password_hash FROM User WHERE id = $1',
       [userId]
     );
 
@@ -229,7 +230,7 @@ router.put('/:id/password', authenticateToken, requireOwnershipOrAdmin('id'), as
 
     // Update password
     await query(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      'UPDATE "User" SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
       [newPasswordHash, userId]
     );
 
@@ -327,7 +328,7 @@ router.delete('/:id', authenticateToken, requireOwnershipOrAdmin('id'), async (r
   
     // Soft delete - deactivate account
     const result = await query(
-      'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING username',
+      'UPDATE "User" SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING username',
       [userId]
     );
 

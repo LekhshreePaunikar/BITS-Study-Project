@@ -6,6 +6,84 @@ const { query } = require('../config/database');
 const { authenticateToken } = require('../middleware/auth');
 const checkLogin = require('../middleware/checkLogin');
 
+/* ============================================================
+   1. CREATE INTERVIEW CONFIG  (Frontend → POST /interview/config)
+   ============================================================ */
+   router.post('/config', authenticateToken, checkLogin, async (req, res) => {
+    try {
+      const userId = req.user.user_id;  // Correct DB user ID
+      console.log("Create Config → userId =", userId);
+  
+      const {
+        mode,
+        questionSource,
+        level,
+        focusArea,
+        specificTopics,
+        preparationTime,
+        startTime
+      } = req.body;
+  
+      // Save config to DB (create table if needed)
+      const result = await query(
+        `INSERT INTO interview_config (
+          user_id, mode, question_source, level,
+          focus_area, specific_topics, preparation_time, start_time
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+        RETURNING id`,
+        [
+          userId,
+          mode,
+          questionSource,
+          level,
+          focusArea,
+          specificTopics,
+          preparationTime,
+          startTime
+        ]
+      );
+  
+      return res.status(201).json({
+        message: "Config saved successfully",
+        id: result.rows[0].id
+      });
+  
+    } catch (err) {
+      console.error("❌ Config Error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+  
+  
+  /* ============================================================
+     2. START INTERVIEW SESSION (Frontend → POST /interview/start)
+     ============================================================ */
+  router.post('/start', authenticateToken, checkLogin, async (req, res) => {
+    try {
+      const userId = req.user.user_id;
+      const { configId } = req.body;
+  
+      console.log("Start Session → userId =", userId, "configId =", configId);
+  
+      const result = await query(
+        `INSERT INTO interview_sessions (user_id, config_id, start_time)
+         VALUES ($1, $2, NOW())
+         RETURNING session_id`,
+        [userId, configId]
+      );
+  
+      return res.status(201).json({
+        message: "Interview session started",
+        sessionId: result.rows[0].session_id
+      });
+  
+    } catch (err) {
+      console.error("❌ Start Interview Error:", err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
 // -----------------------------------------------------------
 // POST: Create / Save Interview Setup (Session-based values)
 // -----------------------------------------------------------

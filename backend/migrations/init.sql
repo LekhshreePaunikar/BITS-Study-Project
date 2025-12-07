@@ -151,6 +151,26 @@ CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
     question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
     mode "ModeType" NOT NULL
 );
+-- Stores user-selected interview settings BEFORE a session begins
+CREATE TABLE IF NOT EXISTS interview_configs (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
+    mode VARCHAR(20) NOT NULL,
+    question_source VARCHAR(50) NOT NULL,
+    level VARCHAR(20) NOT NULL,
+    focus_area TEXT,
+    specific_topics TEXT,
+    preparation_time INT,
+    start_time TIMESTAMP DEFAULT NOW()
+);
+
+-- Stores the active interview session linked to a config
+CREATE TABLE IF NOT EXISTS interview_sessions (
+    session_id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
+    config_id INT REFERENCES interview_configs(id) ON DELETE CASCADE,
+    started_at TIMESTAMP DEFAULT NOW()
+);
 
 -- ============================================================
 -- INTERVIEW SESSION TABLES
@@ -195,6 +215,8 @@ CREATE TABLE IF NOT EXISTS "SessionHistory" (
     answer_id INT REFERENCES "Answer"(answer_id),
     timestamp TIMESTAMP DEFAULT NOW() NOT NULL
 );
+
+
 
 -- ============================================================
 -- EVALUATION AND FEEDBACK
