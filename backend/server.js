@@ -11,7 +11,7 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const path = require('path');
 const interviewSetupRoutes = require("./routes/interviewSetup");
-
+const userProfileRoutes = require('./routes/userProfile');
 
 // Load environment variables
 // dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
@@ -129,6 +129,7 @@ app.use('*', (req, res) => {
   });
 });
 
+app.use('/api/profile', userProfileRoutes);
 // ==============================
 // Server Start
 // ==============================

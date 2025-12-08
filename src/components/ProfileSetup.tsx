@@ -1,6 +1,6 @@
 // root/src/components/ProfileSetup.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -29,35 +29,90 @@ interface ProfileSetupProps {
 
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
-  const [profileData, setProfileData] = useState({
-    // Personal Information
-    fullName: '',
-    email: '',
-    password: '',
-    gender: '',
-    phone: '',
-    location: '',
+  const [profileData, setProfileData] = useState(() => ({
+  // Personal Information
+  fullName: username || '',      // prefill with the logged-in username
+  email: '',
+  password: '********',          // non-editable, not null
+  gender: '',
+  phone: '',
+  location: '',
 
-    // Professional Information
-    preferredRole: '',
-    skills: [] as string[],
-    programmingLanguages: [] as string[],
-    experienceLevel: '',
+  // Professional Information
+  preferredRole: '',
+  skills: [] as string[],
+  programmingLanguages: [] as string[],
+  experienceLevel: '',
 
-    // Education & Background
-    education: '',
-    university: '',
-    graduationYear: '',
+  // Education & Background
+  education: '',
+  university: '',
+  graduationYear: '',
 
-    // Additional Information
-    hobbies: '',
-    linkedinProfile: '',
-    githubProfile: '',
-    portfolio: '',
+  // Additional Information
+  hobbies: '',
+  linkedinProfile: '',
+  githubProfile: '',
+  portfolio: '',
 
-    // Resume
-    resumeFile: null as File | null
-  });
+  // Resume
+  resumeFile: null as File | null
+}));
+
+useEffect(() => {
+  const fetchProfile = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        console.warn('No auth token found');
+        return;
+      }
+
+      // GET /api/profile  (axios instance already has /api base usually)
+      const res = await api.get('/profile');
+      const data = res.data; // this is what userService.getUserProfile returns
+
+      // Normalize null → '' and ensure arrays:
+      const normalized = {
+        fullName: data.fullName || username || '',
+        email: data.email || '',
+        password: '********', // never show real password, just non-null placeholder
+
+        gender: data.gender || '',
+        phone: data.phone || '',
+        location: data.location || '',
+
+        preferredRole: data.preferredRole || '',
+        skills: data.skills || [],
+        programmingLanguages: data.programmingLanguages || [],
+        experienceLevel: data.experienceLevel || '',
+
+        education: data.education || '',
+        university: data.university || '',
+        graduationYear: data.graduationYear || '',
+
+        hobbies: data.hobbies || '',
+        linkedinProfile: data.linkedinProfile || '',
+        githubProfile: data.githubProfile || '',
+        portfolio: data.portfolio || '',
+
+        // resumeFile stays null because backend doesn't handle it yet
+        resumeFile: null
+      };
+
+      setProfileData(prev => ({
+        ...prev,
+        ...normalized
+      }));
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      // optional: toast / alert but not required
+    }
+  };
+
+  fetchProfile();
+}, [username]);
+
 
   const preferredRoles = [
     'Frontend Developer',
@@ -159,8 +214,8 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Profile data:", profileData);
+  e.preventDefault();
+  console.log("Profile data:", profileData);
 
   const token = localStorage.getItem("authToken");
   if (!token) {
@@ -168,23 +223,16 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     return;
   }
 
-  const decoded = JSON.parse(atob(token.split(".")[1]));
-  const userId = decoded.userId;
-
   try {
-
-    const response = await api.put('/user', profileData); 
+    // assuming api has baseURL like /api
+    const response = await api.put('/profile', profileData);
     console.log("Saved:", response.data);
     alert("Profile saved successfully!");
-
   } catch (error) {
     console.error("Error saving profile:", error);
-      
     alert("Failed to save profile");
   }
 };
-
-   
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -312,18 +360,19 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
                   Email
                 </Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your email"
-                  value={profileData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
-                  style={{
-                    backgroundColor: '#374151',
-                    borderColor: '#4B5563',
-                    color: '#FFFFFF'
-                  }}
-                />
+  id="email"
+  type="email"
+  placeholder="Enter your email"
+  value={profileData.email}
+  disabled
+  className="transition-all duration-200 text-white cursor-not-allowed opacity-70"
+  style={{
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
+    color: '#FFFFFF'
+  }}
+/>
+
               </div>
 
               <div className="space-y-2">
@@ -335,17 +384,17 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
                 </Label>
                 <div className="relative">
                   <Input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Enter password"
-                    value={profileData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
-                    className="pr-10 transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
-                    style={{
-                      backgroundColor: '#374151',
-                      borderColor: '#4B5563',
-                      color: '#FFFFFF'
-                    }}
+  id="password"
+  type={showPassword ? 'text' : 'password'}
+  placeholder="Password"
+  value={profileData.password}
+  disabled
+  className="pr-10 transition-all duration-200 text-white cursor-not-allowed opacity-70"
+  style={{
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
+    color: '#FFFFFF'
+  }}
                   />
                   <button
                     type="button"
