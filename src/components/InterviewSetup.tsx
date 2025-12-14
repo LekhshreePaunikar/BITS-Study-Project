@@ -26,11 +26,16 @@ import {
   Briefcase
 } from 'lucide-react';
 
+export interface InterviewSession extends InterviewConfig {
+  sessionId: number;
+}
+
 interface InterviewSetupProps {
   username: string;
   onBack: () => void;
-  onStartInterview: (config: InterviewConfig) => void;
+  onStartInterview: (session: InterviewSession) => void;
 }
+
 
 export interface InterviewConfig {
   mode: 'text' | 'voice' | 'both';
@@ -65,22 +70,24 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
     console.log("Interview Config Payload:", payload);
   
     try {
-      // STEP 1 → Create config
-      const configRes = await api.post("/interview/config", payload);
-      console.log("Config Created:", configRes.data);
-  
-      // STEP 2 → Start session
       const sessionRes = await api.post("/interview/start", {
-        configId: configRes.data.id,
+        interview_mode: config.mode,
+        question_source: config.questionSource,
+        selected_difficulty: config.level,
+        focus_area: config.focusArea,
+        prep_time_minutes: config.preparationTime,
+        keywords: config.specificTopics
+          ? config.specificTopics.split(',').map(s => s.trim())
+          : []
       });
+      
       console.log("Session Started:", sessionRes.data);
-  
-      // Notify parent
+      
       onStartInterview({
-        ...payload,
-        configId: configRes.data.id,
-        sessionId: sessionRes.data.sessionId,
+        ...config,
+        sessionId: sessionRes.data.session_id
       });
+      
   
     } catch (err) {
       console.error("Error starting interview:", err);
