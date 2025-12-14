@@ -13,7 +13,7 @@ import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import { authAPI } from "@/utils/api";
+import { authAPI } from "../utils/api";
 
 interface LoginFormProps {
   onSwitchToSignUp: () => void;
