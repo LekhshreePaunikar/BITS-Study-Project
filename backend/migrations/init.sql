@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS "Session" (
     prep_time_minutes INT,
     keywords TEXT[],
     start_time TIMESTAMP DEFAULT NOW() NOT NULL,
-    end_time TIMESTAMP DEFAULT NOW() NOT NULL,
+    end_time TIMESTAMP NULL,L,
     difficulty_level_start "DifficultyLevelType" DEFAULT 'easy',
     difficulty_level_end "DifficultyLevelType" DEFAULT 'easy',
     total_score FLOAT

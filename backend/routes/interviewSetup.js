@@ -6,7 +6,12 @@ const { query } = require("./backend/config/database");
 // for the user whose ID is 2. Questions are personalized based on 
 // the user's profile in the database and grouped by difficulty.
 
-<<<<<<< HEAD
+const express = require('express');
+const router = express.Router();
+const { query } = require('../config/database');
+// const { authenticateToken } = require('../middleware/auth');
+// const checkLogin = require('../middleware/checkLogin');
+
 // //**
 // * POST /api/interview/start
 // * Creates a row in public."Session" using frontend config values
@@ -17,14 +22,16 @@ router.post('/start', async (req, res) => {
    // ✅ Coming from authenticateToken middleware already applied in server.js
    const userId =  req.user.id;
 
-
-   console.log('Start Session → userId =', userId);
-   console.log('Incoming JSON body:', req.body);
-
    if (!userId) {
      return res.status(401).json({ success: false, error: 'Missing userId in token' });
    }
+   
+   const startTime = new Date().toISOString();
+   console.log("Session start_time captured:", startTime);
 
+
+   console.log('Start Session → userId =', userId);
+   console.log('Incoming JSON body:', req.body);
    const {
      interview_mode,
      question_source,
@@ -38,7 +45,13 @@ router.post('/start', async (req, res) => {
    if (!interview_mode || typeof interview_mode !== 'string') {
      return res.status(400).json({ success: false, error: 'interview_mode is required' });
    }
+  const prepTime =
+    Number.isFinite(Number(prep_time_minutes)) 
+     ? Number(prep_time_minutes) : null;
 
+   const keywordsArr = Array.isArray(keywords) ? keywords : null;
+
+  //  Insert session into rows
    const result = await query(
      `
      INSERT INTO "Session" (
@@ -48,10 +61,12 @@ router.post('/start', async (req, res) => {
        selected_difficulty,
        focus_area,
        prep_time_minutes,
-       keywords
+       keywords,
+       start_time,
+       end_time
      )
-     VALUES ($1,$2,$3,$4,$5,$6,$7)
-     RETURNING session_id;
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,null)
+     RETURNING session_id, start_time;
      `,
      [
        userId,
@@ -59,14 +74,17 @@ router.post('/start', async (req, res) => {
        question_source || null,
        selected_difficulty || null,
        focus_area || null,
-       Number.isFinite(Number(prep_time_minutes)) ? Number(prep_time_minutes) : null,
-       Array.isArray(keywords) ? keywords : null
+       prepTime,
+       keywordsArr,
+       startTime,
      ]
    );
-
+   
+   console.log("Session stored start_time:", result.rows[0].start_time);
    return res.status(201).json({
      success: true,
      session_id: result.rows[0].session_id,
+     start_time: result.rows[0].start_time,
      message: 'Session created successfully'
    });
 
@@ -77,7 +95,6 @@ router.post('/start', async (req, res) => {
 });
 
 module.exports = router;
-=======
 (async () => {
   try {
     // Confirm that the API key is loading correctly
@@ -172,4 +189,58 @@ Do not include explanations, notes, comments, markdown, or any text outside the 
     console.error("API Error:", err.message);
   }
 })();
->>>>>>> 725b16e (Updated the InterviewSetup script)
+
+/**
+ * POST /api/interview/end
+ * Marks an interview session as ended
+ */
+router.post('/end', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { session_id } = req.body;
+
+    if (!session_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'session_id is required'
+      });
+    }
+
+    const endTime = new Date().toISOString();
+    console.log('Session end_time captured:', endTime);
+
+    const result = await query(
+      `
+      UPDATE "Session"
+      SET end_time = $1
+      WHERE session_id = $2 AND user_id = $3
+      RETURNING session_id, start_time, end_time;
+      `,
+      [endTime, session_id, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Session not found or not owned by user'
+      });
+    }
+
+    return res.json({
+      success: true,
+      session_id: result.rows[0].session_id,
+      start_time: result.rows[0].start_time,
+      end_time: result.rows[0].end_time,
+      message: 'Session ended successfully'
+    });
+
+  } catch (err) {
+    console.error('❌ End Session Error:', err);
+    return res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+});
+
+module.exports = router;

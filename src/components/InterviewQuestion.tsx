@@ -7,6 +7,8 @@ import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
+import api from "../utils/api";
+
 import {
   Dialog,
   DialogContent,
@@ -269,14 +271,27 @@ export default function InterviewQuestion({
     setEndDialogOpen(true);
   };
 
-  const confirmEndInterview = () => {
-    // Clean up timers
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (autoSaveRef.current) clearInterval(autoSaveRef.current);
-
-    onEndInterview();
+  const confirmEndInterview = async () => {
+    try {
+      console.log("Ending interview session:", config.sessionId);
+  
+      await api.post("/interview/end", {
+        session_id: config.sessionId,
+      });
+  
+      console.log("Interview session ended successfully");
+  
+    } catch (error) {
+      console.error("Failed to end interview:", error);
+    } finally {
+      // cleanup timers
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (autoSaveRef.current) clearInterval(autoSaveRef.current);
+  
+      onEndInterview();
+    }
   };
-
+  
   const currentQuestion = questions[currentQuestionIndex];
   const progressPercentage =
     ((currentQuestionIndex + 1) / questions.length) * 100;
