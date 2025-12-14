@@ -1,11 +1,12 @@
-// root/backend/routes/interviewSetup.js
+require("dotenv").config({ path: "./.env.local" });
+const { OpenAI } = require("openai");
+const { query } = require("./backend/config/database");
 
-const express = require('express');
-const router = express.Router();
-const { query } = require('../config/database');
-const { authenticateToken } = require('../middleware/auth');
-const checkLogin = require('../middleware/checkLogin');
+// This script tests the OpenAI API and generates interview questions
+// for the user whose ID is 2. Questions are personalized based on 
+// the user's profile in the database and grouped by difficulty.
 
+<<<<<<< HEAD
 // //**
 // * POST /api/interview/start
 // * Creates a row in public."Session" using frontend config values
@@ -76,3 +77,99 @@ router.post('/start', async (req, res) => {
 });
 
 module.exports = router;
+=======
+(async () => {
+  try {
+    // Confirm that the API key is loading correctly
+    console.log("API Key Loaded:", process.env.OPENAI_API_KEY ? "Yes" : "No");
+
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    // Step 1: Fetch user profile from the database
+    const userResult = await query(
+      `SELECT name, education, experience, preferred_roles, skills, programming_languages
+       FROM "User" WHERE user_id = 2`
+    );
+
+    if (userResult.rows.length === 0) {
+      console.error("No user found with ID = 2");
+      return;
+    }
+
+    const user = userResult.rows[0];
+
+    // Convert stored values into readable strings
+    const preferredRoles = Array.isArray(user.preferred_roles)
+      ? user.preferred_roles.join(", ")
+      : user.preferred_roles || "None";
+
+    const skills = Array.isArray(user.skills)
+      ? user.skills.join(", ")
+      : user.skills || "None";
+
+    const languages = Array.isArray(user.programming_languages)
+      ? user.programming_languages.join(", ")
+      : user.programming_languages || "None";
+
+    // Step 2: Build the prompt to send to OpenAI
+    const customPrompt = `
+You are an expert technical interviewer. Generate exactly 6 interview questions tailored to the candidate below.
+
+Candidate Profile:
+- Name: ${user.name}
+- Education: ${user.education || "Not provided"}
+- Experience: ${user.experience || "Not provided"}
+- Preferred Roles: ${preferredRoles}
+- Skills: ${skills}
+- Programming Languages: ${languages}
+
+Generate exactly:
+- 2 easy questions
+- 2 medium difficulty questions
+- 2 hard difficulty questions
+
+The questions must be specific to the candidate's skills and background.
+
+Output must be valid JSON only, in this exact structure:
+
+{
+  "easy": ["question1", "question2"],
+  "medium": ["question1", "question2"],
+  "hard": ["question1", "question2"]
+}
+
+Do not include explanations, notes, comments, markdown, or any text outside the JSON response.
+`;
+
+    // Step 3: Call the OpenAI API
+    const completion = await client.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Your responses must be in clean, valid JSON only." },
+        { role: "user", content: customPrompt }
+      ],
+      temperature: 0.7
+    });
+
+    const rawResponse = completion.choices[0].message.content.trim();
+
+    console.log("\nRaw OpenAI Response:\n", rawResponse);
+
+    // Step 4: Attempt to parse the JSON returned by the model
+    let parsed;
+    try {
+      parsed = JSON.parse(rawResponse);
+    } catch (error) {
+      console.error("The model returned text that is not valid JSON.");
+      return;
+    }
+
+    // Step 5: Print the final structured questions
+    console.log("\nGenerated Questions:");
+    console.log(JSON.stringify(parsed, null, 2));
+
+  } catch (err) {
+    console.error("API Error:", err.message);
+  }
+})();
+>>>>>>> 725b16e (Updated the InterviewSetup script)
