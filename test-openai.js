@@ -24,7 +24,7 @@ const { query } = require("./backend/config/database");
       apiKey: process.env.OPENAI_API_KEY,
     });
 
-    /* Read & Parse Resume PDF */
+    /* 1. Read & Parse Resume PDF */
     const resumePath = path.join(
       __dirname,
       "sample_resume",
@@ -32,46 +32,39 @@ const { query } = require("./backend/config/database");
     );
 
     if (!fs.existsSync(resumePath)) {
-      console.error("Resume PDF not found at:", resumePath);
+      console.error("Resume PDF not found:", resumePath);
       return;
     }
 
     const resumeBuffer = fs.readFileSync(resumePath);
     const parsedPdf = await pdfParse(resumeBuffer);
-
     const resumeText = parsedPdf.text.replace(/\s+/g, " ").trim();
+
     console.log("Resume parsed successfully");
 
-    /* Extract Resume Signals using OpenAI */
+    /* 2. Extract Resume Signals */
     const extractionPrompt = `
-You are an expert resume parser.
-
-From the resume text below, extract:
-- first_name
-- education (short summary)
-- experience (short summary)
-- skills (array of keywords)
-
-Return ONLY valid JSON in this format:
-
-{
-  "first_name": "",
-  "education": "",
-  "experience": "",
-  "skills": []
-}
-
-Resume text:
-"""
-${resumeText}
-"""
-`;
+      Extract structured data from the resume below.
+      
+      Return ONLY valid JSON:
+      {
+        "first_name": "",
+        "education": "",
+        "experience": "",
+        "skills": []
+      }
+      
+      Resume:
+      """
+      ${resumeText}
+      """
+      `;
 
     const extractionRes = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0,
       messages: [
-        { role: "system", content: "You extract structured resume data." },
+        { role: "system", content: "You extract resume data." },
         { role: "user", content: extractionPrompt },
       ],
     });
@@ -80,18 +73,16 @@ ${resumeText}
       extractionRes.choices[0].message.content.trim()
     );
 
-    const firstName = extracted.first_name || "there";
+    const firstName = extracted.first_name || "Candidate";
     const education = extracted.education || "N/A";
     const experience = extracted.experience || "N/A";
     const skills = Array.isArray(extracted.skills)
       ? extracted.skills.join(", ")
       : "";
 
-    console.log("Candidate Name:", firstName);
-    console.log("Education:", education);
-    console.log("Skills:", skills);
+    console.log("Candidate:", firstName);
 
-    /* 3. Fetch User (created_by = 2) */
+    /* 3. Validate User */
     const userRes = await query(
       `SELECT user_id FROM "User" WHERE user_id = 2`
     );
@@ -101,7 +92,7 @@ ${resumeText}
       return;
     }
 
-    /* 4. Fetch First Evaluation Model */
+    /* 4. Get Evaluation Model */
     const modelRes = await query(`
       SELECT model_id, model_name
       FROM "EvaluationModel"
@@ -115,44 +106,30 @@ ${resumeText}
     }
 
     const model = modelRes.rows[0];
-    console.log("Evaluation Model:", model.model_name);
 
-    /* 5. Generate Human-Like Interview Questions */
+    /* 5. Generate Interview Questions */
     const questionPrompt = `
-You are a senior technical interviewer having a real conversation.
+      Generate EXACTLY 6 interview questions for ${firstName}.
 
-Candidate:
-- First name: ${firstName}
-- Education: ${education}
-- Experience: ${experience}
-- Skills: ${skills}
+      Rules:
+      - 2 easy, 2 medium, 2 hard
+      - Conversational
+      - Resume-aware
+      - Address candidate by name
+      - Return ONLY JSON
 
-Generate EXACTLY 6 interview questions:
-- 2 easy
-- 2 medium
-- 2 hard
-
-Rules:
-- Every question MUST directly address the candidate by first name
-- Sound natural and conversational
-- Ask as a real human interviewer would
-- Use resume context naturally
-- No explanations
-
-Return ONLY valid JSON:
-
-{
-  "easy": ["..."],
-  "medium": ["..."],
-  "hard": ["..."]
-}
-`;
+      {
+        "easy": [],
+        "medium": [],
+        "hard": []
+      }
+      `;
 
     const questionRes = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0.7,
       messages: [
-        { role: "system", content: "You generate realistic interview questions." },
+        { role: "system", content: "You generate interview questions." },
         { role: "user", content: questionPrompt },
       ],
     });
@@ -161,12 +138,9 @@ Return ONLY valid JSON:
       questionRes.choices[0].message.content.trim()
     );
 
-    console.log("\nGenerated Questions:");
-    console.log(JSON.stringify(questions, null, 2));
+    console.log("Generated Questions:", questions);
 
-    /* 6. Store Questions in DB */
-    console.log("\nSaving questions to DB...\n");
-
+    /* 6. Save to DB */
     for (const [difficulty, list] of Object.entries(questions)) {
       for (const q of list) {
         const baseRes = await query(
@@ -180,8 +154,6 @@ Return ONLY valid JSON:
           [difficulty]
         );
 
-        const baseQuestionId = baseRes.rows[0].question_id;
-
         await query(
           `
           INSERT INTO "DynamicQuestion"
@@ -189,17 +161,13 @@ Return ONLY valid JSON:
           VALUES
             ($1, $2, $3, NULL)
           `,
-          [baseQuestionId, model.model_id, q]
-        );
-
-        console.log(
-          `[${difficulty.toUpperCase()}] Saved to QID ${baseQuestionId}`
+          [baseRes.rows[0].question_id, model.model_id, q]
         );
       }
     }
 
-    console.log("\nDONE: Resume-aware questions generated & stored.");
+    console.log("Test run completed successfully");
   } catch (err) {
-    console.error("ERROR:", err);
+    console.error("Test script error:", err);
   }
 })();

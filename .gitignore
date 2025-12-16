@@ -83,3 +83,11 @@ coverage/
 .typings/
 *.tgz
 *.tar.gz
+
+# Ignore user-uploaded files
+/static/profile_pictures/*
+/static/resumes/*
+
+# Allow folder tracking files
+!/static/profile_pictures/.gitkeep
+!/static/resumes/.gitkeep
