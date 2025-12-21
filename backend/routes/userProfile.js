@@ -4,6 +4,8 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const userService = require('../services/userService');
+const uploadResume = require('../middleware/uploadResume');
+const checkLogin = require('../middleware/checkLogin');
 
 // ==============================
 // GET /api/profile  -> Get logged-in user's profile
@@ -32,4 +34,34 @@ router.put('/', authenticateToken, async (req, res) => {
   }
 });
 
+// Upload / Update Resume
+router.post(
+  '/profile/resume',
+  checkLogin,
+  uploadResume.single('resume'),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No resume uploaded' });
+      }
+
+      const resumePath = `/static/resumes/${req.file.filename}`;
+
+      await userService.updateResumePath(userId, resumePath);
+
+      res.json({
+        message: 'Resume uploaded successfully',
+        resume_path: resumePath
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to upload resume' });
+    }
+  }
+);
+
+
 module.exports = router;
+

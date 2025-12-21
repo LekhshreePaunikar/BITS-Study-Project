@@ -27,91 +27,112 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
+const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (file.type !== 'application/pdf') {
+    alert('Only PDF resumes are allowed');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('resume', file);
+
+  try {
+    const res = await uploadResume(formData);
+    setResumePreview(res.resume_path);
+  } catch (err) {
+    alert('Failed to upload resume');
+  }
+};
+
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [resumePreview, setResumePreview] = useState<string | null>(null);
   const [profileData, setProfileData] = useState(() => ({
-  // Personal Information
-  fullName: username || '',      // prefill with the logged-in username
-  email: '',
-  password: '********',          // non-editable, not null
-  gender: '',
-  phone: '',
-  location: '',
+    // Personal Information
+    fullName: username || '',      // prefill with the logged-in username
+    email: '',
+    password: '********',          // non-editable, not null
+    gender: '',
+    phone: '',
+    location: '',
 
-  // Professional Information
-  preferredRole: '',
-  skills: [] as string[],
-  programmingLanguages: [] as string[],
-  experienceLevel: '',
+    // Professional Information
+    preferredRole: '',
+    skills: [] as string[],
+    programmingLanguages: [] as string[],
+    experienceLevel: '',
 
-  // Education & Background
-  education: '',
-  university: '',
-  graduationYear: '',
+    // Education & Background
+    education: '',
+    university: '',
+    graduationYear: '',
 
-  // Additional Information
-  hobbies: '',
-  linkedinProfile: '',
-  githubProfile: '',
-  portfolio: '',
+    // Additional Information
+    hobbies: '',
+    linkedinProfile: '',
+    githubProfile: '',
+    portfolio: '',
 
-  // Resume
-  resumeFile: null as File | null
-}));
+    // Resume
+    resumeFile: null as File | null
+  }));
 
-useEffect(() => {
-  const fetchProfile = async () => {
-    try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        console.warn('No auth token found');
-        return;
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          console.warn('No auth token found');
+          return;
+        }
+
+        // GET /api/profile  (axios instance already has /api base usually)
+        const res = await api.get('/profile');
+        const data = res.data; // this is what userService.getUserProfile returns
+
+        // Normalize null → '' and ensure arrays:
+        const normalized = {
+          fullName: data.fullName || username || '',
+          email: data.email || '',
+          password: '********', // never show real password, just non-null placeholder
+
+          gender: data.gender || '',
+          phone: data.phone || '',
+          location: data.location || '',
+
+          preferredRole: data.preferredRole || '',
+          skills: data.skills || [],
+          programmingLanguages: data.programmingLanguages || [],
+          experienceLevel: data.experienceLevel || '',
+
+          education: data.education || '',
+          university: data.university || '',
+          graduationYear: data.graduationYear || '',
+
+          hobbies: data.hobbies || '',
+          linkedinProfile: data.linkedinProfile || '',
+          githubProfile: data.githubProfile || '',
+          portfolio: data.portfolio || '',
+
+          // resumeFile stays null because backend doesn't handle it yet
+          resumeFile: null
+        };
+
+        setProfileData(prev => ({
+          ...prev,
+          ...normalized
+        }));
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+        // optional: toast / alert but not required
       }
+    };
 
-      // GET /api/profile  (axios instance already has /api base usually)
-      const res = await api.get('/profile');
-      const data = res.data; // this is what userService.getUserProfile returns
-
-      // Normalize null → '' and ensure arrays:
-      const normalized = {
-        fullName: data.fullName || username || '',
-        email: data.email || '',
-        password: '********', // never show real password, just non-null placeholder
-
-        gender: data.gender || '',
-        phone: data.phone || '',
-        location: data.location || '',
-
-        preferredRole: data.preferredRole || '',
-        skills: data.skills || [],
-        programmingLanguages: data.programmingLanguages || [],
-        experienceLevel: data.experienceLevel || '',
-
-        education: data.education || '',
-        university: data.university || '',
-        graduationYear: data.graduationYear || '',
-
-        hobbies: data.hobbies || '',
-        linkedinProfile: data.linkedinProfile || '',
-        githubProfile: data.githubProfile || '',
-        portfolio: data.portfolio || '',
-
-        // resumeFile stays null because backend doesn't handle it yet
-        resumeFile: null
-      };
-
-      setProfileData(prev => ({
-        ...prev,
-        ...normalized
-      }));
-    } catch (err) {
-      console.error('Error fetching profile:', err);
-      // optional: toast / alert but not required
-    }
-  };
-
-  fetchProfile();
-}, [username]);
+    fetchProfile();
+  }, [username]);
 
 
   const preferredRoles = [
@@ -203,36 +224,56 @@ useEffect(() => {
     }));
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file && (file.type === 'application/pdf' || file.type.includes('document'))) {
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      alert("Only PDF resumes are allowed");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      const res = await api.post("/profile/resume", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      setResumePreview(res.data.resumePath);
+
       setProfileData(prev => ({
         ...prev,
         resumeFile: file
       }));
+    } catch (err) {
+      console.error(err);
+      alert("Resume upload failed");
     }
   };
 
+
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  console.log("Profile data:", profileData);
+    e.preventDefault();
+    console.log("Profile data:", profileData);
 
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    alert("Not logged in");
-    return;
-  }
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Not logged in");
+      return;
+    }
 
-  try {
-    // assuming api has baseURL like /api
-    const response = await api.put('/profile', profileData);
-    console.log("Saved:", response.data);
-    alert("Profile saved successfully!");
-  } catch (error) {
-    console.error("Error saving profile:", error);
-    alert("Failed to save profile");
-  }
-};
+    try {
+      // assuming api has baseURL like /api
+      const { resumeFile, ...payload } = profileData;
+      await api.put("/profile", payload);
+      alert("Profile saved successfully!");
+    } catch (error) {
+      console.error("Error saving profile:", error);
+      alert("Failed to save profile");
+    }
+  };
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -360,18 +401,18 @@ useEffect(() => {
                   Email
                 </Label>
                 <Input
-  id="email"
-  type="email"
-  placeholder="Enter your email"
-  value={profileData.email}
-  disabled
-  className="transition-all duration-200 text-white cursor-not-allowed opacity-70"
-  style={{
-    backgroundColor: '#374151',
-    borderColor: '#4B5563',
-    color: '#FFFFFF'
-  }}
-/>
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={profileData.email}
+                  disabled
+                  className="transition-all duration-200 text-white cursor-not-allowed opacity-70"
+                  style={{
+                    backgroundColor: '#374151',
+                    borderColor: '#4B5563',
+                    color: '#FFFFFF'
+                  }}
+                />
 
               </div>
 
@@ -384,17 +425,17 @@ useEffect(() => {
                 </Label>
                 <div className="relative">
                   <Input
-  id="password"
-  type={showPassword ? 'text' : 'password'}
-  placeholder="Password"
-  value={profileData.password}
-  disabled
-  className="pr-10 transition-all duration-200 text-white cursor-not-allowed opacity-70"
-  style={{
-    backgroundColor: '#374151',
-    borderColor: '#4B5563',
-    color: '#FFFFFF'
-  }}
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Password"
+                    value={profileData.password}
+                    disabled
+                    className="pr-10 transition-all duration-200 text-white cursor-not-allowed opacity-70"
+                    style={{
+                      backgroundColor: '#374151',
+                      borderColor: '#4B5563',
+                      color: '#FFFFFF'
+                    }}
                   />
                   <button
                     type="button"
@@ -713,10 +754,8 @@ useEffect(() => {
                   </p>
                   <input
                     type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="resume-upload"
+                    accept=".pdf"
+                    onChange={handleResumeUpload}
                   />
                   <Button
                     variant="outline"
@@ -735,6 +774,20 @@ useEffect(() => {
                       Selected: {profileData.resumeFile.name}
                     </p>
                   )}
+                  {resumePreview && (
+                    <p className="text-sm mt-2">
+                      <a
+                        href={resumePreview}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        style={{ color: "#60A5FA" }}
+                      >
+                        View uploaded resume
+                      </a>
+                    </p>
+                  )}
+
                 </div>
               </div>
             </CardContent>

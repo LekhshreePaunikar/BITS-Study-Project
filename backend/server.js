@@ -14,8 +14,8 @@ const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 
 // Load environment variables
-// dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 
 
 // Initialize Express app
@@ -46,7 +46,8 @@ app.use(cors({
 // Request parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
+// static files
+app.use("/static", express.static(path.join(__dirname, "..", "static")));
 
 // ==============================
 // Routes
@@ -129,7 +130,7 @@ app.use('*', (req, res) => {
   });
 });
 
-app.use('/api/profile', userProfileRoutes);
+// app.use('/api/profile', userProfileRoutes);
 // ==============================
 // Server Start
 // ==============================

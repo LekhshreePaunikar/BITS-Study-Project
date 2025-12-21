@@ -113,4 +113,17 @@ exports.updateUserProfile = async (userId, data) => {
   return { success: true };
 };
 
-// ... other exports ...
+// ==============================
+// Update resume path
+// ==============================
+exports.updateResumePath = async (userId, resumePath) => {
+  const sql = `
+    UPDATE "User"
+    SET resume_path = $1,
+        updated_at = NOW()
+    WHERE user_id = $2
+  `;
+
+  await query(sql, [resumePath, userId]);
+  return { success: true };
+};
