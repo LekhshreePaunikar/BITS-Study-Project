@@ -7,6 +7,8 @@ import { Label } from './ui/label';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
+import { authAPI } from "../utils/api";
+
 
 interface SignUpFormProps {
   onSwitchToLogin: () => void;
@@ -28,20 +30,32 @@ export default function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Sign up attempt:', formData, 'Remember me:', rememberMe);
-    
-    // Handle sign up logic here
-    if (rememberMe) {
-      // Store user preferences in localStorage for future sessions
-      localStorage.setItem('rememberUser', JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        rememberMe: true
-      }));
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    await authAPI.register({
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+    });
+
+    alert("Registration successful. Please log in.");
+    onSwitchToLogin(); // 🔁 redirect to Login page
+
+  } catch (err: any) {
+    if (err.response?.status === 409) {
+      alert("User already exists");
+      onSwitchToLogin(); // 🔁 redirect to Login page
+    } else {
+      alert(
+        err.response?.data?.message ||
+        "Registration failed. Please try again."
+      );
     }
-  };
+  }
+};
+
 
   return (
     <Card 

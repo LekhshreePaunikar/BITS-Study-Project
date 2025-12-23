@@ -1,6 +1,7 @@
 // root/backend/routes/auth.js
 const express = require('express');
 const bcrypt = require('bcryptjs');
+const validationUtils = require('../utils/validation');
 const validator = require('validator');
 const { OAuth2Client } = require('google-auth-library');
 const { query } = require('../config/database');
@@ -14,80 +15,56 @@ const googleClient = new OAuth2Client(process.env.OAUTH_CLIENT_ID);
 // ==============================
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    // 1️⃣ Validate input
+    const { isValid, errors, sanitized } =
+      validationUtils.validateRegistration(req.body);
 
-    if (!username || !email || !password) {
+    if (!isValid) {
       return res.status(400).json({
-        message: 'Missing required fields',
-        error: 'Username, email, and password are required',
+        message: 'Validation failed',
+        errors,
       });
     }
 
-    if (!validator.isEmail(email)) {
-      return res.status(400).json({
-        message: 'Invalid email format',
-        error: 'Please provide a valid email address',
-      });
-    }
+    const { username, email, password } = sanitized;
 
-    if (password.length < 6) {
-      return res.status(400).json({
-        message: 'Password too short',
-        error: 'Password must be at least 6 characters long',
-      });
-    }
-
-    // Check if user already exists
+    // 2️⃣ Check duplicate email
     const existingUser = await query(
-      `SELECT user_id FROM "User" WHERE email = $1 OR name = $2`,
-      [email, username]
+      `SELECT user_id FROM "User" WHERE email = $1`,
+      [email]
     );
 
     if (existingUser.rows.length > 0) {
       return res.status(409).json({
         message: 'User already exists',
-        error: 'Email or username is already taken',
       });
     }
 
-    // Hash password
+    // 3️⃣ Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Create new normal user (non-admin by default)
-    const newUser = await query(
-      `INSERT INTO "User" (name, email, password_hash, is_admin, is_blacklisted)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING user_id, name, email, created_at, is_admin`,
-      [username, email, passwordHash, false, false]
+    // 4️⃣ Insert user (ONLY REQUIRED FIELDS)
+    await query(
+      `
+      INSERT INTO "User"
+        (name, email, password_hash, created_at, is_admin, is_blacklisted)
+      VALUES
+        ($1, $2, $3, NOW(), FALSE, FALSE)
+      `,
+      [username, email, passwordHash]
     );
 
-    const user = newUser.rows[0];
-
-    // Generate JWT token (include admin flag)
-    const token = generateToken(user.user_id, user.name, user.email, user.is_admin);
-
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: {
-        id: user.user_id,
-        username: user.name,
-        email: user.email,
-        createdAt: user.created_at,
-        isAdmin: user.is_admin,
-      },
-      token,
+    return res.status(201).json({
+      message: 'Registration successful',
     });
+
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       message: 'Registration failed',
-      error: error.message,
-      stack: error.stack,
     });
-
   }
 });
-
 // ==============================
 // USER LOGIN
 // ==============================
