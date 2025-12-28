@@ -158,45 +158,35 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
+      
       {/* Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
+      <header className="border-b" style={{backgroundColor: '#1F2937',  borderColor: '#374151',}}>
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <h1 
-              className="text-2xl tracking-wide"
-              style={{ color: '#9CA3AF' }}
-            >
-              PERFORMANCE REPORT
-            </h1>
-            <div className="flex items-center space-x-4">
-              <Button 
-                onClick={handleDownloadReport}
-                className="text-white flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-                style={{ backgroundColor: '#10B981' }}
-              >
-                <Download className="h-4 w-4" />
-                <span>Download PDF</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={onBackToDashboard}
-                className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-                style={{
-                  borderColor: '#6B7280',
-                  color: '#9CA3AF',
-                  backgroundColor: 'transparent'
-                }}
-              >
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBackToDashboard}
+                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back to Dashboard</span>
               </Button>
             </div>
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Performance Report</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
+                Overall Performance Analysis
+              </p>
+              
+            </div>
+            
+            <div className="flex justify-end">
+              <Button onClick={handleDownloadReport} className="text-white flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
+                style={{ backgroundColor: '#10B981' }}>
+                <Download className="h-4 w-4" />
+                <span>Download PDF</span>
+              </Button>
+            </div>
+            <div />
           </div>
         </div>
       </header>

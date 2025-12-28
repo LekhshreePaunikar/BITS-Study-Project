@@ -176,7 +176,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
               {/* Left - Title */}
               <div className="flex items-center space-x-4">
                 <Shield className="h-8 w-8 text-white" />
-                <h1 className="text-2xl text-white">
+                <h1 className="text-2xl md:text-3xl mb-2 text-white">
                   Admin Dashboard
                 </h1>
               </div>
@@ -251,12 +251,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                   variant="outline" 
                   onClick={onLogout} 
                   className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-                  style={{
-                    borderColor: '#6B7280',
-                    color: '#9CA3AF',
-                    backgroundColor: 'transparent'
-                  }}
-                >
+                  style={{ borderColor: '#DC2626', color: 'white', backgroundColor: 'rgba(127, 29, 29, 0.3)'}}>
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
                 </Button>

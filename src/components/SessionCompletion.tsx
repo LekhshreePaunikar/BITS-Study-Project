@@ -384,16 +384,9 @@ export default function SessionCompletion({
 
         {/* Footer Actions */}
         <div className="text-center mt-12">
-          <Button
-            variant="outline"
-            onClick={onBackToDashboard}
-            className="transition-all duration-200 hover:shadow-lg hover:scale-105"
-            style={{
-              borderColor: "rgba(255, 255, 255, 0.3)",
-              color: "#FFFFFF",
-              backgroundColor: "transparent",
-            }}
-          >
+          <Button variant="outline" onClick={onBackToDashboard}
+            className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
             Back to Dashboard
           </Button>
         </div>

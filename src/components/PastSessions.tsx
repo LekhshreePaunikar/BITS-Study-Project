@@ -166,20 +166,25 @@ export default function PastSessions({
       style={{ backgroundColor: "#111827" }}
     >
       {/* Header */}
-      <header
-        className="border-b"
-        style={{
-          backgroundColor: "#1F2937",
-          borderColor: "#374151",
-        }}
-      >
+      <header className="border-b" style={{backgroundColor: '#1F2937',  borderColor: '#374151',}}>
         <div className="container mx-auto px-6 py-6">
-          <h1
-            className="text-center uppercase tracking-wider"
-            style={{ color: "#FFFFFF" }}
-          >
-            PAST SESSIONS PAGE
-          </h1>
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBackToDashboard}
+                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Past Session Page</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
+                Previous Mock Interview performances.
+              </p>
+            </div>
+            <div />
+          </div>
         </div>
       </header>
 
@@ -559,21 +564,6 @@ export default function PastSessions({
               </div>
             </CardContent>
           </Card>
-
-          {/* Return to Dashboard Button */}
-          <div className="flex justify-end mt-8">
-            <Button
-              onClick={onBackToDashboard}
-              size="lg"
-              className="shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 hover:scale-105 text-white"
-              style={{
-                backgroundColor: "#6B7280",
-              }}
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span>Return to Dashboard</span>
-            </Button>
-          </div>
 
           {/* Additional Info */}
           <div className="text-center mt-6">

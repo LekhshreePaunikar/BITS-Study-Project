@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from './ui/alert-dialog';
 import { Badge } from './ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { 
+import {
   ArrowLeft,
   Edit3,
   Trash2,
@@ -193,7 +193,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
       level: 'easy'
     });
     setShowAddForm(false);
-    
+
     toast.success('✅ Question added successfully', {
       style: {
         background: '#10B981',
@@ -223,17 +223,17 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
       return;
     }
 
-    setQuestions(prev => 
-      prev.map(q => 
-        q.id === editingQuestion.id 
+    setQuestions(prev =>
+      prev.map(q =>
+        q.id === editingQuestion.id
           ? {
-              ...q,
-              content: questionForm.content.trim(),
-              role: questionForm.role,
-              skill: questionForm.skill,
-              language: questionForm.language,
-              level: questionForm.level
-            }
+            ...q,
+            content: questionForm.content.trim(),
+            role: questionForm.role,
+            skill: questionForm.skill,
+            language: questionForm.language,
+            level: questionForm.level
+          }
           : q
       )
     );
@@ -247,7 +247,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
       level: 'easy'
     });
     setShowAddForm(false);
-    
+
     toast.success('✅ Question updated successfully', {
       style: {
         background: '#10B981',
@@ -259,7 +259,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
 
   const handleDeleteQuestion = (questionId: string) => {
     setQuestions(prev => prev.filter(q => q.id !== questionId));
-    
+
     toast.success('✅ Question deleted successfully', {
       style: {
         background: '#10B981',
@@ -288,9 +288,9 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
       hard: '#EF4444'
     };
     const color = colors[level as keyof typeof colors] || colors.easy;
-    
+
     return (
-      <Badge 
+      <Badge
         className="text-xs px-2 py-1 border-0 text-white"
         style={{ backgroundColor: color }}
       >
@@ -318,43 +318,23 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
-        
+
         {/* Header */}
-        <header 
-          className="border-b"
-          style={{ 
-            backgroundColor: '#1F2937',
-            borderColor: '#374151'
-          }}
-        >
+        <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
           <div className="container mx-auto px-6 py-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="text-center flex-1">
-                <h1 
-                  className="text-2xl md:text-3xl mb-2"
-                  style={{ 
-                    fontSize: '24px',
-                    fontFamily: 'Inter, SF Pro, Roboto, sans-serif',
-                    color: '#FFFFFF'
-                  }}
-                >
-                  Manage Questions Page
-                </h1>
+            <div className="grid grid-cols-3 items-center">
+              <div className="flex justify-start">
+                <Button variant="outline" onClick={onBackToAdminDashboard}
+                  className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                  style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Dashboard</span>
+                </Button>
               </div>
-              
-              <Button 
-                variant="outline" 
-                onClick={onBackToAdminDashboard}
-                className="flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{
-                  borderColor: '#6B7280',
-                  color: '#9CA3AF',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Dashboard</span>
-              </Button>
+              <div className="text-center">
+                <h1 className="text-2xl md:text-3xl mb-2 text-white"> Manage Static Question Bank</h1>
+              </div>
+              <div />
             </div>
           </div>
         </header>
@@ -367,8 +347,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
             <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
               <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
                 <div className="relative">
-                  <Search 
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" 
+                  <Search
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4"
                     style={{ color: '#6B7280' }}
                   />
                   <Input
@@ -376,7 +356,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 w-full sm:w-80 transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
-                    style={{ 
+                    style={{
                       backgroundColor: '#374151',
                       borderColor: '#4B5563',
                       color: '#FFFFFF'
@@ -399,9 +379,9 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
 
             {/* Add/Edit Question Form */}
             {showAddForm && (
-              <Card 
+              <Card
                 className="border transition-all duration-200 hover:shadow-lg"
-                style={{ 
+                style={{
                   backgroundColor: '#1F2937',
                   borderColor: '#374151'
                 }}
@@ -414,8 +394,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                 <CardContent className="space-y-4">
                   {/* Question Content */}
                   <div className="space-y-2">
-                    <Label 
-                      htmlFor="question-content" 
+                    <Label
+                      htmlFor="question-content"
                       style={{ color: '#9CA3AF' }}
                     >
                       Question Content *
@@ -426,7 +406,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                       value={questionForm.content}
                       onChange={(e) => handleFormChange('content', e.target.value)}
                       className="min-h-[100px] transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
-                      style={{ 
+                      style={{
                         backgroundColor: '#374151',
                         borderColor: '#4B5563',
                         color: '#FFFFFF'
@@ -441,8 +421,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                     <div className="space-y-2">
                       <Label style={{ color: '#9CA3AF' }}>Role *</Label>
                       <Select value={questionForm.role} onValueChange={(value) => handleFormChange('role', value)}>
-                        <SelectTrigger 
-                          style={{ 
+                        <SelectTrigger
+                          style={{
                             backgroundColor: '#374151',
                             borderColor: '#4B5563',
                             color: '#FFFFFF'
@@ -462,8 +442,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                     <div className="space-y-2">
                       <Label style={{ color: '#9CA3AF' }}>Skill *</Label>
                       <Select value={questionForm.skill} onValueChange={(value) => handleFormChange('skill', value)}>
-                        <SelectTrigger 
-                          style={{ 
+                        <SelectTrigger
+                          style={{
                             backgroundColor: '#374151',
                             borderColor: '#4B5563',
                             color: '#FFFFFF'
@@ -483,20 +463,20 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                   {/* Programming Language Radio Buttons */}
                   <div className="space-y-3">
                     <Label style={{ color: '#9CA3AF' }}>Programming Language *</Label>
-                    <RadioGroup 
-                      value={questionForm.language} 
+                    <RadioGroup
+                      value={questionForm.language}
                       onValueChange={(value) => handleFormChange('language', value)}
                       className="flex flex-wrap gap-4"
                     >
                       {languageOptions.map(lang => (
                         <div key={lang} className="flex items-center space-x-2">
-                          <RadioGroupItem 
-                            value={lang} 
+                          <RadioGroupItem
+                            value={lang}
                             id={`lang-${lang}`}
                             style={{ borderColor: '#9CA3AF' }}
                           />
-                          <Label 
-                            htmlFor={`lang-${lang}`} 
+                          <Label
+                            htmlFor={`lang-${lang}`}
                             className="text-white cursor-pointer"
                           >
                             {lang}
@@ -515,13 +495,12 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           key={level}
                           type="button"
                           onClick={() => handleFormChange('level', level)}
-                          className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 ${
-                            questionForm.level === level
+                          className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 ${questionForm.level === level
                               ? 'text-white'
                               : 'border'
-                          }`}
+                            }`}
                           style={{
-                            backgroundColor: questionForm.level === level 
+                            backgroundColor: questionForm.level === level
                               ? level === 'easy' ? '#10B981' : level === 'medium' ? '#F59E0B' : '#EF4444'
                               : 'transparent',
                             borderColor: questionForm.level !== level ? '#6B7280' : undefined,
@@ -546,7 +525,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                       <CheckCircle className="h-4 w-4" />
                       <span>{editingQuestion ? 'UPDATE' : 'ADD'}</span>
                     </Button>
-                    
+
                     <Button
                       variant="outline"
                       onClick={handleCancelEdit}
@@ -565,9 +544,9 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
             )}
 
             {/* Questions Table */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
@@ -585,9 +564,9 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                 <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr 
+                      <tr
                         className="border-b"
-                        style={{ 
+                        style={{
                           borderColor: '#374151',
                           backgroundColor: '#374151'
                         }}
@@ -605,10 +584,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                     </thead>
                     <tbody>
                       {filteredQuestions.map((question, index) => (
-                        <tr 
+                        <tr
                           key={question.id}
                           className="border-b transition-colors duration-200"
-                          style={{ 
+                          style={{
                             borderColor: '#374151',
                             backgroundColor: index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent'
                           }}
@@ -619,7 +598,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'rgba(55, 65, 81, 0.2)' : 'transparent';
                           }}
                         >
-                          <td 
+                          <td
                             className="p-4 text-sm"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
@@ -674,7 +653,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                   variant="ghost"
                                   size="sm"
                                   className="h-8 w-8 p-0 transition-all duration-200 hover:scale-110"
-                                  style={{ 
+                                  style={{
                                     color: '#EF4444',
                                     backgroundColor: 'transparent'
                                   }}
@@ -688,8 +667,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
                               </AlertDialogTrigger>
-                              <AlertDialogContent 
-                                style={{ 
+                              <AlertDialogContent
+                                style={{
                                   backgroundColor: '#1F2937',
                                   borderColor: '#374151'
                                 }}
@@ -703,7 +682,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel 
+                                  <AlertDialogCancel
                                     className="transition-all duration-200"
                                     style={{
                                       color: '#9CA3AF',
@@ -733,17 +712,17 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                 {/* Mobile Cards */}
                 <div className="lg:hidden space-y-4 p-4">
                   {filteredQuestions.map((question) => (
-                    <Card 
+                    <Card
                       key={question.id}
                       className="border transition-all duration-200 hover:shadow-lg"
-                      style={{ 
+                      style={{
                         backgroundColor: '#374151',
                         borderColor: '#4B5563'
                       }}
                     >
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-3">
-                          <span 
+                          <span
                             className="text-sm"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
@@ -751,7 +730,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           </span>
                           {getLevelBadge(question.level)}
                         </div>
-                        
+
                         <div className="space-y-2 mb-3">
                           <p className="text-sm text-white">
                             <strong>Role:</strong> {question.role}
@@ -784,7 +763,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             <Edit3 className="h-4 w-4 mr-1" />
                             Edit
                           </Button>
-                          
+
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
@@ -797,8 +776,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                 Delete
                               </Button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent 
-                              style={{ 
+                            <AlertDialogContent
+                              style={{
                                 backgroundColor: '#1F2937',
                                 borderColor: '#374151'
                               }}
@@ -812,7 +791,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel 
+                                <AlertDialogCancel
                                   className="transition-all duration-200"
                                   style={{
                                     color: '#9CA3AF',

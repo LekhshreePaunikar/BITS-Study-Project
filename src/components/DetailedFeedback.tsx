@@ -484,14 +484,11 @@ export default function DetailedFeedback({
 
           {/* Back to Dashboard Button */}
           <div className="text-center pt-8">
-            <Button
-              onClick={onBackToDashboard}
-              className="px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 mx-auto text-white hover:scale-105"
-              style={{ backgroundColor: "#3B82F6" }}
-              size="lg"
-            >
-              <ArrowLeft className="h-5 w-5" />
-              <span className="uppercase tracking-wide">
+            <Button onClick={onBackToDashboard} variant="outline"
+              className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+              <ArrowLeft className="h-4 w-4" />
+              <span>
                 Back to Dashboard
               </span>
             </Button>

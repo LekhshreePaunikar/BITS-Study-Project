@@ -167,43 +167,24 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header
-        className="border-b"
-        style={{
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="text-center md:text-left">
-              <h1 className="text-2xl md:text-3xl tracking-wide mb-2 text-white">
-                GET HELP &amp; SUPPORT
-              </h1>
-              <p
-                className="text-sm md:text-base"
-                style={{ color: '#9CA3AF' }}
-              >
-                Need assistance? We're here to help.
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              {/* Back to Dashboard - Desktop */}
-              <Button
-                variant="outline"
-                onClick={onBackToDashboard}
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBackToDashboard}
                 className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{
-                  borderColor: '#6B7280',
-                  color: '#9CA3AF',
-                  backgroundColor: 'transparent'
-                }}
-              >
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back to Dashboard</span>
               </Button>
             </div>
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Get Help & Support</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
+                Need assistance? We're here to help.
+              </p>
+            </div>
+            <div />
           </div>
         </div>
       </header>
@@ -571,16 +552,9 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
       {/* Mobile Back Button - Fixed Bottom */}
       <div className="md:hidden fixed bottom-6 left-6 right-6">
-        <Button
-          onClick={onBackToDashboard}
-          className="w-full flex items-center justify-center space-x-2 shadow-lg transition-all duration-200 hover:scale-105"
-          style={{
-            backgroundColor: '#374151',
-            borderColor: '#4B5563',
-            color: '#FFFFFF'
-          }}
-          variant="outline"
-        >
+        <Button onClick={onBackToDashboard} variant="outline"
+          className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+          style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }} >
           <ArrowLeft className="h-4 w-4" />
           <span>Back to Dashboard</span>
         </Button>

@@ -3,11 +3,11 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { 
-  Play, 
-  BarChart3, 
-  History, 
-  HelpCircle, 
+import {
+  Play,
+  BarChart3,
+  History,
+  HelpCircle,
   LogOut,
   Calendar,
   Target,
@@ -80,9 +80,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header 
+      <header
         className="border-b"
-        style={{ 
+        style={{
           backgroundColor: '#1F2937',
           borderColor: '#374151'
         }}
@@ -91,13 +91,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
           <div className="flex items-center justify-between">
             {/* Left side - Profile and Welcome */}
             <div className="flex items-center space-x-4">
-              <Avatar 
-                className="h-12 w-12 cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-500/50 hover:shadow-lg" 
+              <Avatar
+                className="h-12 w-12 cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-500/50 hover:shadow-lg"
                 onClick={onProfileClick}
                 style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
               >
                 <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80`} alt={username} />
-                <AvatarFallback 
+                <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: '#3B82F6' }}
                 >
@@ -105,27 +105,20 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-white text-xl">Welcome back, {username}!</h1>
+                <h1 className="text-2xl md:text-3xl mb-2 text-white">Welcome back, {username}!</h1>
                 <p style={{ color: '#9CA3AF' }} className="text-sm">
                   Ready to practice your interview skills?
                 </p>
               </div>
             </div>
 
-            {/* Right side - Logout */}
-            <Button 
-              variant="outline" 
-              onClick={onLogout} 
-              className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-              style={{
-                borderColor: '#6B7280',
-                color: '#9CA3AF',
-                backgroundColor: 'transparent'
-              }}
-            >
+            <Button variant="outline" onClick={onLogout}
+              className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+              style={{ borderColor: '#DC2626', color: 'white', backgroundColor: 'rgba(127, 29, 29, 0.3)' }}>
               <LogOut className="h-4 w-4" />
               <span>Logout</span>
             </Button>
+
           </div>
         </div>
       </header>
@@ -134,16 +127,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
       <main className="container mx-auto px-6 py-8">
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle 
+              <CardTitle
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
@@ -153,7 +146,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardHeader>
             <CardContent>
               <div className="text-2xl text-white mb-1">{userStats.totalSessions}</div>
-              <p 
+              <p
                 className="text-xs flex items-center"
                 style={{ color: '#10B981' }}
               >
@@ -163,16 +156,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle 
+              <CardTitle
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
@@ -181,13 +174,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               <Target className="h-4 w-4" style={{ color: '#6B7280' }} />
             </CardHeader>
             <CardContent>
-              <div 
+              <div
                 className="text-2xl mb-1"
                 style={{ color: getMetricColor('averageScore', userStats.averageScore) }}
               >
                 {userStats.averageScore}%
               </div>
-              <p 
+              <p
                 className="text-xs flex items-center"
                 style={{ color: '#10B981' }}
               >
@@ -197,16 +190,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle 
+              <CardTitle
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
@@ -216,7 +209,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardHeader>
             <CardContent>
               <div className="text-2xl text-white mb-1">{userStats.hoursCompleted}h</div>
-              <p 
+              <p
                 className="text-xs flex items-center"
                 style={{ color: '#10B981' }}
               >
@@ -226,16 +219,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle 
+              <CardTitle
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
@@ -244,13 +237,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               <TrendingUp className="h-4 w-4" style={{ color: '#6B7280' }} />
             </CardHeader>
             <CardContent>
-              <div 
+              <div
                 className="text-2xl mb-1"
                 style={{ color: getMetricColor('improvementRate', userStats.improvementRate) }}
               >
                 +{userStats.improvementRate}%
               </div>
-              <p 
+              <p
                 className="text-xs"
                 style={{ color: '#9CA3AF' }}
               >
@@ -262,9 +255,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
 
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 cursor-pointer border group"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
@@ -272,7 +265,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             onClick={handleStartInterview}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2 text-white group-hover:text-blue-400 transition-colors"
               >
                 <Play className="h-5 w-5" style={{ color: '#3B82F6' }} />
@@ -283,9 +276,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
+              <Button
                 className="w-full transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
-                style={{ 
+                style={{
                   backgroundColor: '#3B82F6',
                   borderColor: '#3B82F6'
                 }}
@@ -295,9 +288,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 cursor-pointer border group"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
@@ -305,7 +298,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             onClick={handleViewReports}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2 text-white group-hover:text-blue-400 transition-colors"
               >
                 <BarChart3 className="h-5 w-5" style={{ color: '#3B82F6' }} />
@@ -316,8 +309,8 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full transition-all duration-200 hover:shadow-lg hover:scale-105"
                 style={{
                   borderColor: '#3B82F6',
@@ -330,9 +323,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 cursor-pointer border group"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
@@ -340,7 +333,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             onClick={handleViewSessions}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2 text-white group-hover:text-blue-400 transition-colors"
               >
                 <History className="h-5 w-5" style={{ color: '#3B82F6' }} />
@@ -351,8 +344,8 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full transition-all duration-200 hover:shadow-lg hover:scale-105"
                 style={{
                   borderColor: '#3B82F6',
@@ -365,9 +358,9 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardContent>
           </Card>
 
-          <Card 
+          <Card
             className="transition-all duration-200 hover:shadow-xl hover:-translate-y-1 cursor-pointer border group"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
@@ -375,7 +368,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             onClick={handleHelp}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2 text-white group-hover:text-blue-400 transition-colors"
               >
                 <HelpCircle className="h-5 w-5" style={{ color: '#3B82F6' }} />
@@ -386,8 +379,8 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full transition-all duration-200 hover:shadow-lg hover:scale-105"
                 style={{
                   borderColor: '#3B82F6',
@@ -403,16 +396,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
 
         {/* Enhanced Statistics Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-          <Card 
+          <Card
             className="border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2"
                 style={{ color: '#9CA3AF' }}
               >
@@ -424,7 +417,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-white">Last Session Score</span>
-                  <span 
+                  <span
                     className="text-lg"
                     style={{ color: getMetricColor('averageScore', userStats.lastScore) }}
                   >
@@ -433,7 +426,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white">Practice Streak</span>
-                  <span 
+                  <span
                     className="text-lg"
                     style={{ color: '#10B981' }}
                   >
@@ -442,7 +435,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-white">Completion Rate</span>
-                  <span 
+                  <span
                     className="text-lg"
                     style={{ color: getMetricColor('completionRate', userStats.completionRate) }}
                   >
@@ -458,16 +451,16 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
           </Card>
 
           {/* Quick Tips Section */}
-          <Card 
+          <Card
             className="border"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
           >
             <CardHeader>
-              <CardTitle 
+              <CardTitle
                 className="flex items-center space-x-2"
                 style={{ color: '#9CA3AF' }}
               >
@@ -480,7 +473,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div 
+                <div
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
@@ -492,7 +485,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                     </p>
                   </div>
                 </div>
-                <div 
+                <div
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
@@ -504,7 +497,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                     </p>
                   </div>
                 </div>
-                <div 
+                <div
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
