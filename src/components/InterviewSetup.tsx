@@ -12,15 +12,15 @@ import { Badge } from './ui/badge';
 import api from "../utils/api";
 
 
-import { 
-  ArrowLeft, 
-  Play, 
-  MessageSquare, 
-  Mic, 
-  Users, 
-  FileText, 
-  User, 
-  Clock, 
+import {
+  ArrowLeft,
+  Play,
+  MessageSquare,
+  Mic,
+  Users,
+  FileText,
+  User,
+  Clock,
   Target,
   BookOpen,
   Briefcase
@@ -58,18 +58,14 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!config.focusArea) {
       alert('Please select a focus area before starting the interview.');
       return;
     }
-    const payload = {
-      ...config,
-      startTime: new Date().toISOString(),
-    };
-  
-    console.log("Interview Config Payload:", payload);
-  
+
     try {
+      // Start interview session
       const sessionRes = await api.post("/interview/start", {
         interview_mode: config.mode,
         question_source: config.questionSource,
@@ -80,15 +76,17 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
           ? config.specificTopics.split(',').map(s => s.trim())
           : []
       });
-      
+
+      const sessionId = sessionRes.data.session_id;
       console.log("Session Started:", sessionRes.data);
-      
+
+  
+      // Continue app flow
       onStartInterview({
         ...config,
-        sessionId: sessionRes.data.session_id
+        sessionId
       });
-      
-  
+
     } catch (err) {
       console.error("Error starting interview:", err);
     }
@@ -120,22 +118,35 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
 
       {/* Header */}
-      <header className="border-b" style={{backgroundColor: '#1F2937',  borderColor: '#374151',}}>
-        <div className="container mx-auto px-6 py-6">
-          <div className="grid grid-cols-3 items-center">
-            <div className="flex justify-start">
-              <Button variant="outline" onClick={onBack}
-                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{ borderColor: '#6B7280', backgroundColor: "rgba(86, 91, 97, 1)", }}>
-                <ArrowLeft className="h-4 w-4" />
-                <span>Back to Dashboard</span>
+      <header
+        className="border-b"
+        style={{
+          backgroundColor: '#1F2937',
+          borderColor: '#374151'
+        }}
+      >
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                className="transition-all duration-200"
+                style={{
+                  color: '#9CA3AF',
+                  backgroundColor: 'transparent'
+                }}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
               </Button>
             </div>
-            <div className="text-center">
-              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Start Interview Setup</h1>
-              <p className="text-sm" style={{ color: 'white' }}>
-                Configure your mock interview session preferences
-              </p>
+            <div
+              className="text-sm"
+              style={{ color: '#9CA3AF' }}
+            >
+              Welcome, {username}
             </div>
             <div />
           </div>
@@ -149,15 +160,15 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Interview Mode */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardHeader>
-                <CardTitle 
+                <CardTitle
                   className="flex items-center space-x-2"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -169,16 +180,16 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RadioGroup 
-                  value={config.mode} 
-                  onValueChange={(value: 'text' | 'voice' | 'both') => 
+                <RadioGroup
+                  value={config.mode}
+                  onValueChange={(value: 'text' | 'voice' | 'both') =>
                     setConfig(prev => ({ ...prev, mode: value }))
                   }
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -195,9 +206,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       </Label>
                     </div>
 
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -214,9 +225,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       </Label>
                     </div>
 
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -238,15 +249,15 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
             </Card>
 
             {/* Question Source */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardHeader>
-                <CardTitle 
+                <CardTitle
                   className="flex items-center space-x-2"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -258,16 +269,16 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RadioGroup 
-                  value={config.questionSource} 
-                  onValueChange={(value: 'predefined' | 'resume-based') => 
+                <RadioGroup
+                  value={config.questionSource}
+                  onValueChange={(value: 'predefined' | 'resume-based') =>
                     setConfig(prev => ({ ...prev, questionSource: value }))
                   }
                 >
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -286,9 +297,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       </Label>
                     </div>
 
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -310,12 +321,12 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                 </RadioGroup>
 
                 {config.questionSource === 'resume-based' && (
-                  <div 
+                  <div
                     className="mt-4 p-4 rounded-lg"
                     style={{ backgroundColor: '#374151' }}
                   >
                     <p className="text-sm text-white">
-                      <strong>Note:</strong> Resume-based questions will be generated from your profile information. 
+                      <strong>Note:</strong> Resume-based questions will be generated from your profile information.
                       Make sure your profile is up to date for the best experience.
                     </p>
                   </div>
@@ -324,15 +335,15 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
             </Card>
 
             {/* Difficulty Level */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardHeader>
-                <CardTitle 
+                <CardTitle
                   className="flex items-center space-x-2"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -344,16 +355,16 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RadioGroup 
-                  value={config.level} 
-                  onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') => 
+                <RadioGroup
+                  value={config.level}
+                  onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
                     setConfig(prev => ({ ...prev, level: value }))
                   }
                 >
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -368,10 +379,10 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>15 minutes</div>
                             </div>
                           </div>
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className="text-xs"
-                            style={{ 
+                            style={{
                               backgroundColor: '#10B981',
                               color: 'white'
                             }}
@@ -382,9 +393,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       </Label>
                     </div>
 
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -399,10 +410,10 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>30 minutes</div>
                             </div>
                           </div>
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className="text-xs"
-                            style={{ 
+                            style={{
                               backgroundColor: '#F59E0B',
                               color: 'white'
                             }}
@@ -413,9 +424,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       </Label>
                     </div>
 
-                    <div 
+                    <div
                       className="flex items-center space-x-2 p-4 border rounded-lg cursor-pointer transition-all duration-200 hover:shadow-md"
-                      style={{ 
+                      style={{
                         borderColor: '#4B5563',
                         backgroundColor: '#374151'
                       }}
@@ -430,10 +441,10 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>45 minutes</div>
                             </div>
                           </div>
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className="text-xs"
-                            style={{ 
+                            style={{
                               backgroundColor: '#EF4444',
                               color: 'white'
                             }}
@@ -449,15 +460,15 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
             </Card>
 
             {/* Additional Settings */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardHeader>
-                <CardTitle 
+                <CardTitle
                   className="flex items-center space-x-2"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -471,17 +482,17 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
               <CardContent className="space-y-6">
                 {/* Focus Area */}
                 <div className="space-y-2">
-                  <Label 
+                  <Label
                     htmlFor="focus-area"
                     style={{ color: '#9CA3AF' }}
                   >
                     Focus Area *
                   </Label>
-                  <Select 
-                    value={config.focusArea} 
+                  <Select
+                    value={config.focusArea}
                     onValueChange={(value) => setConfig(prev => ({ ...prev, focusArea: value }))}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       style={{
                         backgroundColor: '#374151',
                         borderColor: '#4B5563',
@@ -504,17 +515,17 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
                 {/* Preparation Time */}
                 <div className="space-y-2">
-                  <Label 
+                  <Label
                     htmlFor="prep-time"
                     style={{ color: '#9CA3AF' }}
                   >
                     Preparation Time Before Each Question
                   </Label>
-                  <Select 
-                    value={config.preparationTime.toString()} 
+                  <Select
+                    value={config.preparationTime.toString()}
                     onValueChange={(value) => setConfig(prev => ({ ...prev, preparationTime: parseInt(value) }))}
                   >
-                    <SelectTrigger 
+                    <SelectTrigger
                       style={{
                         backgroundColor: '#374151',
                         borderColor: '#4B5563',
@@ -537,7 +548,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
                 {/* Specific Topics */}
                 <div className="space-y-2">
-                  <Label 
+                  <Label
                     htmlFor="specific-topics"
                     style={{ color: '#9CA3AF' }}
                   >
@@ -556,7 +567,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                       color: '#FFFFFF'
                     }}
                   />
-                  <p 
+                  <p
                     className="text-xs"
                     style={{ color: '#9CA3AF' }}
                   >
@@ -567,9 +578,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
             </Card>
 
             {/* Summary */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
@@ -606,9 +617,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
             {/* Start Button */}
             <div className="flex justify-center pt-6">
-              <Button 
-                type="submit" 
-                size="lg" 
+              <Button
+                type="submit"
+                size="lg"
                 className="w-full md:w-auto px-12 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
                 style={{ backgroundColor: '#10B981'  }}
               >

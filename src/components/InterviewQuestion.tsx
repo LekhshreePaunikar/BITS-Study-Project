@@ -145,6 +145,7 @@ export default function InterviewQuestion({
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
+  const [answers, setAnswers] = useState<any[]>([]);
 
   // Initialize timer based on config level
   useEffect(() => {
@@ -201,32 +202,41 @@ export default function InterviewQuestion({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
     if (answerMode === "text" && !textAnswer.trim()) {
       alert("Please provide an answer before submitting.");
       return;
     }
-
-    // Mock API call
-    console.log("Submitting answer:", {
-      questionId: questions[currentQuestionIndex].id,
-      answer: textAnswer,
-      mode: answerMode,
-      difficulty,
-      timeSpent: 150 - timeRemaining,
-    });
-
+  
+    try {
+      await api.post(
+        `/interview/sessions/${sessionId}/answers`,
+        {
+          questionId: questions[currentQuestionIndex].id,
+          answer: textAnswer,
+          timeSpent: 150 - timeRemaining,
+        }
+      );
+  
+      console.log("✅ Answer sent to backend");
+  
+    } catch (error) {
+      console.error("❌ Failed to save answer:", error);
+      alert("Failed to save answer. Please try again.");
+      return;
+    }
+  
     // Move to next question or end interview
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
       setTextAnswer("");
       setAnswerMode(null);
-      setTimeRemaining(150); // Reset timer for next question
+      setTimeRemaining(150);
     } else {
       handleEndInterview();
     }
   };
-
+  
   const handleSkipQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
@@ -271,9 +281,11 @@ export default function InterviewQuestion({
     setEndDialogOpen(true);
   };
 
+  
   const confirmEndInterview = async () => {
     try {
       console.log("Ending interview session:", config.sessionId);
+      console.log("FINAL answers being sent:", answers);
   
       await api.post("/interview/end", {
         session_id: config.sessionId,
