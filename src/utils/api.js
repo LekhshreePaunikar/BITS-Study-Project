@@ -398,11 +398,12 @@ export const supportAPI = {
   getTickets: () => api.get('/support')
 };
 
-export const uploadResume = async (formData) => {
-  const response = await api.post('/user/profile/resume', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  });
-  return response.data;
-};
+// export const uploadResume = async (formData) => {
+//   const response = await api.post('/user/resume', formData, {
+//     headers: {
+//       'Content-Type': 'multipart/form-data'
+//     }
+//   });
+//   return response.data;
+// };
+

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import api from "../utils/api";
 
+
 import {
   ArrowLeft,
   User,
@@ -50,6 +51,36 @@ const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [resumePreview, setResumePreview] = useState<string | null>(null);
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const handleProfileImageChange = async (
+  e: React.ChangeEvent<HTMLInputElement>
+) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  const allowed = ['image/png', 'image/jpeg', 'image/jpg'];
+  if (!allowed.includes(file.type)) {
+    alert('Only PNG, JPG, JPEG images allowed');
+    return;
+  }
+
+  // 🔥 instant preview
+  setProfileImage(URL.createObjectURL(file));
+
+  try {
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    const res = await api.post('/user/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    console.log('Profile image saved:', res.data.profileImage);
+    setProfileImage(`http://localhost:3001${res.data.profileImage}`);
+  } catch (err) {
+    alert('Failed to upload profile image');
+  }
+};
   const [profileData, setProfileData] = useState(() => ({
     // Personal Information
     fullName: username || '',      // prefill with the logged-in username
@@ -90,8 +121,14 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
         }
 
         // GET /api/profile  (axios instance already has /api base usually)
-        const res = await api.get('/profile');
+        const res = await api.get('/user');
         const data = res.data; // this is what userService.getUserProfile returns
+        // ✅ load saved profile image if exists
+if (data.profileImage) {
+  setProfileImage(`http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`);
+}
+
+
 
         // Normalize null → '' and ensure arrays:
         const normalized = {
@@ -237,7 +274,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
       const formData = new FormData();
       formData.append("resume", file);
 
-      const res = await api.post("/profile/resume", formData, {
+      const res = await api.post("/user/resume", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -267,7 +304,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     try {
       // assuming api has baseURL like /api
       const { resumeFile, ...payload } = profileData;
-      await api.put("/profile", payload);
+      await api.put("/user", payload);
       alert("Profile saved successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -334,7 +371,18 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
                 className="h-24 w-24 transition-all duration-200 hover:shadow-lg"
                 style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
               >
-                <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80`} alt={username} />
+                <AvatarImage
+  src={profileImage || undefined}
+  alt={username}
+/>
+<input
+  type="file"
+  accept=".png,.jpg,.jpeg"
+  hidden
+  id="profile-image-input"
+  onChange={handleProfileImageChange}
+/>
+
                 <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: '#3B82F6' }}
@@ -343,17 +391,15 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
                 </AvatarFallback>
               </Avatar>
               <Button
-                variant="outline"
-                className="flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{
-                  borderColor: '#6B7280',
-                  color: '#9CA3AF',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                <Camera className="h-4 w-4" />
-                <span>Change Photo</span>
-              </Button>
+  type="button"
+  variant="outline"
+  onClick={() =>
+    document.getElementById('profile-image-input')?.click()
+  }
+>
+  <Camera className="h-4 w-4" />
+  <span>Change Photo</span>
+</Button>
             </CardContent>
           </Card>
 

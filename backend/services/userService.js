@@ -11,6 +11,7 @@ exports.getUserProfile = async (userId) => {
         user_id,
         name,
         email,
+        profile_image,
         phone,
         location,
         gender,
@@ -37,6 +38,7 @@ exports.getUserProfile = async (userId) => {
   return {
     fullName: u.name,
     email: u.email,
+    profileImage: u.profile_image,
     phone: u.phone,
     location: u.location,
     gender: u.gender,
@@ -127,3 +129,15 @@ exports.updateResumePath = async (userId, resumePath) => {
   await query(sql, [resumePath, userId]);
   return { success: true };
 };
+
+exports.updateProfileImage = async (userId, imagePath) => {
+  await query(
+    `UPDATE "User"
+     SET profile_image = $1, updated_at = NOW()
+     WHERE user_id = $2`,
+    [imagePath, userId]
+  );
+
+  return { success: true };
+};
+

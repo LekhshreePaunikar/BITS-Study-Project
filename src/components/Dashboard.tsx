@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { useState, useEffect } from 'react';
+import api from "../utils/api";
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { 
   Play, 
@@ -28,7 +30,30 @@ interface DashboardProps {
   onGetHelp?: () => void;
 }
 
+
+
 export default function Dashboard({ username, onLogout, onProfileClick, onStartInterview, onViewPastSessions, onViewPerformanceReport, onGetHelp }: DashboardProps) {
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+useEffect(() => {
+  const fetchDashboardProfile = async () => {
+    try {
+      const res = await api.get('/user'); // Backend se data mangwayein
+      if (res.data.profileImage) {
+        // ✅ Timestamp (?t=...) add karne se browser hamesha nayi image download karega
+        const imageUrl = `http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`;
+        setProfileImage(imageUrl);
+        
+        // Optional: LocalStorage mein bhi save kar sakte hain instant access ke liye
+        localStorage.setItem('userPhoto', imageUrl);
+      }
+    } catch (err) {
+      console.error('Header image fetch error:', err);
+    }
+  };
+  
+  fetchDashboardProfile();
+}, []);
   // Mock user data with enhanced metrics
   const userStats = {
     totalSessions: 24,
@@ -41,6 +66,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
     completionRate: 94
   };
 
+  
   const handleStartInterview = () => {
     onStartInterview();
   };
@@ -92,18 +118,22 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
             {/* Left side - Profile and Welcome */}
             <div className="flex items-center space-x-4">
               <Avatar 
-                className="h-12 w-12 cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-500/50 hover:shadow-lg" 
-                onClick={onProfileClick}
-                style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
-              >
-                <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80`} alt={username} />
-                <AvatarFallback 
-                  className="text-white"
-                  style={{ backgroundColor: '#3B82F6' }}
-                >
-                  {username.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+  className="h-12 w-12 cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-500/50 hover:shadow-lg" 
+  onClick={onProfileClick}
+>
+  {/* Purana unsplash URL hata kar 'profileImage' use karein */}
+  <AvatarImage 
+    src={profileImage || undefined} 
+    alt={username} 
+    className="object-cover" 
+  />
+  <AvatarFallback 
+    className="text-white"
+    style={{ backgroundColor: '#3B82F6' }}
+  >
+    {username.slice(0, 2).toUpperCase()}
+  </AvatarFallback>
+</Avatar>
               <div>
                 <h1 className="text-white text-xl">Welcome back, {username}!</h1>
                 <p style={{ color: '#9CA3AF' }} className="text-sm">

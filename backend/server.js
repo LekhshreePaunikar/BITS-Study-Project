@@ -27,7 +27,9 @@ const PORT = process.env.PORT || 3001;
 // ==============================
 
 // Basic security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+}));
 
 // Rate limiting (max 100 requests per 15 minutes per IP)
 const limiter = rateLimit({
@@ -47,7 +49,14 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // static files
-app.use("/static", express.static(path.join(__dirname, "..", "static")));
+// backend/server.js
+
+// Ensure this points correctly to the root 'static' folder
+// backend/server.js
+
+// Ab ye backend ke andar waale static folder ko point karega
+app.use("/static", express.static(path.join(__dirname, "static")));
+
 
 // ==============================
 // Routes
@@ -109,19 +118,22 @@ app.get('/api/health', (req, res) => {
 // Error Handling
 // ==============================
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Server Error:', err.stack);
-  res.status(500).json({
-    message: 'Internal server error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
+
+app.use((req, res, next) => {
+  // Ignore logging for static files and successful route hits
+  if (!res.headersSent && !req.originalUrl.startsWith("/static")) {
+    console.log("404 - Unmatched route:", req.method, req.originalUrl);
+  }
+  next();
 });
 
 app.use((req, res, next) => {
-  console.log("Unmatched route:", req.method, req.originalUrl);
+  if (!req.originalUrl.startsWith("/static")) {
+    console.log("Unmatched route:", req.method, req.originalUrl);
+  }
   next();
 });
+
 
 // Handle undefined routes
 app.use('*', (req, res) => {
@@ -130,6 +142,14 @@ app.use('*', (req, res) => {
   });
 });
 
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.stack);
+  res.status(500).json({
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
 // app.use('/api/profile', userProfileRoutes);
 // ==============================
 // Server Start

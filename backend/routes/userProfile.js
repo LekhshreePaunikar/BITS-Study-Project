@@ -6,6 +6,7 @@ const { authenticateToken } = require('../middleware/auth');
 const userService = require('../services/userService');
 const uploadResume = require('../middleware/uploadResume');
 const checkLogin = require('../middleware/checkLogin');
+const uploadProfileImage = require('../middleware/uploadProfileImage');
 
 // ==============================
 // GET /api/profile  -> Get logged-in user's profile
@@ -36,7 +37,7 @@ router.put('/', authenticateToken, async (req, res) => {
 
 // Upload / Update Resume
 router.post(
-  '/profile/resume',
+  '/resume',
   checkLogin,
   uploadResume.single('resume'),
   async (req, res) => {
@@ -58,6 +59,33 @@ router.post(
     } catch (err) {
       console.error(err);
       res.status(500).json({ message: 'Failed to upload resume' });
+    }
+  }
+);
+
+router.post(
+  '/image',
+  authenticateToken,
+  uploadProfileImage.single('profileImage'),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      if (!req.file) {
+        return res.status(400).json({ message: 'No image uploaded' });
+      }
+
+      const imagePath = `/static/profile-images/${req.file.filename}`;
+
+      await userService.updateProfileImage(userId, imagePath);
+
+      res.json({
+        message: 'Profile image uploaded successfully',
+        profileImage: imagePath
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: 'Failed to upload profile image' });
     }
   }
 );

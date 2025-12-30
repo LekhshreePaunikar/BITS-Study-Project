@@ -264,3 +264,6 @@ CREATE TABLE IF NOT EXISTS "FlaggedContent" (
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
+
+ALTER TABLE "User"
+ADD COLUMN profile_image TEXT;
