@@ -157,40 +157,24 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       
       {/* Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
         <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl text-white mb-2">Analytics Dashboard</h1>
-              <div className="flex items-center space-x-2 text-sm" style={{ color: '#9CA3AF' }}>
-                <span>Dashboard</span>
-                <span>/</span>
-                <span>Analytics</span>
-              </div>
-              <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBackToAdminDashboard}
+                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+            </div>
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white">Analytics Dashboard</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
                 Real-time platform insights for admins
               </p>
             </div>
-            
-            <Button 
-              variant="outline" 
-              onClick={onBackToAdminDashboard}
-              className="flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-              style={{
-                borderColor: '#6B7280',
-                color: '#9CA3AF',
-                backgroundColor: 'transparent'
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Dashboard</span>
-            </Button>
+            <div />
           </div>
         </div>
       </header>

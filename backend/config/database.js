@@ -53,5 +53,4 @@ const testConnection = async () => {
   }
 };
 
-module.exports = {pool, query, getClient, testConnection
-};
+module.exports = {pool, query, getClient, testConnection};

@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { 
-  LogOut, 
-  ArrowLeft, 
+import {
+  LogOut,
+  ArrowLeft,
   CheckCircle,
   RotateCcw
 } from 'lucide-react';
@@ -18,11 +18,11 @@ interface LogoutConfirmationProps {
   onReLogin: () => void;
 }
 
-export default function LogoutConfirmation({ 
-  username, 
-  onBack, 
-  onConfirmLogout, 
-  onReLogin 
+export default function LogoutConfirmation({
+  username,
+  onBack,
+  onConfirmLogout,
+  onReLogin
 }: LogoutConfirmationProps) {
   const [isLoggedOut, setIsLoggedOut] = useState(false);
 
@@ -37,16 +37,16 @@ export default function LogoutConfirmation({
   if (isLoggedOut) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#111827' }}>
-        <Card 
+        <Card
           className="w-full max-w-md mx-auto border transition-all duration-200 hover:shadow-xl"
-          style={{ 
+          style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151',
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
           }}
         >
           <CardHeader className="text-center">
-            <div 
+            <div
               className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
               style={{ backgroundColor: 'rgba(16, 185, 129, 0.2)' }}
             >
@@ -59,13 +59,13 @@ export default function LogoutConfirmation({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-center space-y-2">
-              <p 
+              <p
                 className="text-sm"
                 style={{ color: '#9CA3AF' }}
               >
                 Your session has been ended securely. We hope you had a great practice experience!
               </p>
-              <div 
+              <div
                 className="rounded-lg p-4 mt-4"
                 style={{ backgroundColor: '#374151' }}
               >
@@ -74,19 +74,19 @@ export default function LogoutConfirmation({
                 </p>
               </div>
             </div>
-            
+
             <div className="space-y-3">
-              <Button 
-                onClick={onReLogin} 
+              <Button
+                onClick={onReLogin}
                 className="w-full flex items-center justify-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
                 style={{ backgroundColor: '#3B82F6' }}
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>Login Again</span>
               </Button>
-              
+
               <div className="text-center">
-                <p 
+                <p
                   className="text-xs"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -102,46 +102,36 @@ export default function LogoutConfirmation({
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
+
       {/* Header */}
-      <header 
-        className="border-b"
-        style={{ 
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center space-x-4">
-            <Button 
-              variant="ghost" 
-              onClick={onBack} 
-              className="flex items-center space-x-2 transition-all duration-200"
-              style={{ 
-                color: '#9CA3AF',
-                backgroundColor: 'transparent'
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" />
-              <span>Back to Dashboard</span>
-            </Button>
-            <div>
-              <h1 className="text-white">Logout Confirmation</h1>
-              <p 
-                className="text-sm"
-                style={{ color: '#9CA3AF' }}
-              >
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
+        <div className="container mx-auto px-6 py-6">
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBack}
+                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
+              </Button>
+            </div>
+            
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Logout Confirmation</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
                 Are you sure you want to end your session?
               </p>
             </div>
+
           </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8 flex items-center justify-center min-h-[calc(100vh-88px)]">
-        <Card 
+        <Card
           className="w-full max-w-md mx-auto border transition-all duration-200 hover:shadow-xl"
-          style={{ 
+          style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151',
             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.3)'
@@ -151,7 +141,7 @@ export default function LogoutConfirmation({
             <div className="mx-auto mb-4">
               <Avatar className="h-16 w-16 mx-auto transition-all duration-200 hover:shadow-lg">
                 <AvatarImage src={`https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80`} alt={username} />
-                <AvatarFallback 
+                <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: '#3B82F6' }}
                 >
@@ -164,20 +154,20 @@ export default function LogoutConfirmation({
               Hi {username}, are you sure you want to logout from your account?
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
-            <div 
+            <div
               className="rounded-lg p-4"
               style={{ backgroundColor: '#374151' }}
             >
               <div className="flex items-start space-x-3">
-                <LogOut 
-                  className="h-5 w-5 mt-0.5" 
+                <LogOut
+                  className="h-5 w-5 mt-0.5"
                   style={{ color: '#9CA3AF' }}
                 />
                 <div className="space-y-1">
                   <p className="text-sm text-white">You will be signed out of your account</p>
-                  <p 
+                  <p
                     className="text-xs"
                     style={{ color: '#9CA3AF' }}
                   >
@@ -188,7 +178,7 @@ export default function LogoutConfirmation({
             </div>
 
             <div className="flex flex-col space-y-3">
-              <Button 
+              <Button
                 onClick={handleLogout}
                 className="w-full flex items-center justify-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
                 style={{ backgroundColor: '#EF4444' }}
@@ -196,9 +186,9 @@ export default function LogoutConfirmation({
                 <LogOut className="h-4 w-4" />
                 <span>Yes, Logout</span>
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 onClick={onBack}
                 className="w-full transition-all duration-200 hover:shadow-lg hover:scale-105"
                 style={{
@@ -212,7 +202,7 @@ export default function LogoutConfirmation({
             </div>
 
             <div className="text-center pt-2">
-              <p 
+              <p
                 className="text-xs"
                 style={{ color: '#9CA3AF' }}
               >
