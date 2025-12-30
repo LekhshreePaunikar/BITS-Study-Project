@@ -24,7 +24,7 @@ const { query } = require("../config/database");
 // */
 router.post('/start', async (req, res) => {
  try {
-   // ✅ Coming from authenticateToken middleware already applied in server.js
+   // Coming from authenticateToken middleware already applied in server.js
    const userId =  req.user.id;
 
     if (!userId) {
@@ -194,12 +194,8 @@ Do not include explanations, notes, comments, markdown, or any text outside the 
 
   } catch (err) {
     console.error("❌ Start Session Error:", err);
-    return res.status(500).json({
-      success: false,
-      error: "Internal server error",
-    });
   }
-})();
+  })();
 
 
 /**

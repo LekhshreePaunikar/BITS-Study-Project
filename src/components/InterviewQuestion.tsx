@@ -202,41 +202,34 @@ export default function InterviewQuestion({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmitAnswer = async () => {
+  const handleSubmitAnswer = () => {
     if (answerMode === "text" && !textAnswer.trim()) {
       alert("Please provide an answer before submitting.");
       return;
     }
-  
-    try {
-      await api.post(
-        `/interview/sessions/${sessionId}/answers`,
-        {
-          questionId: questions[currentQuestionIndex].id,
-          answer: textAnswer,
-          timeSpent: 150 - timeRemaining,
-        }
-      );
-  
-      console.log("✅ Answer sent to backend");
-  
-    } catch (error) {
-      console.error("❌ Failed to save answer:", error);
-      alert("Failed to save answer. Please try again.");
-      return;
-    }
-  
+
+    // Mock API call
+   const answerObject = {
+      questionId: questions[currentQuestionIndex].id,
+      answer: textAnswer,
+      mode: answerMode,
+      difficulty,
+      timeSpent: 150 - timeRemaining,
+    };
+    console.log("Submitting answer:", answerObject);
+    setAnswers(prev => [...prev, structuredClone(answerObject)]);
+
     // Move to next question or end interview
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      setCurrentQuestionIndex((prev) => prev + 1);
       setTextAnswer("");
       setAnswerMode(null);
-      setTimeRemaining(150);
+      setTimeRemaining(150); // Reset timer for next question
     } else {
       handleEndInterview();
     }
   };
-  
+
   const handleSkipQuestion = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
@@ -323,7 +316,7 @@ export default function InterviewQuestion({
             <div className="flex-1" />
 
             <div className="text-center">
-              <h1 className="text-2xl md:text-3xl mb-2 text-white">
+              <h1 className="text-white">
                 Interview Question Page
               </h1>
             </div>

@@ -149,7 +149,7 @@ router.post('/start', authenticateToken, async (req, res) => {
 router.post('/sessions/:sessionId/answers', authenticateToken, async (req, res) => {
   try {
     const sessionId = parseInt(req.params.sessionId);
-    const { questionId: sessionQuestionId, answer, timeSpent } = req.body;
+    const { questionId, answer, timeSpent } = req.body;
 
     if (isNaN(sessionId)) {
       return res.status(400).json({
@@ -158,7 +158,7 @@ router.post('/sessions/:sessionId/answers', authenticateToken, async (req, res) 
       });
     }
 
-    if (!sessionQuestionId  || !answer) {
+    if (!questionId || !answer) {
       return res.status(400).json({
         message: 'Missing required fields',
         error: 'Question ID and answer are required'
@@ -177,62 +177,6 @@ router.post('/sessions/:sessionId/answers', authenticateToken, async (req, res) 
         error: 'Invalid session or session is not in progress'
       });
     }
-
-    const endTime = new Date();
-    const startTime = new Date(
-      endTime.getTime() - (timeSpent || 0) * 1000
-    );
-
-    if (!answer || typeof answer !== "string") {
-      throw new Error("Invalid answer payload");
-    }    
-    console.log('Answer payload:', answer);
-    const qRes = await query(
-      `SELECT question_id
-       FROM session_questions
-       WHERE id = $1 AND session_id = $2`,
-      [sessionQuestionId, sessionId]
-    );
-    
-    if (qRes.rows.length === 0) {
-      return res.status(404).json({
-        message: "Question not found",
-        error: "Invalid session question ID for this session"
-      });
-    }
-    
-    const baseQuestionId = qRes.rows[0].question_id;
-
-    await query(
-      `
-  INSERT INTO "Answer" (
-    session_id,
-    question_id,
-    mode_chosen,
-    answer_text,
-    answer_audio_path,
-    start_time,
-    end_time,
-    score_content,
-    score_grammar,
-    score_clarity,
-    score_fluency,
-    score_overall
-  )
-  VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
-  `,
-      [
-        sessionId,     // session_id
-        baseQuestionId,    // question_id
-        'text',        // mode_chosen (minimal, correct)
-        answer,        // answer_text ✅
-        null,          // answer_audio_path
-        startTime,     // start_time
-        endTime,       // end_time
-        null, null, null, null, null
-      ]
-    );
-
 
     // Update session question with answer
     const updateResult = await query(`
