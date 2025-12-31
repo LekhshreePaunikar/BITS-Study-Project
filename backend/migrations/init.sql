@@ -6,17 +6,14 @@ DO $$
 DECLARE
     rec RECORD;
 BEGIN
-    -- Drop all tables in the public schema
     FOR rec IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
         EXECUTE format('DROP TABLE IF EXISTS public.%I CASCADE;', rec.tablename);
     END LOOP;
 
-    -- Drop all sequences
     FOR rec IN (SELECT sequencename FROM pg_sequences WHERE schemaname = 'public') LOOP
         EXECUTE format('DROP SEQUENCE IF EXISTS public.%I CASCADE;', rec.sequencename);
     END LOOP;
 
-    -- Drop all enum types
     FOR rec IN (SELECT typname FROM pg_type WHERE typtype = 'e' AND typnamespace = '2200') LOOP
         EXECUTE format('DROP TYPE IF EXISTS public.%I CASCADE;', rec.typname);
     END LOOP;
@@ -43,7 +40,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 -- ============================================================
--- CORE USER MANAGEMENT
+-- CORE USER MANAGEMENT (Updated with Image/Screenshot fields)
 -- ============================================================
 
 CREATE TABLE IF NOT EXISTS "User" (
@@ -51,22 +48,37 @@ CREATE TABLE IF NOT EXISTS "User" (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(120) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
+    
+    -- updated Fields 
+    profile_image TEXT,
+    gender VARCHAR(50),
+    university VARCHAR(255),
+    graduation_year INT,
+    phone_number VARCHAR(20),
+    bio TEXT,
+    experience_level VARCHAR(100),
+    resume_path TEXT,
+
+    -- Professional Info
     education TEXT,
     experience TEXT,
-    preferred_roles TEXT[],
-    preferred_languages TEXT[],
-    address TEXT,
     preferred_role TEXT,
+    preferred_roles TEXT[],
+    preffered_languages TEXT[],
     skills TEXT[],
     programming_languages TEXT[],
-    phone TEXT,
+    
+    -- Location & Social
     location TEXT,
+    address TEXT,
     hobbies TEXT,
     linkedin_profile TEXT,
     github_profile TEXT,
     portfolio TEXT,
 
+    -- Account Metadata
     created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(), 
     is_admin BOOLEAN DEFAULT FALSE NOT NULL,
     is_blacklisted BOOLEAN DEFAULT FALSE NOT NULL
 );
@@ -151,26 +163,6 @@ CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
     question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
     mode "ModeType" NOT NULL
 );
--- Stores user-selected interview settings BEFORE a session begins
-CREATE TABLE IF NOT EXISTS interview_configs (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
-    mode VARCHAR(20) NOT NULL,
-    question_source VARCHAR(50) NOT NULL,
-    level VARCHAR(20) NOT NULL,
-    focus_area TEXT,
-    specific_topics TEXT,
-    preparation_time INT,
-    start_time TIMESTAMP DEFAULT NOW()
-);
-
--- Stores the active interview session linked to a config
-CREATE TABLE IF NOT EXISTS interview_sessions (
-    session_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
-    config_id INT REFERENCES interview_configs(id) ON DELETE CASCADE,
-    started_at TIMESTAMP DEFAULT NOW()
-);
 
 -- ============================================================
 -- INTERVIEW SESSION TABLES
@@ -179,9 +171,8 @@ CREATE TABLE IF NOT EXISTS interview_sessions (
 CREATE TABLE IF NOT EXISTS "Session" (
     session_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
-    interview_mode VARCHAR(50),
+    interview_mode "ModeType",
     question_source VARCHAR(50),
-    selected_difficulty VARCHAR(50),
     focus_area VARCHAR(255),
     prep_time_minutes INT,
     keywords TEXT[],
@@ -215,8 +206,6 @@ CREATE TABLE IF NOT EXISTS "SessionHistory" (
     answer_id INT REFERENCES "Answer"(answer_id),
     timestamp TIMESTAMP DEFAULT NOW() NOT NULL
 );
-
-
 
 -- ============================================================
 -- EVALUATION AND FEEDBACK
@@ -264,6 +253,3 @@ CREATE TABLE IF NOT EXISTS "FlaggedContent" (
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
-
-ALTER TABLE "User"
-ADD COLUMN profile_image TEXT;
