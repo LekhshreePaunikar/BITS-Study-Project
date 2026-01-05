@@ -39,10 +39,13 @@ import {
   Save,
 } from "lucide-react";
 import { InterviewConfig } from "./InterviewSetup";
+interface InterviewConfigWithSession extends InterviewConfig {
+  sessionId: number;
+}
 
 interface InterviewQuestionProps {
   username: string;
-  config: InterviewConfig;
+  config: InterviewConfigWithSession;
   onEndInterview: () => void;
   onBackToDashboard: () => void;
 }
@@ -202,22 +205,55 @@ export default function InterviewQuestion({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSubmitAnswer = () => {
+  const handleSubmitAnswer = async () => {
     if (answerMode === "text" && !textAnswer.trim()) {
       alert("Please provide an answer before submitting.");
       return;
     }
+    
+    const currentQ = questions[currentQuestionIndex];
 
-    // Mock API call
-   const answerObject = {
-      questionId: questions[currentQuestionIndex].id,
-      answer: textAnswer,
-      mode: answerMode,
-      difficulty,
-      timeSpent: 150 - timeRemaining,
+    const payload = {
+      questionText: currentQ.text,
+      userAnswer: textAnswer,
+       score: null
     };
-    console.log("Submitting answer:", answerObject);
-    setAnswers(prev => [...prev, structuredClone(answerObject)]);
+
+    try {
+
+      await api.post(`/interview/${config.sessionId}/history`, {
+        questionText: currentQ.text
+      });
+
+
+      await api.post(
+        `/interview/${config.sessionId}/answer`,
+        {
+          questionId: currentQ.id,
+          questionText: currentQ.text,
+          userAnswer: textAnswer,
+          score: null
+        }
+      );
+      console.log("History + Answer saved");
+      
+      console.log("Answer saved:", payload);
+    } catch (err) {
+      console.error("Failed to save answer:", err);
+      alert("Failed to save answer");
+      return; // ⛔ do NOT move to next question if save fails
+    }
+  
+  //   // Mock API call
+  //  const answerObject = {
+  //     questionId: questions[currentQuestionIndex].id,
+  //     answer: textAnswer,
+  //     mode: answerMode,
+  //     difficulty,
+  //     timeSpent: 150 - timeRemaining,
+  //   };
+  //   console.log("Submitting answer:", answerObject);
+    // setAnswers(prev => [...prev, structuredClone(answerObject)]);
 
     // Move to next question or end interview
     if (currentQuestionIndex < questions.length - 1) {

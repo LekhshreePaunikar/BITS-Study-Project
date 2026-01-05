@@ -161,6 +161,10 @@ export const interviewAPI = {
     const response = await api.post('/interviews/config', configData);
     return response.data;
   },
+  
+  // Set Session History
+  saveHistory: (sessionId, questionText) =>
+    api.post(`/interview/${sessionId}/history`, { questionText }),
 
   // Start interview session
   startSession: async (configId) => {
@@ -170,13 +174,13 @@ export const interviewAPI = {
 
   // Submit answer
   submitAnswer: async (sessionId, answerData) => {
-    const response = await api.post(`/interviews/sessions/${sessionId}/answers`, answerData);
+    const response = await api.post(`/interview/session/${sessionId}/answer`, answerData);
     return response.data;
   },
 
   // Complete session
   completeSession: async (sessionId) => {
-    const response = await api.post(`/interviews/sessions/${sessionId}/complete`);
+    const response = await api.post(`/interview/session/${sessionId}/complete`);
     return response.data;
   },
 
