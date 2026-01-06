@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS "User" (
     experience TEXT,
     preferred_role TEXT,
     preferred_roles TEXT[],
-    preffered_languages TEXT[],
+    preferred_languages TEXT[],
     skills TEXT[],
     programming_languages TEXT[],
     
