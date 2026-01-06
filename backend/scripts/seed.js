@@ -256,6 +256,44 @@ RETURNING user_id, name;
 
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
+        // -------------------------------------------------------
+    // BASE QUESTIONS + STATIC QUESTIONS (PREDEFINED)
+    // -------------------------------------------------------
+    log("Inserting BaseQuestion + StaticQuestion...");
+
+    // 1️⃣ Insert BaseQuestions
+    const baseQuestions = await db.query(`
+      INSERT INTO "BaseQuestion" (is_predefined, difficulty_level)
+      VALUES
+        (true, 'easy'),
+        (true, 'easy'),
+        (true, 'medium'),
+        (true, 'easy'),
+        (true, 'medium'),
+        (true, 'easy'),
+        (true, 'medium')
+      RETURNING question_id;
+    `);
+
+    const baseIds = baseQuestions.rows.map(r => r.question_id);
+
+    // 2️⃣ Insert StaticQuestions (1–1 mapping)
+    await db.query(`
+      INSERT INTO "StaticQuestion"
+        (base_question_id, question_content, role_id, skill_id, lang_id)
+      VALUES
+        ($1, 'Tell me about yourself and your background.', NULL, NULL, NULL),
+        ($2, 'What interests you most about this role?', NULL, NULL, NULL),
+        ($3, 'Describe a challenging project you''ve worked on recently.', NULL, NULL, NULL),
+        ($4, 'How do you handle working under pressure?', NULL, NULL, NULL),
+        ($5, 'What are your biggest strengths and weaknesses?', NULL, NULL, NULL),
+        ($6, 'Where do you see yourself in 5 years?', NULL, NULL, NULL),
+        ($7, 'Why should we hire you for this position?', NULL, NULL, NULL)
+    `, baseIds);
+
+    log("Inserted predefined questions (Base + Static)");
+
+
     // UserProfilePreference (1 per user, include admin)
     for (const u of [admin, ...users]) {
       const role = pick(roles);
@@ -360,6 +398,8 @@ RETURNING user_id, name;
     log('SEEDING SUCCESSFULLY COMPLETED.');
   });
 }
+
+
 
 seed()
   .catch((err) => {
