@@ -261,7 +261,7 @@ RETURNING user_id, name;
     // -------------------------------------------------------
     log("Inserting BaseQuestion + StaticQuestion...");
 
-    // 1️⃣ Insert BaseQuestions
+    // Insert BaseQuestions
     const baseQuestions = await db.query(`
       INSERT INTO "BaseQuestion" (is_predefined, difficulty_level)
       VALUES
@@ -277,7 +277,7 @@ RETURNING user_id, name;
 
     const baseIds = baseQuestions.rows.map(r => r.question_id);
 
-    // 2️⃣ Insert StaticQuestions (1–1 mapping)
+    // Insert StaticQuestions (1–1 mapping)
     await db.query(`
       INSERT INTO "StaticQuestion"
         (base_question_id, question_content, role_id, skill_id, lang_id)

@@ -213,36 +213,46 @@ export default function InterviewQuestion({
     
     const currentQ = questions[currentQuestionIndex];
 
-    const payload = {
-      questionText: currentQ.text,
-      userAnswer: textAnswer,
-       score: null
-    };
+    // const payload = {
+    //   questionText: currentQ.text,
+    //   userAnswer: textAnswer,
+    //    score: null
+    // };
 
     try {
 
-      await api.post(`/interview/${config.sessionId}/history`, {
-        questionText: currentQ.text
-      });
+      const answerRes = await api.post(
+         `/interview/${config.sessionId}/answer`,
+         {
+            questionId: currentQ.id,
+            userAnswer: textAnswer
+          }
+        );
+
+      console.log("Answer Inserted:", answerRes.data);  
+      const answerId = answerRes.data.answer_id;
 
 
+      // Save SESSION HISTORY (IDs only)
       await api.post(
-        `/interview/${config.sessionId}/answer`,
-        {
+       `/interview/${config.sessionId}/history`,
+       {
           questionId: currentQ.id,
-          questionText: currentQ.text,
-          userAnswer: textAnswer,
-          score: null
+          answerId: answerId
         }
       );
-      console.log("History + Answer saved");
+
+      console.log("Session History Inserted:", {
+          sessionId: config.sessionId,
+          questionId: currentQ.id,
+          answerId });
       
-      console.log("Answer saved:", payload);
-    } catch (err) {
-      console.error("Failed to save answer:", err);
-      alert("Failed to save answer");
-      return; // ⛔ do NOT move to next question if save fails
-    }
+      
+      } catch (err) {
+        console.error("Failed to save answer:", err);
+        alert("Failed to save answer");
+        return; // do NOT move to next question if save fails
+      }
   
   //   // Mock API call
   //  const answerObject = {

@@ -87,7 +87,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     email: '',
     password: '********',          // non-editable, not null
     gender: '',
-    phone: '',
+    phone_number: '',
     location: '',
 
     // Professional Information
@@ -137,7 +137,7 @@ if (data.profileImage) {
           password: '********', // never show real password, just non-null placeholder
 
           gender: data.gender || '',
-          phone: data.phone || '',
+          phone_number: data.phone_number || '',
           location: data.location || '',
 
           preferredRole: data.preferredRole || '',
@@ -510,15 +510,15 @@ if (data.profileImage) {
 
               <div className="space-y-2">
                 <Label
-                  htmlFor="phone"
+                  htmlFor="phone_number"
                   style={{ color: '#9CA3AF' }}
                 >
                   Phone Number
                 </Label>
                 <Input
-                  id="phone"
+                  id="phone_number"
                   placeholder="Enter your phone number"
-                  value={profileData.phone}
+                  value={profileData.phone_number}
                   onChange={(e) => handleInputChange('phone', e.target.value)}
                   className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
                   style={{

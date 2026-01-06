@@ -164,46 +164,22 @@ router.post('/start', async (req, res) => {
 //   }
 // });
 
-router.post('/:sessionId/history', async (req, res) => {
-  try {
-    const sessionId = Number(req.params.sessionId);
-    const userId = req.user?.id;
-    const { questionText } = req.body;
 
-    if (!userId || !sessionId || !questionText) {
-      return res.status(400).json({ error: 'Invalid request' });
-    }
-
-    await query(
-      `
-      INSERT INTO "SessionHistory"
-        (session_id, question_text, timestamp)
-      VALUES ($1, $2, NOW())
-      `,
-      [sessionId, questionText]
-    );
-
-    res.status(201).json({ success: true });
-
-  } catch (err) {
-    console.error('SessionHistory error:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Answer route
 router.post('/:sessionId/answer', async (req, res) => {
   try {
     const sessionId = Number(req.params.sessionId);
     const userId = req.user?.id;
     // const { userAnswer } = req.body;
 
-    // ✅ FIX: extract questionId
+    // FIX: extract questionId
     const { questionId, userAnswer } = req.body;
 
     if (!userId || !sessionId || !questionId || !userAnswer) {
       return res.status(400).json({ error: 'Invalid request' });
     }
 
-    await query(
+    const result = await query(
       `
       INSERT INTO "Answer" (
         session_id,
@@ -214,17 +190,44 @@ router.post('/:sessionId/answer', async (req, res) => {
         end_time
       )
       VALUES ($1, $2, $3, $4, NOW(), NOW())
+      RETURNING answer_id
       `,
       [sessionId, questionId,'text', userAnswer]
     );
 
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, answer_id: result.rows[0].answer_id });
 
   } catch (err) {
     console.error('Answer insert error FULL:', err.message, err);
   res.status(500).json({
     error: err.message,
     detail: err.detail });
+  }
+});
+router.post('/:sessionId/history', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const userId = req.user?.id;
+    const { questionId, answerId } = req.body;
+
+    if (!userId || !sessionId || !questionId || !answerId) {
+      return res.status(400).json({ error: 'Invalid request' });
+    }
+
+    await query(
+      `
+      INSERT INTO "SessionHistory"
+        (session_id, question_id, answer_id, timestamp)
+      VALUES ($1, $2, $3, NOW())
+      `,
+      [sessionId, questionId, answerId]
+    );
+
+    res.status(201).json({ success: true });
+
+  } catch (err) {
+    console.error('SessionHistory error:', err);
+    res.status(500).json({ error: err.message });
   }
 });
 

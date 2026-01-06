@@ -12,7 +12,7 @@ exports.getUserProfile = async (userId) => {
         name,
         email,
         profile_image,
-        phone,
+        phone_number,
         location,
         gender,
         education,
@@ -39,7 +39,7 @@ exports.getUserProfile = async (userId) => {
     fullName: u.name,
     email: u.email,
     profileImage: u.profile_image,
-    phone: u.phone,
+    phone_number: u.phone_number,
     location: u.location,
     gender: u.gender,
     education: u.education,
@@ -61,7 +61,7 @@ exports.getUserProfile = async (userId) => {
 // ==============================
 exports.updateUserProfile = async (userId, data) => {
   const {
-    fullName, email, gender, phone, location,
+    fullName, email, gender, phone_number, location,
     preferredRole, skills, programmingLanguages, experienceLevel,
     education, university, graduationYear,
     hobbies, linkedinProfile, githubProfile, portfolio
@@ -72,7 +72,7 @@ exports.updateUserProfile = async (userId, data) => {
     SET
       name = $1,
       email = $2,
-      phone = $3,
+      phone_number = $3,
       location = $4,
       gender = $5,
       preferred_role = $6,
@@ -93,7 +93,7 @@ exports.updateUserProfile = async (userId, data) => {
   const params = [
     fullName,
     email,
-    phone,
+    phone_number,
     location,
     gender,
     preferredRole,
