@@ -95,3 +95,11 @@ coverage/
 # Allow folder tracking files
 !/static/profile_pictures/.gitkeep
 !/static/resumes/.gitkeep
+
+# Ignore uploaded user files
+backend/static/profile-images/*
+backend/static/resumes/*
+
+# But keep directory placeholders
+!backend/static/profile-images/.gitkeep
+!backend/static/resumes/.gitkeep
