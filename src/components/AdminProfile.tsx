@@ -24,6 +24,7 @@ export default function AdminProfile({ onBack }: AdminProfileProps) {
                 const res = await api.get("/admin/profile");
                 setName(res.data?.name || "");
                 setEmail(res.data?.email || "");
+                setProfileImage(res.data.profile_image);
             } catch (err) {
                 console.error("Failed to load admin profile", err);
             } finally {
@@ -142,7 +143,8 @@ export default function AdminProfile({ onBack }: AdminProfileProps) {
                                 <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-600 flex items-center justify-center">
                                     {profileImage ? (
                                         <img
-                                            src={profileImage}
+                                            src={`http://localhost:3001${profileImage}`}
+
                                             alt="Profile"
                                             className="h-full w-full object-cover"
                                         />

@@ -293,7 +293,7 @@ export default function App() {
         return (
           <AdminProfile
              onBack={handleBackToAdminDashboard}
-             onProfileUpdated={(newName) => setAdminName((prev) => ({ ...prev, name: newName }))}
+        
           />
         );  
       case 'interview-setup':

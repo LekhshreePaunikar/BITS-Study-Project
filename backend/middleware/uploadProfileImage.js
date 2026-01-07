@@ -18,7 +18,7 @@ const storage = multer.diskStorage({
     // FIX 2: differentiate admin vs user
     const prefix = req.user.isAdmin ? "admin" : "user";
     const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `user-${prefix}-{userId}-profile${ext}`);
+    cb(null, `user-${userId}-profile${ext}`);
   }
 });
 

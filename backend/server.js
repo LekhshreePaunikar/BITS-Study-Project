@@ -13,6 +13,7 @@ const path = require('path');
 const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 
+
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -137,6 +138,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Handle profile photo
+app.use(
+  "/static/profile-images",
+  express.static(path.join(__dirname, "static/profile-images"))
+);
 
 // Handle undefined routes
 app.use('*', (req, res) => {

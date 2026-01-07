@@ -30,7 +30,6 @@ import {
 import api from "../utils/api"; // or your axios instance
 
 interface AdminDashboardProps {
-  admin: { name: string };
   onLogout: () => void;
   onEditProfile: () => void;
   onFlaggedContent?: () => void;
@@ -56,6 +55,13 @@ interface AdminAction {
   hoverColor: string;
   onClick: () => void;
 }
+
+type Admin = {
+  user_id: number;
+  name: string;
+  email: string;
+  profile_image: string | null;
+};
 
 export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedContent, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
   // Mock metrics data
@@ -133,7 +139,8 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
 
 
 
-  const [admin, setAdmin] = useState<{ name: string }>({ name: "Admin" });
+  const [admin, setAdmin] = useState<Admin | null>(null);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -158,6 +165,16 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
     fetchAdminProfile();
   }, []);
 
+  //  ADD THIS BLOCK — REQUIRED
+if (loading || !admin) {
+  return (
+    <div className="min-h-screen flex items-center justify-center text-white">
+      Loading admin dashboard...
+    </div>
+  );
+}
+
+
 
 
   const adminActions: AdminAction[] = [
@@ -170,8 +187,8 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
       onClick: handleManageQuestions
     },
     {
-      title: 'Support Ticket Monitoring',
-      description: 'Review and resolve reported questions',
+      title: 'Flagged Content',
+      description: 'Review and moderate flagged content',
       icon: <AlertTriangle className="h-8 w-8 mb-3" />,
       color: '#1F2937',
       hoverColor: '#EF4444',
@@ -204,105 +221,88 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
         {/* Header Bar */}
         <header
-          className="border-b"
+          className="border-b px-6 py-4 flex items-center justify-between"
           style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151'
           }}
         >
-          <div className="container mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              {/* Left - Title */}
-              <div className="flex items-center space-x-4">
-                <Shield className="h-8 w-8 text-white" />
-                <h1 className="text-2xl md:text-3xl mb-2 text-white">
-                  Admin Dashboard
-                </h1>
-              </div>
-
-              {/* Right - Controls */}
-              <div className="flex items-center space-x-6">
-                {/* Super Admin Badge */}
-                <Badge
-                  className="px-3 py-1 text-sm border-2 transition-all duration-200 hover:shadow-lg"
-                  style={{
-                    backgroundColor: 'transparent',
-                    borderColor: '#3B82F6',
-                    color: '#3B82F6',
-                    boxShadow: '0 0 10px rgba(59, 130, 246, 0.3)'
-                  }}
-                >
-                  Super Admin
-                </Badge>
-
-                {/* Avatar Dropdown */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="flex items-center space-x-2 p-2 transition-all duration-200 hover:bg-gray-700/50"
-                    >
-                      <Avatar
-                        className="h-8 w-8 border border-gray-500"
-                      >
-                        <AvatarFallback
-                          className="text-white bg-gray-700">
-                          {admin.name?.charAt(0).toUpperCase() || "A"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-white hidden md:inline">
-                        {admin.name}
-                      </span>
-
-                      <ChevronDown className="h-4 w-4 text-white" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-48 z-50"
-                    sideOffset={8}
-                    style={{
-                      backgroundColor: '#1F2937',
-                      borderColor: '#374151',
-                      border: '1px solid #374151',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                    }}
-                  >
-                    <DropdownMenuItem
-                      onClick={handleEditProfile}
-                      className="text-white cursor-pointer focus:outline-none"
-                      style={{
-                        backgroundColor: 'transparent'
-                      }}
-                      onMouseEnter={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(55, 65, 81, 0.5)';
-                      }}
-                      onMouseLeave={(e: { currentTarget: { style: { backgroundColor: string; }; }; }) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      <User className="h-4 w-4 mr-2" />
-                      Edit Profile
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                {/* Standalone Logout Button */}
-                <Button
-                  variant="outline"
-                  onClick={onLogout}
-                  className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-                  style={{ borderColor: '#DC2626', color: 'white', backgroundColor: 'rgba(127, 29, 29, 0.3)' }}>
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </Button>
-              </div>
+          {/* Left: Profile + Name */}
+          <div className="flex items-center space-x-4">
+            <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-500 bg-gray-700 flex items-center justify-center">
+              {admin.profile_image ? (
+                <img
+                  src={`http://localhost:3001${admin.profile_image}`}
+                  alt="Admin avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-white font-semibold text-lg">
+                  {admin.name?.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
+
+            <h1 className="text-2xl md:text-3xl text-white">
+              {admin.name}
+            </h1>
+          </div>
+
+          {/* Right: Controls */}
+          <div className="flex items-center space-x-6">
+            <Badge
+              className="px-3 py-1 text-sm border-2"
+              style={{
+                backgroundColor: 'transparent',
+                borderColor: '#3B82F6',
+                color: '#3B82F6'
+              }}
+            >
+              Super Admin
+            </Badge>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8 border border-gray-500">
+                    {admin.profile_image ? (
+                      <img
+                        src={`http://localhost:3001${admin.profile_image}`}
+                        alt="Admin avatar"
+                        className="h-full w-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <AvatarFallback className="text-white bg-gray-700">
+                        {admin.name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    )}
+                  </Avatar>
+                  <ChevronDown className="h-4 w-4 text-white" />
+                </Button>
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={onEditProfile}>
+                  <User className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Button
+              variant="outline"
+              onClick={onLogout}
+              style={{ borderColor: '#DC2626', color: 'white' }}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </header>
 
+
         {/* Main Content */}
-        <main className="container mx-auto px-6 py-8">
+        < main className="container mx-auto px-6 py-8" >
           <div className="max-w-7xl mx-auto space-y-8">
 
             {/* Summary Cards */}
@@ -441,15 +441,16 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
               </CardContent>
             </Card>
           </div>
-        </main>
+        </main >
 
         {/* Footer */}
-        <footer
+        < footer
           className="border-t mt-16"
           style={{
             backgroundColor: '#111827',
             borderColor: '#1F2937'
-          }}
+          }
+          }
         >
           <div className="container mx-auto px-6 py-4">
             <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
@@ -487,8 +488,8 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
               </div>
             </div>
           </div>
-        </footer>
-      </div>
-    </TooltipProvider>
+        </footer >
+      </div >
+    </TooltipProvider >
   );
 }

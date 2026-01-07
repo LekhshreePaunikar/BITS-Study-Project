@@ -46,15 +46,15 @@ router.put("/profile", authenticateToken, async (req, res) => {
     return res.status(403).json({ error: "Admin access only" });
   }
 
-  const { name, profile_image } = req.body;
+  const { name, email, profile_image } = req.body;
 
   await query(
     `
     UPDATE "User"
-    SET name = $1, profile_image = $2, updated_at = NOW()
+    SET name = $1, email = $2,  updated_at = NOW()
     WHERE user_id = $3
     `,
-    [name, profile_image || null, req.user.id]
+    [name, email, profile_image || null, req.user.id]
   );
 
   res.json({ success: true });

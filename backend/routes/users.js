@@ -364,7 +364,7 @@ router.put('/:id/setup', authenticateToken, requireOwnershipOrAdmin('id'), async
       programmingLanguages,
       experienceLevel,
       education,
-      phone,
+      phone_number,
       location,
       hobbies,
       linkedinProfile,
