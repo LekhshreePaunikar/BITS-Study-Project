@@ -37,21 +37,32 @@ export default function App() {
   // Check for remembered user on app initialization
   useEffect(() => {
     const rememberedUser = localStorage.getItem('rememberUser');
+    const rememberedView = localStorage.getItem('currentView');
+
     if (rememberedUser) {
       try {
         const userData = JSON.parse(rememberedUser);
         if (userData.rememberMe && userData.username) {
-          // Auto-login the remembered user
           setCurrentUser(userData.username);
           setIsAdmin(userData.isAdmin || false);
-          setCurrentView(userData.isAdmin ? 'admin-dashboard' : 'dashboard');
+
+          if (rememberedView) {
+            setCurrentView(rememberedView as ViewType);
+          } else {
+            setCurrentView(userData.isAdmin ? 'admin-dashboard' : 'dashboard');
+          }
         }
       } catch (error) {
-        console.error('Error parsing remembered user data:', error);
+        console.error('Error restoring app state:', error);
         localStorage.removeItem('rememberUser');
+        localStorage.removeItem('currentView');
       }
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('currentView', currentView);
+  }, [currentView]);
 
   const switchToSignUp = () => {
     setCurrentView('signup');
@@ -88,13 +99,12 @@ export default function App() {
   };
 
   const handleConfirmLogout = () => {
-    // Clear the user but stay on the logout page to show success message
     setCurrentUser('');
     setIsAdmin(false);
-    // Clear remembered user data on explicit logout
     localStorage.removeItem('rememberUser');
-    // Don't change the view - stay on 'logout' to show the success message
+    localStorage.removeItem('currentView');
   };
+
 
   const handleReLogin = () => {
     // Only redirect to login when user explicitly clicks "Login Again"
@@ -159,7 +169,7 @@ export default function App() {
       questionsAnswered: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10,
       totalQuestions: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10
     };
-    
+
     setSessionData(mockSessionData);
     setCurrentView('session-completion');
   };
@@ -186,8 +196,8 @@ export default function App() {
     switch (currentView) {
       case 'login':
         return (
-          <LoginForm 
-            onSwitchToSignUp={switchToSignUp} 
+          <LoginForm
+            onSwitchToSignUp={switchToSignUp}
             onLoginSuccess={handleLoginSuccess}
             onAdminLoginSuccess={handleAdminLoginSuccess}
           />
@@ -198,8 +208,8 @@ export default function App() {
         );
       case 'dashboard':
         return (
-          <Dashboard 
-            username={currentUser} 
+          <Dashboard
+            username={currentUser}
             onLogout={handleLogout}
             onProfileClick={handleProfileClick}
             onStartInterview={handleStartInterviewSetup}
@@ -210,7 +220,7 @@ export default function App() {
         );
       case 'admin-dashboard':
         return (
-          <AdminDashboard 
+          <AdminDashboard
             username={currentUser}
             onLogout={handleLogout}
             onFlaggedContent={handleFlaggedContent}
@@ -249,7 +259,7 @@ export default function App() {
         );
       case 'profile':
         return (
-          <ProfileSetup 
+          <ProfileSetup
             username={currentUser}
             onBack={handleBackToDashboard}
           />
@@ -322,8 +332,8 @@ export default function App() {
         );
       default:
         return (
-          <LoginForm 
-            onSwitchToSignUp={switchToSignUp} 
+          <LoginForm
+            onSwitchToSignUp={switchToSignUp}
             onLoginSuccess={handleLoginSuccess}
             onAdminLoginSuccess={handleAdminLoginSuccess}
           />
