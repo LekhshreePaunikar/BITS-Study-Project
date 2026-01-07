@@ -235,6 +235,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
               <CheckCircle className="h-4 w-4" style={{ color: '#10B981' }} />
               <AlertDescription style={{ color: '#10B981' }}>
                 Support ticket submitted successfully! We'll get back to you within 24 hours.
+                Please refresh the page to view your newly created ticket.
               </AlertDescription>
             </Alert>
           )}

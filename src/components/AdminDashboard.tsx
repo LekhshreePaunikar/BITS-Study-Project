@@ -135,8 +135,8 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
       onClick: handleManageQuestions
     },
     {
-      title: 'Flagged Content',
-      description: 'Review and moderate flagged content',
+      title: 'Support Ticket Monitoring',
+      description: 'Review and resolve reported questions',
       icon: <AlertTriangle className="h-8 w-8 mb-3" />,
       color: '#1F2937', 
       hoverColor: '#EF4444',

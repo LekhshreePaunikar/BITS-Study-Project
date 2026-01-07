@@ -40,7 +40,7 @@ router.post('/', authenticateToken, checkLogin, async (req, res) => {
     }
 
     // Compose Message = subject||description
-    const message = `${String(subject).trim()}||${String(description).trim()}`;
+    const message = `${String(subject).trim()} || ${String(description).trim()}`;
 
     // Insert row with next TicketID, Status=open, timestamps = NOW()
     const insertQuery = `

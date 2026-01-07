@@ -5,7 +5,7 @@ import LoginForm from './components/LoginForm';
 import SignUpForm from './components/SignUpForm';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
-import FlaggedContentModeration from './components/FlaggedContentModeration';
+import SupportTicketModeration from './components/SupportTicketModeration';
 import ManageQuestions from './components/ManageQuestions';
 import ManageUsers from './components/ManageUsers';
 import Analytics from './components/Analytics';
@@ -231,7 +231,7 @@ export default function App() {
         );
       case 'flagged-content':
         return (
-          <FlaggedContentModeration
+          <SupportTicketModeration
             username={currentUser}
             onBackToAdminDashboard={handleBackToAdminDashboard}
           />
