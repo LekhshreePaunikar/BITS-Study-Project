@@ -54,7 +54,7 @@ router.put("/profile", authenticateToken, async (req, res) => {
     SET name = $1, email = $2,  updated_at = NOW()
     WHERE user_id = $3
     `,
-    [name, email, profile_image || null, req.user.id]
+    [name, email || null, req.user.id]
   );
 
   res.json({ success: true });
