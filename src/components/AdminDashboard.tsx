@@ -1,13 +1,14 @@
 // root/src/components/AdminDashboard.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { 
+import {
   User,
   LogOut,
   Settings,
@@ -26,9 +27,12 @@ import {
   TrendingUp
 } from 'lucide-react';
 
+import api from "../utils/api"; // or your axios instance
+
 interface AdminDashboardProps {
-  username: string;
+  admin: { name: string };
   onLogout: () => void;
+  onEditProfile: () => void;
   onFlaggedContent?: () => void;
   onManageQuestions?: () => void;
   onManageUsers?: () => void;
@@ -53,7 +57,7 @@ interface AdminAction {
   onClick: () => void;
 }
 
-export default function AdminDashboard({ username, onLogout, onFlaggedContent, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
+export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedContent, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
   // Mock metrics data
   const metricsData: MetricCard[] = [
     {
@@ -65,7 +69,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
       trend: '+12%'
     },
     {
-      title: 'Flags Reported', 
+      title: 'Flags Reported',
       value: '34',
       subtitle: '8 pending review',
       icon: <Flag className="h-6 w-6" />,
@@ -120,10 +124,41 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
     alert('Admin Support Ticket submission would open here');
   };
 
+  // 
   const handleEditProfile = () => {
-    console.log('Opening Admin Profile Editor...');
-    alert('Admin Profile Editor would open here');
+    onEditProfile();
   };
+
+
+
+
+
+  const [admin, setAdmin] = useState<{ name: string }>({ name: "Admin" });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAdminProfile = async () => {
+      try {
+        const res = await api.get("/admin/profile");
+
+        console.log("Admin profile loaded:", res.data);
+
+        if (res.data) {
+          setAdmin(res.data);
+        } else {
+          console.error("Admin profile is empty");
+        }
+      } catch (err) {
+        console.error("Failed to load admin profile", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAdminProfile();
+  }, []);
+
+
 
   const adminActions: AdminAction[] = [
     {
@@ -138,7 +173,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
       title: 'Support Ticket Monitoring',
       description: 'Review and resolve reported questions',
       icon: <AlertTriangle className="h-8 w-8 mb-3" />,
-      color: '#1F2937', 
+      color: '#1F2937',
       hoverColor: '#EF4444',
       onClick: handleFlaggedContent
     },
@@ -160,13 +195,17 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
     }
   ];
 
+
+
+
+
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
         {/* Header Bar */}
-        <header 
+        <header
           className="border-b"
-          style={{ 
+          style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151'
           }}
@@ -184,9 +223,9 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
               {/* Right - Controls */}
               <div className="flex items-center space-x-6">
                 {/* Super Admin Badge */}
-                <Badge 
+                <Badge
                   className="px-3 py-1 text-sm border-2 transition-all duration-200 hover:shadow-lg"
-                  style={{ 
+                  style={{
                     backgroundColor: 'transparent',
                     borderColor: '#3B82F6',
                     color: '#3B82F6',
@@ -199,35 +238,37 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                 {/* Avatar Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="flex items-center space-x-2 p-2 transition-all duration-200 hover:bg-gray-700/50"
                     >
-                      <Avatar 
+                      <Avatar
                         className="h-8 w-8 border border-gray-500"
                       >
-                        <AvatarFallback 
-                          className="text-white bg-gray-700"
-                        >
-                          {username.charAt(0).toUpperCase()}
+                        <AvatarFallback
+                          className="text-white bg-gray-700">
+                          {admin.name?.charAt(0).toUpperCase() || "A"}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-white hidden md:inline">{username}</span>
+                      <span className="text-white hidden md:inline">
+                        {admin.name}
+                      </span>
+
                       <ChevronDown className="h-4 w-4 text-white" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent 
-                    align="end" 
+                  <DropdownMenuContent
+                    align="end"
                     className="w-48 z-50"
                     sideOffset={8}
-                    style={{ 
+                    style={{
                       backgroundColor: '#1F2937',
                       borderColor: '#374151',
                       border: '1px solid #374151',
                       boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
                     }}
                   >
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleEditProfile}
                       className="text-white cursor-pointer focus:outline-none"
                       style={{
@@ -247,11 +288,11 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                 </DropdownMenu>
 
                 {/* Standalone Logout Button */}
-                <Button 
-                  variant="outline" 
-                  onClick={onLogout} 
+                <Button
+                  variant="outline"
+                  onClick={onLogout}
                   className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105"
-                  style={{ borderColor: '#DC2626', color: 'white', backgroundColor: 'rgba(127, 29, 29, 0.3)'}}>
+                  style={{ borderColor: '#DC2626', color: 'white', backgroundColor: 'rgba(127, 29, 29, 0.3)' }}>
                   <LogOut className="h-4 w-4" />
                   <span>Logout</span>
                 </Button>
@@ -267,10 +308,10 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
               {metricsData.map((metric, index) => (
-                <Card 
+                <Card
                   key={index}
                   className="border transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
-                  style={{ 
+                  style={{
                     backgroundColor: '#1F2937',
                     borderColor: '#374151',
                     boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
@@ -278,7 +319,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                 >
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <div 
+                      <div
                         className="p-2 rounded-lg"
                         style={{ backgroundColor: `${metric.color}20` }}
                       >
@@ -286,15 +327,15 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                           {metric.icon}
                         </div>
                       </div>
-                      <div 
+                      <div
                         className="text-sm px-2 py-1 rounded flex items-center"
-                        style={{ 
+                        style={{
                           backgroundColor: metric.trend?.startsWith('+') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
                           color: metric.trend?.startsWith('+') ? '#10B981' : '#EF4444'
                         }}
                       >
-                        {metric.trend?.startsWith('+') ? 
-                          <TrendingUp className="h-3 w-3 mr-1" /> : 
+                        {metric.trend?.startsWith('+') ?
+                          <TrendingUp className="h-3 w-3 mr-1" /> :
                           <Activity className="h-3 w-3 mr-1" />
                         }
                         {metric.trend}
@@ -321,18 +362,18 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
               {adminActions.map((action, index) => (
                 <Tooltip key={index}>
                   <TooltipTrigger asChild>
-                    <Card 
+                    <Card
                       className="border cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group"
-                      style={{ 
+                      style={{
                         backgroundColor: action.color,
                         borderColor: '#374151'
                       }}
                       onClick={action.onClick}
                     >
                       <CardContent className="p-8 text-center">
-                        <div 
+                        <div
                           className="transition-colors duration-300"
-                          style={{ 
+                          style={{
                             color: '#9CA3AF'
                           }}
                         >
@@ -344,7 +385,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                         <p className="text-sm" style={{ color: '#6B7280' }}>
                           {action.description}
                         </p>
-                        <div 
+                        <div
                           className="mt-4 h-1 w-0 bg-current transition-all duration-300 group-hover:w-full mx-auto rounded"
                           style={{ backgroundColor: action.hoverColor }}
                         />
@@ -359,15 +400,15 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
             </div>
 
             {/* Support Panel */}
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardHeader>
-                <CardTitle 
+                <CardTitle
                   className="flex items-center space-x-2"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -385,10 +426,10 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                       Contact: tech-support@mockinterview.ai
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={handleSubmitTicket}
                     className="text-white transition-all duration-200 hover:shadow-lg hover:scale-105"
-                    style={{ 
+                    style={{
                       backgroundColor: '#3B82F6',
                       boxShadow: '0 0 15px rgba(59, 130, 246, 0.3)'
                     }}
@@ -403,9 +444,9 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
         </main>
 
         {/* Footer */}
-        <footer 
+        <footer
           className="border-t mt-16"
-          style={{ 
+          style={{
             backgroundColor: '#111827',
             borderColor: '#1F2937'
           }}
@@ -417,7 +458,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                 <span className="text-white">1.2.5</span>
               </div>
               <div className="flex items-center space-x-4 text-sm">
-                <button 
+                <button
                   className="transition-colors duration-200"
                   style={{ color: '#6B7280' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
@@ -426,7 +467,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                   Privacy
                 </button>
                 <span style={{ color: '#374151' }}>|</span>
-                <button 
+                <button
                   className="transition-colors duration-200"
                   style={{ color: '#6B7280' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
@@ -438,7 +479,7 @@ export default function AdminDashboard({ username, onLogout, onFlaggedContent, o
                 <div className="flex items-center space-x-2">
                   <span style={{ color: '#6B7280' }}>Last Synced:</span>
                   <span className="text-white">2 mins ago</span>
-                  <div 
+                  <div
                     className="h-2 w-2 rounded-full animate-pulse"
                     style={{ backgroundColor: '#10B981' }}
                   />
