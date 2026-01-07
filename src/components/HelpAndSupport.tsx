@@ -50,7 +50,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
 
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[] | null>(null);
+  const [supportTickets, setSupportTickets] = useState<any[] | null>(null);
   const [loadingTickets, setLoadingTickets] = useState(true);
 
   useEffect(() => {
@@ -58,7 +58,22 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
       try {
         const res = await supportAPI.getTickets();
         console.log("Fetched tickets:", res);
-        setSupportTickets(res?.data?.tickets || []);
+        setSupportTickets(prev => {
+          const fetched = res?.data?.tickets || [];
+          if (!prev || prev.length === 0) return fetched;
+
+          const existingIds = new Set(prev.map(t => t.TicketID));
+          const merged = [...prev];
+
+          fetched.forEach(t => {
+            if (!existingIds.has(t.TicketID)) {
+              merged.push(t);
+            }
+          });
+
+          return merged;
+        });
+
       } catch (err) {
         console.error(err);
         setSupportTickets([]);
@@ -133,6 +148,22 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
         issueType: formData.issueType,
         description: formData.description,
       });
+
+      const createdTicket = res?.data?.ticket;
+
+      if (createdTicket?.TicketID) {
+        const newTicket = {
+          TicketID: createdTicket.TicketID,
+          Message: `${formData.subject}||${formData.description}`,
+          CreatedAt: createdTicket.created_at || new Date().toISOString(),
+          Status: createdTicket.status || 'open',
+        };
+
+        setSupportTickets(prev =>
+          prev ? [newTicket, ...prev] : [newTicket]
+        );
+      }
+
 
       toast.success(`Support ticket submitted! #${res?.ticket?.TicketID ?? ''}`);
       setShowSuccessAlert(true);
@@ -447,7 +478,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                         Ticket ID
                       </th>
                       <th className="text-left p-3" style={{ color: '#9CA3AF' }}>
-                        Subject
+                        Ticket
                       </th>
                       <th className="text-left p-3" style={{ color: '#9CA3AF' }}>
                         Date
@@ -467,7 +498,13 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                     ) : supportTickets && supportTickets.length > 0 ? (
                       supportTickets.map((ticket: any, index) => {
                         // Adapt to backend key casing (TicketID, Message, CreatedAt, Status)
-                        const subject = ticket.Message || '(No subject)';
+                        const rawMessage = ticket.Message || '';
+                        const [subject, description] = rawMessage.split('||');
+
+                        const safeSubject = subject?.trim() || '(No subject)';
+                        const safeDescription = description?.trim() || '';
+
+
                         const formattedDate = ticket.CreatedAt
                           ? new Date(ticket.CreatedAt).toLocaleDateString()
                           : 'N/A';
@@ -483,7 +520,17 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                             }}
                           >
                             <td className="p-3 text-gray-300">#{ticket.TicketID}</td>
-                            <td className="p-3 text-white">{subject}</td>
+                            <td className="p-3 text-white">
+                              <div className="font-semibold">
+                                {safeSubject}
+                              </div>
+                              {safeDescription && (
+                                <div className="text-sm text-gray-300 mt-1">
+                                  {safeDescription}
+                                </div>
+                              )}
+                            </td>
+
                             <td className="p-3 text-gray-300">{formattedDate}</td>
                             <td className="p-3">{getStatusBadge(status)}</td>
                           </tr>

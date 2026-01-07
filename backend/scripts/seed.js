@@ -390,7 +390,7 @@ RETURNING user_id, name;
         INSERT INTO "SupportTicket" (user_id, issue_type, message, status, created_at, updated_at)
         VALUES ($1, $2, $3, 'open', NOW(), NOW())
         `,
-        [u.user_id, it, `Dummy ${it} ticket from ${u.name}`]
+        [u.user_id, it, `Dummy ${it} ticket|| Ticket description from ${u.name} for the testing purposes`]
       );
     }
     log(`Inserted support tickets: ${1 + users.length}`);
