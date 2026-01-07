@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./ui/dialog";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import { adminAPI } from "../utils/api";
 
 interface SupportTicketModerationProps {
   username: string;
@@ -21,6 +22,14 @@ interface SupportTicket {
   status: "open" | "in_progress" | "closed";
 }
 
+const splitTicketMessage = (message: string) => {
+  const [subject, ...rest] = message.split("||");
+  return {
+    subject: subject?.trim() || "No Subject",
+    description: rest.join("||").trim(),
+  };
+};
+
 export default function SupportTicketModeration({
   username,
   onBackToAdminDashboard,
@@ -34,26 +43,14 @@ export default function SupportTicketModeration({
   // --------------------------------------------------
   const fetchSupportTickets = async () => {
     try {
-      const response = await fetch(
-        "http://localhost:3001/api/admin/support-tickets",
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (Array.isArray(data)) {
-        setSupportTickets(data);
-      } else {
-        console.error("Support tickets API returned non-array:", data);
-        setSupportTickets([]);
-      }
+      const data = await adminAPI.getSupportTickets();
+      setSupportTickets(data);
     } catch (err) {
       console.error("Failed to load support tickets:", err);
     }
   };
+
+
 
   // --------------------------------------------------
   // Update ticket status
@@ -63,19 +60,8 @@ export default function SupportTicketModeration({
     newStatus: "open" | "in_progress" | "closed"
   ) => {
     try {
-      await fetch(
-        `http://localhost:3001/api/admin/support-tickets/${ticketId}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
+      await adminAPI.updateSupportTicketStatus(ticketId, newStatus);
 
-      // Update UI immediately
       setSupportTickets((prev) =>
         prev.map((t) =>
           t.ticket_id === ticketId ? { ...t, status: newStatus } : t
@@ -88,6 +74,7 @@ export default function SupportTicketModeration({
       console.error("Failed to update ticket:", err);
     }
   };
+
 
   useEffect(() => {
     fetchSupportTickets();
@@ -155,97 +142,120 @@ export default function SupportTicketModeration({
             style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}
           >
             <CardContent className="p-0">
-              <table className="w-full">
-                <thead>
-                  <tr
-                    className="border-b"
-                    style={{
-                      borderColor: "#374151",
-                      backgroundColor: "#374151",
-                    }}
-                  >
-                    <th className="p-4 text-left text-gray-400">
-                      Ticket ID
-                    </th>
-                    <th className="p-4 text-left text-gray-400">User</th>
-                    <th className="p-4 text-left text-gray-400">
-                      Issue Type
-                    </th>
-                    <th className="p-4 text-left text-gray-400">
-                      Message
-                    </th>
-                    <th className="p-4 text-left text-gray-400">
-                      Created At
-                    </th>
-                    <th className="p-4 text-left text-gray-400">
-                      Status
-                    </th>
-                    <th className="p-4 text-left text-gray-400">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[900px]">
 
-                <tbody>
-                  {supportTickets.map((ticket, index) => (
+                  <thead>
                     <tr
-                      key={ticket.ticket_id}
+                      className="border-b"
                       style={{
-                        backgroundColor:
-                          index % 2 === 0
-                            ? "rgba(55, 65, 81, 0.2)"
-                            : "transparent",
+                        borderColor: "#374151",
+                        backgroundColor: "#374151",
                       }}
                     >
-                      <td className="p-4 text-gray-300">
-                        #{ticket.ticket_id}
-                      </td>
-                      <td className="p-4 text-gray-300">
-                        USR_{ticket.user_id}
-                      </td>
-                      <td className="p-4 text-gray-300">
-                        {ticket.issue_type}
-                      </td>
-                      <td className="p-4 text-gray-400">
-                        {ticket.message.length > 60
-                          ? ticket.message.slice(0, 60) + "..."
-                          : ticket.message}
-                      </td>
-                      <td className="p-4 text-gray-400">
-                        {new Date(ticket.created_at).toLocaleString()}
-                      </td>
-                      <td className="p-4">
-                        <Badge
-                          className="px-3 py-1 text-xs"
-                          style={{
-                            backgroundColor:
-                              ticket.status === "open"
-                                ? "#F59E0B"
-                                : ticket.status === "in_progress"
-                                ? "#3B82F6"
-                                : "#10B981",
-                            color: "white",
-                          }}
-                        >
-                          {ticket.status.replace("_", " ")}
-                        </Badge>
-                      </td>
-                      <td className="p-4">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedTicket(ticket);
-                            setIsModalOpen(true);
-                          }}
-                        >
-                          Update
-                        </Button>
-                      </td>
+                      <th className="p-4 text-left text-gray-400">
+                        Ticket ID
+                      </th>
+                      <th className="p-4 text-left text-gray-400">User ID</th>
+                      <th className="p-4 text-left text-gray-400">
+                        Issue Type
+                      </th>
+                      <th className="p-4 text-left text-gray-400">
+                        Ticket
+                      </th>
+                      <th className="p-4 text-left text-gray-400">
+                        Created At
+                      </th>
+                      <th className="p-4 text-left text-gray-400">
+                        Status
+                      </th>
+                      <th className="p-4 text-left text-gray-400">
+                        Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+
+                  <tbody>
+                    {supportTickets.map((ticket, index) => (
+                      <tr
+                        key={ticket.ticket_id}
+                        style={{
+                          backgroundColor:
+                            index % 2 === 0
+                              ? "rgba(55, 65, 81, 0.2)"
+                              : "transparent",
+                        }}
+                      >
+                        <td className="p-4 text-gray-300">
+                          #{ticket.ticket_id}
+                        </td>
+                        <td className="p-4 text-gray-300">
+                          {ticket.user_id}
+                        </td>
+                        <td className="p-4 text-gray-300">
+                          {ticket.issue_type}
+                        </td>
+                        <td className="p-4 text-gray-300 max-w-xl">
+                          {(() => {
+                            const { subject, description } = splitTicketMessage(ticket.message);
+
+                            return (
+                              <div className="space-y-1">
+                                <div className="font-semibold text-white">
+                                  {subject}
+                                </div>
+                                {description && (
+                                  <div className="text-gray-400 whitespace-pre-wrap">
+                                    {description}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </td>
+
+                        <td className="p-4 text-gray-400">
+                          <div className="text-sm text-gray-300">
+                            {new Date(ticket.created_at).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(ticket.created_at).toLocaleTimeString()}
+                          </div>
+                        </td>
+
+                        <td className="p-4">
+                          <Badge
+                            className="px-3 py-1 text-xs"
+                            style={{
+                              backgroundColor:
+                                ticket.status === "open"
+                                  ? "#F59E0B"
+                                  : ticket.status === "in_progress"
+                                    ? "#3B82F6"
+                                    : "#10B981",
+                              color: "white",
+                            }}
+                          >
+                            {ticket.status.replace("_", " ")}
+                          </Badge>
+                        </td>
+                        <td className="p-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedTicket(ticket);
+                              setIsModalOpen(true);
+                            }}
+                          >
+                            Update
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -253,7 +263,16 @@ export default function SupportTicketModeration({
 
       {/* ================= Status Update Modal ================= */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-gray-800 text-white border border-gray-700 rounded-xl">
+        <DialogContent
+          style={{
+            backgroundColor: "#0f172a",
+            border: "1px solid rgba(255,255,255,0.18)",
+            boxShadow: `0 25px 50px -12px rgba(0,0,0,0.75),0 0 0 1px rgba(255,255,255,0.08)`,
+            borderRadius: "12px",
+          }}
+          className="bg-slate-900 text-white border border-gray-700 rounded-xl z-50"
+        >
+
           <DialogHeader>
             <DialogTitle>Update Ticket Status</DialogTitle>
           </DialogHeader>

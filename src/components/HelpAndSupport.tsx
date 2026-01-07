@@ -183,17 +183,45 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
 
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'resolved':
-        return <Badge className="text-white" style={{ backgroundColor: '#10B981' }}>✅ Resolved</Badge>;
-      case 'pending':
-        return <Badge className="text-white" style={{ backgroundColor: '#F59E0B' }}>⏳ Pending</Badge>;
-      case 'in-progress':
-        return <Badge className="text-white" style={{ backgroundColor: '#3B82F6' }}>🔄 In Progress</Badge>;
+    const normalized = status.replace("_", "-");
+
+    switch (normalized) {
+      case "closed":
+      case "resolved":
+        return (
+          <Badge
+            className="text-white px-3 py-1 text-sm"
+            style={{ backgroundColor: "#10B981" }}
+          >
+            Resolved
+          </Badge>
+        );
+
+      case "in-progress":
+      case "in_progress":
+        return (
+          <Badge
+            className="text-white px-3 py-1 text-sm"
+            style={{ backgroundColor: "#3B82F6" }}
+          >
+            In Progress
+          </Badge>
+        );
+
+      case "open":
+      case "pending":
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return (
+          <Badge
+            className="text-white px-3 py-1 text-sm"
+            style={{ backgroundColor: "#F59E0B" }}
+          >
+            Pending
+          </Badge>
+        );
     }
   };
+
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
