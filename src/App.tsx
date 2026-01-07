@@ -19,12 +19,26 @@ import PastSessions from './components/PastSessions';
 import PerformanceReport from './components/PerformanceReport';
 import HelpAndSupport from './components/HelpAndSupport';
 import { Toaster } from './components/ui/sonner';
+import { Routes, Route } from "react-router-dom";
+import AdminProfile from "./components/AdminProfile";
 
-type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'flagged-content' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
+
+type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'admin-profile' | 'flagged-content' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
+
+type Admin = {
+  user_id: number;
+  name: string;
+  email: string;
+  profile_image: string | null;
+};
+
+
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('login');
   const [currentUser, setCurrentUser] = useState<string>('');
+  const [admin, setAdmin] = useState<{ name: string }>({ name: "Admin" });
+
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [interviewConfig, setInterviewConfig] = useState<InterviewConfig | null>(null);
   const [sessionData, setSessionData] = useState<{
@@ -33,6 +47,8 @@ export default function App() {
     questionsAnswered: number;
     totalQuestions: number;
   } | null>(null);
+
+ 
 
   // Check for remembered user on app initialization
   useEffect(() => {
@@ -60,10 +76,8 @@ export default function App() {
     }
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('currentView', currentView);
-  }, [currentView]);
 
+  
   const switchToSignUp = () => {
     setCurrentView('signup');
   };
@@ -75,6 +89,7 @@ export default function App() {
   const handleLoginSuccess = (username: string) => {
     setCurrentUser(username);
     setIsAdmin(false);
+    setAdmin(username); 
     setCurrentView('dashboard');
     localStorage.setItem('rememberUser', JSON.stringify({
       rememberMe: true,
@@ -82,6 +97,8 @@ export default function App() {
       isAdmin: false
     }));
   };
+
+  
 
   const handleAdminLoginSuccess = (username: string) => {
     setCurrentUser(username);
@@ -118,6 +135,8 @@ export default function App() {
   const handleBackToDashboard = () => {
     setCurrentView(isAdmin ? 'admin-dashboard' : 'dashboard');
   };
+  
+  
 
   const handleStartInterviewSetup = () => {
     setCurrentView('interview-setup');
@@ -153,6 +172,11 @@ export default function App() {
 
   const handleAnalytics = () => {
     setCurrentView('analytics');
+
+  };
+  
+  const handleAdminProfile = () => {
+    setCurrentView('admin-profile');
   };
 
   const handleStartInterview = (config: InterviewConfig) => {
@@ -220,9 +244,10 @@ export default function App() {
         );
       case 'admin-dashboard':
         return (
-          <AdminDashboard
-            username={currentUser}
+          <AdminDashboard 
+            admin={admin}
             onLogout={handleLogout}
+            onEditProfile={() => setCurrentView("admin-profile")}
             onFlaggedContent={handleFlaggedContent}
             onManageQuestions={handleManageQuestions}
             onManageUsers={handleManageUsers}
@@ -264,6 +289,13 @@ export default function App() {
             onBack={handleBackToDashboard}
           />
         );
+      case 'admin-profile':
+        return (
+          <AdminProfile
+             onBack={handleBackToAdminDashboard}
+             onProfileUpdated={(newName) => setAdminName((prev) => ({ ...prev, name: newName }))}
+          />
+        );  
       case 'interview-setup':
         return (
           <InterviewSetup

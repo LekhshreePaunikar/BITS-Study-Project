@@ -79,6 +79,7 @@ app.use('/api/questions', require('./routes/questions'));
 // ADMIN ROUTES
 app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets')); // specific first
 app.use('/api/admin', require('./routes/admin')); // general admin routes
+app.use("/api/admin", require("./routes/adminProfile"));
 
 // PROTECTED USER ROUTES
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
