@@ -5,7 +5,7 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+// import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import api from "../utils/api";
 
@@ -16,18 +16,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  // DialogTrigger,
 } from "./ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "./ui/select";
 import { Progress } from "./ui/progress";
 import {
-  Flag,
   MessageSquare,
   Mic,
   Send,
@@ -140,9 +139,9 @@ export default function InterviewQuestion({
   >(null);
   const [textAnswer, setTextAnswer] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [flagDialogOpen, setFlagDialogOpen] = useState(false);
-  const [flagReason, setFlagReason] = useState("");
-  const [flagComment, setFlagComment] = useState("");
+  // const [flagDialogOpen, setFlagDialogOpen] = useState(false);
+  // const [flagReason, setFlagReason] = useState("");
+  // const [flagComment, setFlagComment] = useState("");
   const [endDialogOpen, setEndDialogOpen] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState("");
 
@@ -210,7 +209,7 @@ export default function InterviewQuestion({
       alert("Please provide an answer before submitting.");
       return;
     }
-    
+
     const currentQ = questions[currentQuestionIndex];
 
     // const payload = {
@@ -222,47 +221,48 @@ export default function InterviewQuestion({
     try {
 
       const answerRes = await api.post(
-         `/interview/${config.sessionId}/answer`,
-         {
-            questionId: currentQ.id,
-            userAnswer: textAnswer
-          }
-        );
+        `/interview/${config.sessionId}/answer`,
+        {
+          questionId: currentQ.id,
+          userAnswer: textAnswer
+        }
+      );
 
-      console.log("Answer Inserted:", answerRes.data);  
+      console.log("Answer Inserted:", answerRes.data);
       const answerId = answerRes.data.answer_id;
 
 
       // Save SESSION HISTORY (IDs only)
       await api.post(
-       `/interview/${config.sessionId}/history`,
-       {
+        `/interview/${config.sessionId}/history`,
+        {
           questionId: currentQ.id,
           answerId: answerId
         }
       );
 
       console.log("Session History Inserted:", {
-          sessionId: config.sessionId,
-          questionId: currentQ.id,
-          answerId });
-      
-      
-      } catch (err) {
-        console.error("Failed to save answer:", err);
-        alert("Failed to save answer");
-        return; // do NOT move to next question if save fails
-      }
-  
-  //   // Mock API call
-  //  const answerObject = {
-  //     questionId: questions[currentQuestionIndex].id,
-  //     answer: textAnswer,
-  //     mode: answerMode,
-  //     difficulty,
-  //     timeSpent: 150 - timeRemaining,
-  //   };
-  //   console.log("Submitting answer:", answerObject);
+        sessionId: config.sessionId,
+        questionId: currentQ.id,
+        answerId
+      });
+
+
+    } catch (err) {
+      console.error("Failed to save answer:", err);
+      alert("Failed to save answer");
+      return; // do NOT move to next question if save fails
+    }
+
+    //   // Mock API call
+    //  const answerObject = {
+    //     questionId: questions[currentQuestionIndex].id,
+    //     answer: textAnswer,
+    //     mode: answerMode,
+    //     difficulty,
+    //     timeSpent: 150 - timeRemaining,
+    //   };
+    //   console.log("Submitting answer:", answerObject);
     // setAnswers(prev => [...prev, structuredClone(answerObject)]);
 
     // Move to next question or end interview
@@ -303,46 +303,46 @@ export default function InterviewQuestion({
     }
   };
 
-  const handleFlag = () => {
-    // Mock API call
-    console.log("Flagging question:", {
-      questionId: questions[currentQuestionIndex].id,
-      reason: flagReason,
-      comment: flagComment,
-    });
+  // const handleFlag = () => {
+  //   // Mock API call
+  //   console.log("Flagging question:", {
+  //     questionId: questions[currentQuestionIndex].id,
+  //     reason: flagReason,
+  //     comment: flagComment,
+  //   });
 
-    setFlagDialogOpen(false);
-    setFlagReason("");
-    setFlagComment("");
-  };
+  //   setFlagDialogOpen(false);
+  //   setFlagReason("");
+  //   setFlagComment("");
+  // };
 
   const handleEndInterview = () => {
     setEndDialogOpen(true);
   };
 
-  
+
   const confirmEndInterview = async () => {
     try {
       console.log("Ending interview session:", config.sessionId);
       console.log("FINAL answers being sent:", answers);
-  
+
       await api.post("/interview/end", {
         session_id: config.sessionId,
       });
-  
+
       console.log("Interview session ended successfully");
-  
+
     } catch (error) {
       console.error("Failed to end interview:", error);
     } finally {
       // cleanup timers
       if (timerRef.current) clearInterval(timerRef.current);
       if (autoSaveRef.current) clearInterval(autoSaveRef.current);
-  
+
       onEndInterview();
     }
   };
-  
+
   const currentQuestion = questions[currentQuestionIndex];
   const progressPercentage =
     ((currentQuestionIndex + 1) / questions.length) * 100;
@@ -350,16 +350,15 @@ export default function InterviewQuestion({
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header 
+      <header
         className="border-b"
-        style={{ 
+        style={{
           backgroundColor: '#1F2937',
           borderColor: '#374151'
         }}
       >
         <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex-1" />
+          <div className="flex items-center justify-center">
 
             <div className="text-center">
               <h1 className="text-white">
@@ -367,133 +366,11 @@ export default function InterviewQuestion({
               </h1>
             </div>
 
-            <div className="flex-1 flex justify-end">
-              <Dialog
-                open={flagDialogOpen}
-                onOpenChange={setFlagDialogOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="transition-all duration-200"
-                    style={{ 
-                      color: '#EF4444',
-                      backgroundColor: 'transparent'
-                    }}
-                  >
-                    <Flag className="h-4 w-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent 
-                  style={{ 
-                    backgroundColor: '#1F2937',
-                    borderColor: '#374151'
-                  }}
-                >
-                  <DialogHeader>
-                    <DialogTitle className="text-white">Flag Question</DialogTitle>
-                    <DialogDescription style={{ color: '#9CA3AF' }}>
-                      Help us improve by reporting issues with
-                      this question.
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4">
-                    <div>
-                      <Label 
-                        htmlFor="flag-reason"
-                        style={{ color: '#9CA3AF' }}
-                      >
-                        Reason for flagging *
-                      </Label>
-                      <Select
-                        value={flagReason}
-                        onValueChange={setFlagReason}
-                      >
-                        <SelectTrigger 
-                          style={{
-                            backgroundColor: '#374151',
-                            borderColor: '#4B5563',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <SelectValue placeholder="Select a reason" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="unclear">
-                            Question is unclear
-                          </SelectItem>
-                          <SelectItem value="inappropriate">
-                            Inappropriate content
-                          </SelectItem>
-                          <SelectItem value="technical">
-                            Technical issues
-                          </SelectItem>
-                          <SelectItem value="difficulty">
-                            Wrong difficulty level
-                          </SelectItem>
-                          <SelectItem value="other">
-                            Other
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div>
-                      <Label 
-                        htmlFor="flag-comment"
-                        style={{ color: '#9CA3AF' }}
-                      >
-                        Additional comments (optional)
-                      </Label>
-                      <Textarea
-                        id="flag-comment"
-                        placeholder="Provide more details..."
-                        value={flagComment}
-                        onChange={(e) =>
-                          setFlagComment(e.target.value)
-                        }
-                        rows={3}
-                        className="text-white"
-                        style={{
-                          backgroundColor: '#374151',
-                          borderColor: '#4B5563',
-                          color: '#FFFFFF'
-                        }}
-                      />
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <Button
-                      variant="outline"
-                      onClick={() => setFlagDialogOpen(false)}
-                      style={{
-                        borderColor: '#6B7280',
-                        color: '#9CA3AF',
-                        backgroundColor: 'transparent'
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleFlag}
-                      disabled={!flagReason}
-                      className="text-white"
-                      style={{ backgroundColor: '#3B82F6' }}
-                    >
-                      Submit Flag
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
           </div>
 
           {/* Progress Indicator */}
           <div className="text-center mt-4">
-            <p 
+            <p
               className="mb-2"
               style={{ color: '#9CA3AF' }}
             >
@@ -513,9 +390,9 @@ export default function InterviewQuestion({
       <main className="container mx-auto px-6 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Question Display */}
-          <Card 
+          <Card
             className="border transition-all duration-200 hover:shadow-lg"
-            style={{ 
+            style={{
               backgroundColor: '#1F2937',
               borderColor: '#374151',
               boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
@@ -523,7 +400,7 @@ export default function InterviewQuestion({
           >
             <CardContent className="p-8">
               <div className="min-h-[120px] flex items-center justify-center">
-                <p className="text-center text-lg leading-relaxed text-white">
+                <p className="text-center text-xl leading-relaxed text-white">
                   {currentQuestion.text}
                 </p>
               </div>
@@ -536,17 +413,16 @@ export default function InterviewQuestion({
             <div className="flex items-center space-x-2">
               <Label style={{ color: '#9CA3AF' }}>Difficulty:</Label>
               <Badge
-                className={`capitalize text-white px-2 py-1 rounded ${
-                  difficulty === "easy"
-                    ? "bg-green-600"
-                    : difficulty === "medium"
-                      ? "bg-yellow-500"
-                      : "bg-red-600"
-                }`}
+                className={`capitalize text-white px-2 py-1 rounded ${difficulty === "easy"
+                  ? "bg-green-600"
+                  : difficulty === "medium"
+                    ? "bg-yellow-500"
+                    : "bg-red-600"
+                  }`}
                 style={{
-                  backgroundColor: 
+                  backgroundColor:
                     difficulty === "easy" ? '#10B981' :
-                    difficulty === "medium" ? '#F59E0B' : '#EF4444'
+                      difficulty === "medium" ? '#F59E0B' : '#EF4444'
                 }}
               >
                 {difficulty}
@@ -555,16 +431,15 @@ export default function InterviewQuestion({
 
             {/* Timer */}
             <div className="flex items-center space-x-2">
-              <Clock 
-                className="h-4 w-4" 
+              <Clock
+                className="h-4 w-4"
                 style={{ color: '#9CA3AF' }}
               />
               <Badge
-                className={`text-sm ${
-                  timeRemaining < 60
-                    ? "text-white"
-                    : "text-white"
-                }`}
+                className={`text-sm ${timeRemaining < 60
+                  ? "text-white"
+                  : "text-white"
+                  }`}
                 style={{
                   backgroundColor: timeRemaining < 60 ? '#EF4444' : '#6B7280'
                 }}
@@ -572,8 +447,8 @@ export default function InterviewQuestion({
                 ~{formatTime(timeRemaining)}
               </Badge>
               {isPaused && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className="text-sm"
                   style={{
                     borderColor: '#6B7280',
@@ -596,7 +471,7 @@ export default function InterviewQuestion({
               <div className="flex justify-center space-x-8">
                 <Card
                   className="cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 w-48 h-32 border"
-                  style={{ 
+                  style={{
                     backgroundColor: '#1F2937',
                     borderColor: '#374151'
                   }}
@@ -610,15 +485,19 @@ export default function InterviewQuestion({
 
                 <Card
                   className="cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 w-48 h-32 border"
-                  style={{ 
+                  style={{
                     backgroundColor: '#1F2937',
                     borderColor: '#374151'
                   }}
-                  onClick={() => setAnswerMode("voice")}
+                  // NOTE: Voice mode is disabled for now
+                  // onClick={() => setAnswerMode("voice")}
+                  onClick={undefined}
                 >
                   <CardContent className="flex flex-col items-center justify-center h-full">
                     <Mic className="h-8 w-8 mb-2" style={{ color: '#10B981' }} />
-                    <p className="text-white">Voice Response</p>
+                    <p className="text-white text-center">
+                      Voice Response <span className="block text-sm" style={{ color: '#10B981' }}>(Coming Soon)</span>
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -627,15 +506,15 @@ export default function InterviewQuestion({
 
           {/* Answer Input Area */}
           {answerMode === "text" && (
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
             >
               <CardContent className="p-6">
-                <Label 
+                <Label
                   htmlFor="answer-text"
                   style={{ color: '#9CA3AF' }}
                 >
@@ -657,7 +536,7 @@ export default function InterviewQuestion({
                   }}
                 />
                 {autoSaveStatus && (
-                  <div 
+                  <div
                     className="flex items-center space-x-1 mt-2 text-sm"
                     style={{ color: '#10B981' }}
                   >
@@ -670,9 +549,9 @@ export default function InterviewQuestion({
           )}
 
           {answerMode === "voice" && (
-            <Card 
+            <Card
               className="border transition-all duration-200 hover:shadow-lg"
-              style={{ 
+              style={{
                 backgroundColor: '#1F2937',
                 borderColor: '#374151'
               }}
@@ -683,10 +562,9 @@ export default function InterviewQuestion({
                     <Button
                       size="lg"
                       onClick={handleVoiceToggle}
-                      className={`w-32 h-32 rounded-full transition-all duration-200 hover:shadow-lg text-white ${
-                        isRecording ? 'animate-pulse' : ''
-                      }`}
-                      style={{ 
+                      className={`w-32 h-32 rounded-full transition-all duration-200 hover:shadow-lg text-white ${isRecording ? 'animate-pulse' : ''
+                        }`}
+                      style={{
                         backgroundColor: isRecording ? '#EF4444' : '#3B82F6'
                       }}
                     >
@@ -766,8 +644,8 @@ export default function InterviewQuestion({
 
           {/* Auto-save Message */}
           <div className="text-center">
-            <p 
-              className="text-xs"
+            <p
+              className="text-sm"
               style={{ color: '#9CA3AF' }}
             >
               Auto-save every 30s
@@ -781,8 +659,8 @@ export default function InterviewQuestion({
         open={endDialogOpen}
         onOpenChange={setEndDialogOpen}
       >
-        <DialogContent 
-          style={{ 
+        <DialogContent
+          style={{
             backgroundColor: '#1F2937',
             borderColor: '#374151'
           }}
