@@ -32,7 +32,7 @@ import api from "../utils/api"; // or your axios instance
 interface AdminDashboardProps {
   onLogout: () => void;
   onEditProfile: () => void;
-  onFlaggedContent?: () => void;
+  onSupportTicket?: () => void;
   onManageQuestions?: () => void;
   onManageUsers?: () => void;
   onAnalytics?: () => void;
@@ -63,7 +63,7 @@ type Admin = {
   profile_image: string | null;
 };
 
-export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedContent, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
+export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicket, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
   // Mock metrics data
   const metricsData: MetricCard[] = [
     {
@@ -75,7 +75,7 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
       trend: '+12%'
     },
     {
-      title: 'Flags Reported',
+      title: 'Support Tickets Generated',
       value: '34',
       subtitle: '8 pending review',
       icon: <Flag className="h-6 w-6" />,
@@ -107,9 +107,9 @@ export default function AdminDashboard({ onLogout, onEditProfile, onFlaggedConte
     }
   };
 
-  const handleFlaggedContent = () => {
-    if (onFlaggedContent) {
-      onFlaggedContent();
+  const handleSupportTicket = () => {
+    if (onSupportTicket) {
+      onSupportTicket();
     }
   };
 
@@ -187,12 +187,12 @@ if (loading || !admin) {
       onClick: handleManageQuestions
     },
     {
-      title: 'Flagged Content',
-      description: 'Review and moderate flagged content',
+      title: 'Support Ticket Monitoring',
+      description: 'Review and resolve user support tickets',
       icon: <AlertTriangle className="h-8 w-8 mb-3" />,
       color: '#1F2937',
       hoverColor: '#EF4444',
-      onClick: handleFlaggedContent
+      onClick: handleSupportTicket
     },
     {
       title: 'Manage Users',

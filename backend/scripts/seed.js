@@ -47,7 +47,6 @@ async function seed() {
     // Clean slate
     await db.query(`
       TRUNCATE TABLE
-        "FlaggedContent",
         "SupportTicket",
         "PerformanceReport",
         "Feedback",
@@ -345,8 +344,7 @@ RETURNING user_id, name;
         keywords,
         start_time,
         end_time,
-        difficulty_level_start,
-        difficulty_level_end,
+        selected_difficulty,
         total_score
       )
     VALUES
@@ -359,7 +357,6 @@ RETURNING user_id, name;
         ARRAY['APIs', 'React'],
         NOW(),
         NOW(),
-        'easy',
         'easy',
         NULL
       )

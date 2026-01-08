@@ -23,7 +23,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminProfile from "./components/AdminProfile";
 
 
-type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'admin-profile' | 'flagged-content' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
+type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'admin-profile' | 'support-ticket' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
 
 type Admin = {
   user_id: number;
@@ -154,8 +154,8 @@ export default function App() {
     setCurrentView('help-support');
   };
 
-  const handleFlaggedContent = () => {
-    setCurrentView('flagged-content');
+  const handleSupportTicket = () => {
+    setCurrentView('support-ticket');
   };
 
   const handleBackToAdminDashboard = () => {
@@ -248,13 +248,13 @@ export default function App() {
             admin={admin}
             onLogout={handleLogout}
             onEditProfile={() => setCurrentView("admin-profile")}
-            onFlaggedContent={handleFlaggedContent}
+            onSupportTicket={handleSupportTicket}
             onManageQuestions={handleManageQuestions}
             onManageUsers={handleManageUsers}
             onAnalytics={handleAnalytics}
           />
         );
-      case 'flagged-content':
+      case 'support-ticket':
         return (
           <SupportTicketModeration
             username={currentUser}
@@ -376,7 +376,7 @@ export default function App() {
   return (
     <div className="dark">
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
-        {(currentView === 'dashboard' || currentView === 'admin-dashboard' || currentView === 'flagged-content' || currentView === 'manage-questions' || currentView === 'manage-users' || currentView === 'analytics' || currentView === 'profile' || currentView === 'logout' || currentView === 'interview-setup' || currentView === 'interview' || currentView === 'session-completion' || currentView === 'detailed-feedback' || currentView === 'past-sessions' || currentView === 'performance-report' || currentView === 'help-support') ? (
+        {(currentView === 'dashboard' || currentView === 'admin-dashboard' || currentView === 'support-ticket' || currentView === 'manage-questions' || currentView === 'manage-users' || currentView === 'analytics' || currentView === 'profile' || currentView === 'logout' || currentView === 'interview-setup' || currentView === 'interview' || currentView === 'session-completion' || currentView === 'detailed-feedback' || currentView === 'past-sessions' || currentView === 'performance-report' || currentView === 'help-support') ? (
           renderCurrentView()
         ) : (
           <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#111827' }}>

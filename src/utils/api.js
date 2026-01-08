@@ -312,10 +312,10 @@ export const adminAPI = {
   },
 
   // Get flagged content
-  getFlaggedContent: async () => {
-    const response = await api.get('/admin/flagged-content');
-    return response.data;
-  },
+  // getFlaggedContent: async () => {
+  //   const response = await api.get('/admin/support-ticket');
+  //   return response.data;
+  // },
 
   getSupportTickets: async () => {
     const response = await api.get("/admin/support-tickets");

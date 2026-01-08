@@ -31,9 +31,9 @@ DO $$ BEGIN
     CREATE TYPE "TicketStatus" AS ENUM ('open', 'closed', 'in_progress');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
-DO $$ BEGIN
-    CREATE TYPE "FlagStatus" AS ENUM ('pending', 'resolved');
-EXCEPTION WHEN duplicate_object THEN null; END $$;
+-- DO $$ BEGIN
+--     CREATE TYPE "FlagStatus" AS ENUM ('pending', 'resolved');
+-- EXCEPTION WHEN duplicate_object THEN null; END $$;
 
 DO $$ BEGIN
     CREATE TYPE "DifficultyLevelType" AS ENUM ('easy', 'medium', 'hard');
@@ -178,8 +178,7 @@ CREATE TABLE IF NOT EXISTS "Session" (
     keywords TEXT[],
     start_time TIMESTAMP DEFAULT NOW() NOT NULL,
     end_time TIMESTAMP NULL,
-    difficulty_level_start "DifficultyLevelType" DEFAULT 'easy',
-    difficulty_level_end "DifficultyLevelType" DEFAULT 'easy',
+    selected_difficulty VARCHAR(50),
     total_score FLOAT
 );
 
@@ -243,13 +242,13 @@ CREATE TABLE IF NOT EXISTS "SupportTicket" (
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS "FlaggedContent" (
-    flag_id SERIAL PRIMARY KEY,
-    answer_id INT UNIQUE REFERENCES "Answer"(answer_id) ON DELETE CASCADE,
-    model_id INT REFERENCES "EvaluationModel"(model_id),
-    admin_id INT REFERENCES "User"(user_id) ON DELETE SET NULL,
-    reason TEXT,
-    status "FlagStatus" DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
-    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
-);
+-- CREATE TABLE IF NOT EXISTS "FlaggedContent" (
+--     flag_id SERIAL PRIMARY KEY,
+--     answer_id INT UNIQUE REFERENCES "Answer"(answer_id) ON DELETE CASCADE,
+--     model_id INT REFERENCES "EvaluationModel"(model_id),
+--     admin_id INT REFERENCES "User"(user_id) ON DELETE SET NULL,
+--     reason TEXT,
+--     status "FlagStatus" DEFAULT 'pending',
+--     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+--     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+-- );
