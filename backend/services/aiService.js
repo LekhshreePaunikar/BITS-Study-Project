@@ -17,7 +17,7 @@ if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_ap
 
 // Default questions template for fallback
 const defaultQuestions = {
-  beginner: {
+  easy: {
     'General': [
       "Tell me about yourself and your background.",
       "Why are you interested in this position?",
@@ -33,7 +33,7 @@ const defaultQuestions = {
       "What do you know about our company?"
     ]
   },
-  intermediate: {
+  medium: {
     'Problem Solving': [
       "Describe a challenging project you worked on and how you overcame obstacles.",
       "Tell me about a time when you had to learn something new quickly.",
@@ -49,7 +49,7 @@ const defaultQuestions = {
       "How do you handle conflicts within a team?"
     ]
   },
-  advanced: {
+  hard: {
     'Strategic Thinking': [
       "How would you approach developing a long-term strategy for our department?",
       "Describe a time when you had to make a strategic decision with limited information.",
@@ -137,7 +137,7 @@ Make sure the JSON is valid and complete.`;
 // Generate fallback questions when AI is not available
 const generateFallbackQuestions = (config) => {
   const { experienceLevel, questionCount } = config;
-  const levelQuestions = defaultQuestions[experienceLevel] || defaultQuestions.beginner;
+  const levelQuestions = defaultQuestions[experienceLevel] || defaultQuestions.easy;
   
   const allQuestions = [];
   Object.entries(levelQuestions).forEach(([category, questions]) => {
@@ -145,7 +145,7 @@ const generateFallbackQuestions = (config) => {
       allQuestions.push({
         text: questionText,
         category,
-        expectedDuration: experienceLevel === 'beginner' ? 2 : experienceLevel === 'intermediate' ? 3 : 4,
+        expectedDuration: experienceLevel === 'easy' ? 2 : experienceLevel === 'medium' ? 3 : 4,
         difficulty: experienceLevel,
         tips: "Take your time to provide specific examples and explain your thought process."
       });

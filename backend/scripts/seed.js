@@ -262,7 +262,7 @@ RETURNING user_id, name;
 
     // Insert BaseQuestions
     const baseQuestions = await db.query(`
-      INSERT INTO "BaseQuestion" (is_predefined, difficulty_level)
+      INSERT INTO "BaseQuestion" (is_predefined, difficulty)
       VALUES
         (true, 'easy'),
         (true, 'easy'),
@@ -281,13 +281,13 @@ RETURNING user_id, name;
       INSERT INTO "StaticQuestion"
         (base_question_id, question_content, role_id, skill_id, lang_id)
       VALUES
-        ($1, 'Tell me about yourself and your background.', NULL, NULL, NULL),
-        ($2, 'What interests you most about this role?', NULL, NULL, NULL),
-        ($3, 'Describe a challenging project you''ve worked on recently.', NULL, NULL, NULL),
-        ($4, 'How do you handle working under pressure?', NULL, NULL, NULL),
-        ($5, 'What are your biggest strengths and weaknesses?', NULL, NULL, NULL),
-        ($6, 'Where do you see yourself in 5 years?', NULL, NULL, NULL),
-        ($7, 'Why should we hire you for this position?', NULL, NULL, NULL)
+        ($1, 'Dummy Question-1 for testing', NULL, NULL, NULL),
+        ($2, 'Dummy Question-2 for testing', NULL, NULL, NULL),
+        ($3, 'Dummy Question-3 for testing', NULL, NULL, NULL),
+        ($4, 'Dummy Question-4 for testing', NULL, NULL, NULL),
+        ($5, 'Dummy Question-5 for testing', NULL, NULL, NULL),
+        ($6, 'Dummy Question-6 for testing', NULL, NULL, NULL),
+        ($7, 'Dummy Question-7 for testing', NULL, NULL, NULL)
     `, baseIds);
 
     log("Inserted predefined questions (Base + Static)");

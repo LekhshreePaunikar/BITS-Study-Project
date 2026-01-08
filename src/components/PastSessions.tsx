@@ -54,7 +54,7 @@ export default function PastSessions({
       "Data Analyst",
       "Product Manager",
     ];
-    const levels = ["Beginner", "Intermediate", "Advanced"];
+    const levels = ["easy", "medium", "hard"];
     const modes: ("Text" | "Voice")[] = ["Text", "Voice"];
 
     const sessions: SessionRecord[] = [];

@@ -103,9 +103,9 @@ export default function InterviewQuestion({
 
     // Adjust number based on level
     const questionCount =
-      config.level === "beginner"
+      config.level === "easy"
         ? 5
-        : config.level === "intermediate"
+        : config.level === "medium"
           ? 7
           : 10;
     return baseQuestions.slice(0, questionCount);
@@ -152,9 +152,9 @@ export default function InterviewQuestion({
   // Initialize timer based on config level
   useEffect(() => {
     const duration =
-      config.level === "beginner"
+      config.level === "easy"
         ? 15 * 60
-        : config.level === "intermediate"
+        : config.level === "medium"
           ? 30 * 60
           : 45 * 60;
     setTimeRemaining(duration);

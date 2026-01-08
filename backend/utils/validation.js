@@ -58,7 +58,7 @@ const validationUtils = {
 
   // Experience level validation
   isValidExperienceLevel: (level) => {
-    return typeof level === 'string' && ['beginner', 'intermediate', 'advanced'].includes(level);
+    return typeof level === 'string' && ['easy', 'medium', 'hard'].includes(level);
   },
 
   // Duration validation (in minutes)
@@ -207,7 +207,7 @@ const validationUtils = {
     }
 
     if (!validationUtils.isValidExperienceLevel(data.experienceLevel)) {
-      errors.push('Experience level must be beginner, intermediate, or advanced');
+      errors.push('Experience level must be easy, medium, or hard');
     }
 
     if (data.duration && !validationUtils.isValidDuration(data.duration)) {
@@ -251,7 +251,7 @@ const validationUtils = {
     }
 
     if (!validationUtils.isValidExperienceLevel(data.difficultyLevel)) {
-      errors.push('Difficulty level must be beginner, intermediate, or advanced');
+      errors.push('Difficulty level must be easy, medium, or hard');
     }
 
     if (data.expectedDuration && !validationUtils.isValidDuration(data.expectedDuration)) {

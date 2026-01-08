@@ -19,10 +19,10 @@
 //       });
 //     }
 
-//     if (!['beginner', 'intermediate', 'advanced'].includes(experienceLevel)) {
+//     if (!['easy', 'medium', 'hard'].includes(experienceLevel)) {
 //       return res.status(400).json({
 //         message: 'Invalid experience level',
-//         error: 'Experience level must be beginner, intermediate, or advanced'
+//         error: 'Experience level must be easy, medium, or hard'
 //       });
 //     }
 
@@ -95,9 +95,9 @@
 
 //     // Get questions based on configuration
 //     const questionsResult = await query(`
-//       SELECT id, question_text, category, difficulty_level, expected_duration
+//       SELECT id, question_text, category, difficulty, expected_duration
 //       FROM questions
-//       WHERE difficulty_level = $1 AND is_active = true
+//       WHERE difficulty = $1 AND is_active = true
 //       ORDER BY RANDOM()
 //       LIMIT $2
 //     `, [config.experience_level, config.question_count]);

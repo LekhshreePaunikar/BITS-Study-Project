@@ -146,7 +146,7 @@ const { query } = require("./backend/config/database");
         const baseRes = await query(
           `
           INSERT INTO "BaseQuestion"
-            (is_predefined, difficulty_level, created_by)
+            (is_predefined, difficulty, created_by)
           VALUES
             (false, $1, 2)
           RETURNING question_id

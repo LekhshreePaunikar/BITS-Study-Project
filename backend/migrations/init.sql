@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS "EvaluationModel" (
 CREATE TABLE IF NOT EXISTS "BaseQuestion" (
     question_id SERIAL PRIMARY KEY,
     is_predefined BOOLEAN DEFAULT TRUE NOT NULL,
-    difficulty_level "DifficultyLevelType" DEFAULT 'easy',
+    difficulty "DifficultyLevelType" DEFAULT 'easy',
     created_by INT REFERENCES "User"(user_id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
     last_updated TIMESTAMP DEFAULT NOW() NOT NULL

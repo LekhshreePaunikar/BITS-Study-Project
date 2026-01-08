@@ -22,7 +22,7 @@ router.get('/', authenticateToken, async (req, res) => {
     }
 
     if (difficulty) {
-      whereClause += ` AND difficulty_level = $${paramCount++}`;
+      whereClause += ` AND difficulty = $${paramCount++}`;
       params.push(difficulty);
     }
 
@@ -31,11 +31,11 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const questionsResult = await query(`
       SELECT 
-        id, question_text, category, difficulty_level, expected_duration, 
+        id, question_text, category, difficulty, expected_duration, 
         sample_answer, evaluation_criteria, created_at
       FROM questions
       ${whereClause}
-      ORDER BY category, difficulty_level, created_at DESC
+      ORDER BY category, difficulty, created_at DESC
       LIMIT $${paramCount++} OFFSET $${paramCount}
     `, params);
 
@@ -52,7 +52,7 @@ router.get('/', authenticateToken, async (req, res) => {
         id: q.id,
         text: q.question_text,
         category: q.category,
-        difficultyLevel: q.difficulty_level,
+        difficultyLevel: q.difficulty,
         expectedDuration: q.expected_duration,
         sampleAnswer: q.sample_answer,
         evaluationCriteria: q.evaluation_criteria,
@@ -82,9 +82,9 @@ router.get('/categories', authenticateToken, async (req, res) => {
       SELECT 
         category, 
         COUNT(*) as question_count,
-        COUNT(CASE WHEN difficulty_level = 'beginner' THEN 1 END) as beginner_count,
-        COUNT(CASE WHEN difficulty_level = 'intermediate' THEN 1 END) as intermediate_count,
-        COUNT(CASE WHEN difficulty_level = 'advanced' THEN 1 END) as advanced_count
+        COUNT(CASE WHEN difficulty = 'easy' THEN 1 END) as easy_count,
+        COUNT(CASE WHEN difficulty = 'medium' THEN 1 END) as medium_count,
+        COUNT(CASE WHEN difficulty = 'hard' THEN 1 END) as hard_count
       FROM questions 
       WHERE is_active = true
       GROUP BY category
@@ -95,9 +95,9 @@ router.get('/categories', authenticateToken, async (req, res) => {
       categories: categoriesResult.rows.map(cat => ({
         name: cat.category,
         totalQuestions: parseInt(cat.question_count),
-        beginnerCount: parseInt(cat.beginner_count),
-        intermediateCount: parseInt(cat.intermediate_count),
-        advancedCount: parseInt(cat.advanced_count)
+        easyCount: parseInt(cat.easy_count),
+        mediumCount: parseInt(cat.medium_count),
+        hardCount: parseInt(cat.hard_count)
       }))
     });
   } catch (error) {
@@ -129,19 +129,19 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       });
     }
 
-    if (!['beginner', 'intermediate', 'advanced'].includes(difficultyLevel)) {
+    if (!['easy', 'medium', 'hard'].includes(difficultyLevel)) {
       return res.status(400).json({
         message: 'Invalid difficulty level',
-        error: 'Difficulty level must be beginner, intermediate, or advanced'
+        error: 'Difficulty level must be easy, medium, or hard'
       });
     }
 
     const questionResult = await query(`
       INSERT INTO questions (
-        question_text, category, difficulty_level, expected_duration, 
+        question_text, category, difficulty, expected_duration, 
         sample_answer, evaluation_criteria, created_by
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, question_text, category, difficulty_level, expected_duration, created_at
+      RETURNING id, question_text, category, difficulty, expected_duration, created_at
     `, [
       questionText, 
       category, 
@@ -160,7 +160,7 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
         id: question.id,
         text: question.question_text,
         category: question.category,
-        difficultyLevel: question.difficulty_level,
+        difficultyLevel: question.difficulty,
         expectedDuration: question.expected_duration,
         createdAt: question.created_at
       }
@@ -210,13 +210,13 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     }
 
     if (difficultyLevel) {
-      if (!['beginner', 'intermediate', 'advanced'].includes(difficultyLevel)) {
+      if (!['easy', 'medium', 'hard'].includes(difficultyLevel)) {
         return res.status(400).json({
           message: 'Invalid difficulty level',
-          error: 'Difficulty level must be beginner, intermediate, or advanced'
+          error: 'Difficulty level must be easy, medium, or hard'
         });
       }
-      updateFields.push(`difficulty_level = $${paramCount++}`);
+      updateFields.push(`difficulty = $${paramCount++}`);
       values.push(difficultyLevel);
     }
 
@@ -250,7 +250,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
       UPDATE questions 
       SET ${updateFields.join(', ')} 
       WHERE id = $${paramCount}
-      RETURNING id, question_text, category, difficulty_level, expected_duration, updated_at
+      RETURNING id, question_text, category, difficulty, expected_duration, updated_at
     `;
 
     const updatedQuestion = await query(updateQuery, values);
@@ -270,7 +270,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
         id: question.id,
         text: question.question_text,
         category: question.category,
-        difficultyLevel: question.difficulty_level,
+        difficultyLevel: question.difficulty,
         expectedDuration: question.expected_duration,
         updatedAt: question.updated_at
       }

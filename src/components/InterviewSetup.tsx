@@ -40,7 +40,7 @@ interface InterviewSetupProps {
 export interface InterviewConfig {
   mode: 'text' | 'voice' | 'both';
   questionSource: 'predefined' | 'resume-based';
-  level: 'beginner' | 'intermediate' | 'advanced';
+  level: 'easy' | 'medium' | 'hard';
   focusArea: string;
   specificTopics: string;
   preparationTime: number;
@@ -50,7 +50,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
   const [config, setConfig] = useState<InterviewConfig>({
     mode: 'text',
     questionSource: 'predefined',
-    level: 'intermediate',
+    level: 'medium',
     focusArea: '',
     specificTopics: '',
     preparationTime: 2
@@ -94,9 +94,9 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
 
   const getDurationText = (level: string) => {
     switch (level) {
-      case 'beginner': return '15 minutes';
-      case 'intermediate': return '30 minutes';
-      case 'advanced': return '45 minutes';
+      case 'easy': return '15 minutes';
+      case 'medium': return '30 minutes';
+      case 'hard': return '45 minutes';
       default: return '';
     }
   };
@@ -357,7 +357,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
               <CardContent>
                 <RadioGroup
                   value={config.level}
-                  onValueChange={(value: 'beginner' | 'intermediate' | 'advanced') =>
+                  onValueChange={(value: 'easy' | 'medium' | 'hard') =>
                     setConfig(prev => ({ ...prev, level: value }))
                   }
                 >
@@ -369,8 +369,8 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                         backgroundColor: '#374151'
                       }}
                     >
-                      <RadioGroupItem value="beginner" id="beginner" />
-                      <Label htmlFor="beginner" className="cursor-pointer flex-1">
+                      <RadioGroupItem value="easy" id="easy" />
+                      <Label htmlFor="easy" className="cursor-pointer flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4" style={{ color: '#10B981' }} />
@@ -379,16 +379,6 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>15 minutes</div>
                             </div>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="text-xs"
-                            style={{
-                              backgroundColor: '#10B981',
-                              color: 'white'
-                            }}
-                          >
-                            Basic
-                          </Badge>
                         </div>
                       </Label>
                     </div>
@@ -400,8 +390,8 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                         backgroundColor: '#374151'
                       }}
                     >
-                      <RadioGroupItem value="intermediate" id="intermediate" />
-                      <Label htmlFor="intermediate" className="cursor-pointer flex-1">
+                      <RadioGroupItem value="medium" id="medium" />
+                      <Label htmlFor="medium" className="cursor-pointer flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4" style={{ color: '#F59E0B' }} />
@@ -410,16 +400,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>30 minutes</div>
                             </div>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="text-xs"
-                            style={{
-                              backgroundColor: '#F59E0B',
-                              color: 'white'
-                            }}
-                          >
-                            Standard
-                          </Badge>
+                          
                         </div>
                       </Label>
                     </div>
@@ -431,26 +412,16 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                         backgroundColor: '#374151'
                       }}
                     >
-                      <RadioGroupItem value="advanced" id="advanced" />
-                      <Label htmlFor="advanced" className="cursor-pointer flex-1">
+                      <RadioGroupItem value="hard" id="hard" />
+                      <Label htmlFor="hard" className="cursor-pointer flex-1">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4" style={{ color: '#EF4444' }} />
                             <div>
-                              <div className="text-white">Advanced</div>
+                              <div className="text-white">Advance</div>
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>45 minutes</div>
                             </div>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="text-xs"
-                            style={{
-                              backgroundColor: '#EF4444',
-                              color: 'white'
-                            }}
-                          >
-                            Expert
-                          </Badge>
                         </div>
                       </Label>
                     </div>

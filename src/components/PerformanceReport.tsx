@@ -98,7 +98,7 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
   const improvement = ((scoreOverTimeData[scoreOverTimeData.length - 1].score - scoreOverTimeData[0].score) / scoreOverTimeData[0].score * 100).toFixed(1);
 
   // Level distribution
-  const levelDistribution = { beginner: 8, intermediate: 10, advanced: 6 };
+  const levelDistribution = { easy: 8, medium: 10, hard: 6 };
 
   // Strengths and weaknesses
   const strengths = [
@@ -274,9 +274,9 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="easy">easy</SelectItem>
+                      <SelectItem value="medium">medium</SelectItem>
+                      <SelectItem value="hard">hard</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -457,7 +457,7 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
                     color: 'white'
                   }}
                 >
-                  Beginner: {levelDistribution.beginner}
+                  easy: {levelDistribution.easy}
                 </Badge>
                 <Badge 
                   variant="secondary" 
@@ -467,7 +467,7 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
                     color: 'white'
                   }}
                 >
-                  Intermediate: {levelDistribution.intermediate}
+                  medium: {levelDistribution.medium}
                 </Badge>
                 <Badge 
                   variant="secondary" 
@@ -477,7 +477,7 @@ export default function PerformanceReport({ username, onBackToDashboard }: Perfo
                     color: 'white'
                   }}
                 >
-                  Advanced: {levelDistribution.advanced}
+                  hard: {levelDistribution.hard}
                 </Badge>
               </div>
             </CardContent>

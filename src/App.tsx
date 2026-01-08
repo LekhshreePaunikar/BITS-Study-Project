@@ -190,8 +190,8 @@ export default function App() {
     const mockSessionData = {
       totalScore: Math.floor(Math.random() * 40) + 60, // Random score between 60-100
       timeSpent: Math.floor(Math.random() * 1800) + 600, // Random time between 10-40 minutes
-      questionsAnswered: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10,
-      totalQuestions: interviewConfig?.level === 'beginner' ? 5 : interviewConfig?.level === 'intermediate' ? 7 : 10
+      questionsAnswered: interviewConfig?.level === 'easy' ? 5 : interviewConfig?.level === 'medium' ? 7 : 10,
+      totalQuestions: interviewConfig?.level === 'easy' ? 5 : interviewConfig?.level === 'medium' ? 7 : 10
     };
 
     setSessionData(mockSessionData);
