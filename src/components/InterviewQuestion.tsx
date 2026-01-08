@@ -198,6 +198,21 @@ export default function InterviewQuestion({
     };
   }, [textAnswer]);
 
+  // Prevent User from reloading the site mid-interview
+  useEffect(() => {
+  const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    event.preventDefault();
+    (event as any).returnValue = "";
+  };
+
+  window.addEventListener("beforeunload", handleBeforeUnload);
+
+  return () => {
+    window.removeEventListener("beforeunload", handleBeforeUnload);
+  };
+}, []);
+
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
