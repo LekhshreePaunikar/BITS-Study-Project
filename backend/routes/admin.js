@@ -394,25 +394,6 @@ router.get('/logs', async (req, res) => {
   }
 });
 
-// Content moderation - Get flagged content (placeholder)
-// router.get('/support-ticket', async (req, res) => {
-//   try {
-//     // This is a placeholder for flagged content
-//     // In a real implementation, you might have a table for flagged user answers
-//     // or inappropriate content that needs moderation
-    
-//     res.json({
-//       flaggedContent: [],
-//       message: 'Content moderation feature ready for implementation'
-//     });
-//   } catch (error) {
-//     console.error('Get flagged content error:', error);
-//     res.status(500).json({
-//       message: 'Failed to get flagged content',
-//       error: 'Internal server error'
-//     });
-//   }
-// });
 
 module.exports = router;
 

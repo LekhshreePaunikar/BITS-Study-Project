@@ -40,7 +40,7 @@ useEffect(() => {
     try {
       const res = await api.get('/user'); // Backend se data mangwayein
       if (res.data.profileImage) {
-        // ✅ Timestamp (?t=...) add karne se browser hamesha nayi image download karega
+        // Timestamp (?t=...) add karne se browser hamesha nayi image download karega
         const imageUrl = `http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`;
         setProfileImage(imageUrl);
         

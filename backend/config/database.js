@@ -45,10 +45,10 @@ const testConnection = async () => {
     const client = await pool.connect();
     const result = await client.query('SELECT NOW()');
     client.release();
-    console.log('✅ Database connected successfully at:', result.rows[0].now);
+    console.log('Database connected successfully at:', result.rows[0].now);
     return true;
   } catch (err) {
-    console.error('❌ Database connection error:', err.message);
+    console.error('Database connection error:', err.message);
     return false;
   }
 };

@@ -98,71 +98,11 @@ router.post('/start', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('❌ Start Session Error:', err);
+    console.error('Start Session Error:', err);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// TBR
-/**
- * POST /api/interview/:sessionId/answer
- * Save answer for Session
- */
-// router.post('/:sessionId/answer', async (req, res) => {
-//   console.log({ sessionId, userId, userAnswer });
-  
-//   try {
-//     const sessionId = parseInt(req.params.sessionId);
-//     const userId = req.user?.id;
-
-//     const { questionText, userAnswer, score } = req.body;
-
-//     if (!userId || isNaN(sessionId)) {
-//       return res.status(400).json({ error: 'Invalid session or user' });
-//     }
-
-//     if (!questionText || !userAnswer) {
-//       return res.status(400).json({ error: 'Missing question or answer' });
-//     }
-
-//     // Verify session belongs to user
-//     const sessionCheck = await query(
-//       'SELECT session_id FROM "Session" WHERE session_id = $1 AND user_id = $2',
-//       [sessionId, userId]
-//     );
-
-//     if (sessionCheck.rows.length === 0) {
-//       return res.status(404).json({ error: 'Session not found' });
-//     }
-
-//     // await query(
-//     //   `
-//     //  INSERT INTO "SessionHistory" (
-//     //      session_id,
-//     //      question_text,
-//     //      user_answer,
-//     //      timestamp
-//     //   )
-//     //    VALUES ($1, $2, $3, NOW())
-//     //  `, [sessionId, questionText, userAnswer]);
-
-//     // 2️⃣ Save answer (no transaction)
-//     await query(
-//       `
-//       INSERT INTO "Answer" (session_id, user_id, mode, answer, created_at, updated_at)
-//       VALUES ($1, $2, 'text', $3, NOW(), NOW())
-//       `,
-//       [sessionId, userId, userAnswer]
-//     );
- 
-     
-
-//     res.status(201).json({ success: true });
-//   } catch (err) {
-//     console.error('Save answer error:', err);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
 
 
 // Answer route
@@ -323,7 +263,7 @@ Do not include explanations, notes, comments, markdown, or any text outside the 
     console.log(JSON.stringify(parsed, null, 2));
 
   } catch (err) {
-    console.error("❌ Start Session Error:", err);
+    console.error("Start Session Error:", err);
   }
 })();
 
@@ -371,7 +311,7 @@ router.post("/end", async (req, res) => {
       message: "Session ended successfully",
     });
   } catch (err) {
-    console.error("❌ End Session Error:", err);
+    console.error(" End Session Error:", err);
     return res.status(500).json({
       success: false,
       error: "Internal server error",

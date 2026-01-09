@@ -135,10 +135,6 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     onEditProfile();
   };
 
-
-
-
-
   const [admin, setAdmin] = useState<Admin | null>(null);
 
   const [loading, setLoading] = useState(true);

@@ -242,13 +242,3 @@ CREATE TABLE IF NOT EXISTS "SupportTicket" (
     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
--- CREATE TABLE IF NOT EXISTS "FlaggedContent" (
---     flag_id SERIAL PRIMARY KEY,
---     answer_id INT UNIQUE REFERENCES "Answer"(answer_id) ON DELETE CASCADE,
---     model_id INT REFERENCES "EvaluationModel"(model_id),
---     admin_id INT REFERENCES "User"(user_id) ON DELETE SET NULL,
---     reason TEXT,
---     status "FlagStatus" DEFAULT 'pending',
---     created_at TIMESTAMP DEFAULT NOW() NOT NULL,
---     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
--- );
