@@ -1,4 +1,4 @@
-// root/backend/routes/questions.ja
+// root/backend/routes/questions.js
 
 const express = require('express');
 const { query } = require('../config/database');
@@ -112,13 +112,13 @@ router.get('/categories', authenticateToken, async (req, res) => {
 // Create new question (admin only)
 router.post('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const { 
-      questionText, 
-      category, 
-      difficultyLevel, 
-      expectedDuration, 
+    const {
+      questionText,
+      category,
+      difficultyLevel,
+      expectedDuration,
       sampleAnswer,
-      evaluationCriteria 
+      evaluationCriteria
     } = req.body;
 
     // Input validation
@@ -143,9 +143,9 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
       ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id, question_text, category, difficulty, expected_duration, created_at
     `, [
-      questionText, 
-      category, 
-      difficultyLevel, 
+      questionText,
+      category,
+      difficultyLevel,
       expectedDuration || 3,
       sampleAnswer,
       evaluationCriteria || [],
@@ -178,13 +178,13 @@ router.post('/', authenticateToken, requireAdmin, async (req, res) => {
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const questionId = parseInt(req.params.id);
-    const { 
-      questionText, 
-      category, 
-      difficultyLevel, 
-      expectedDuration, 
+    const {
+      questionText,
+      category,
+      difficultyLevel,
+      expectedDuration,
       sampleAnswer,
-      evaluationCriteria 
+      evaluationCriteria
     } = req.body;
 
     if (isNaN(questionId)) {
@@ -319,7 +319,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
- 
+
 // NOTE: This will fetch only the latest 6 questions from the database
 // Later I plan to replace it with proper logic
 const INTERVIEW_QUESTION_COUNT = 6;
@@ -359,16 +359,15 @@ router.get("/predefined", authenticateToken, async (req, res) => {
       } else {
         const dynamicRes = await query(
           `
-          SELECT generated_question
+          SELECT generated_question_content
           FROM "DynamicQuestion"
           WHERE base_question_id = $1
-          ORDER BY created_at DESC
           LIMIT 1
           `,
           [base.question_id]
         );
 
-        text = dynamicRes.rows[0]?.generated_question || "";
+        text = dynamicRes.rows[0]?.generated_question_content || "";
       }
 
       questions.push({
@@ -393,5 +392,75 @@ router.get("/predefined", authenticateToken, async (req, res) => {
   }
 });
 
+// --------------------------------------------------
+// Admin: Fetch Question Bank (Static + Dynamic)
+// --------------------------------------------------
+router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
+  const userId = req.user?.id || req.user?.userId;
+
+  if (!userId) {
+    console.error("[GET /questions/admin] Missing userId", req.user);
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  console.log("[GET /questions/admin] userId:", userId);
+  try {
+    const result = await query(`
+      SELECT
+        b.question_id,
+        b.difficulty,
+        b.created_at,
+
+        -- Static question fields
+        s.question_content AS static_text,
+        s.role_id,
+        s.skill_id,
+        s.lang_id,
+
+        -- Dynamic question fields
+        d.generated_question_content AS dynamic_text
+
+      FROM "BaseQuestion" b
+      LEFT JOIN "StaticQuestion" s
+        ON s.base_question_id = b.question_id
+      LEFT JOIN "DynamicQuestion" d
+        ON d.base_question_id = b.question_id
+
+      ORDER BY b.created_at DESC
+    `);
+
+    console.log(
+      "[GET /questions/admin] DB rows:",
+      result.rowCount,
+      result.rows[0]
+    );
+
+    const questions = result.rows
+      .filter(row => row.static_text || row.dynamic_text)
+      .map(row => ({
+        questionId: row.question_id,
+        content: row.static_text || row.dynamic_text,
+        role: row.role_id || "-",
+        skill: row.skill_id || "-",
+        language: row.lang_id || "-",
+        level: row.difficulty,
+        createdBy: row.static_text ? "Admin" : "LLM",
+        dateTime: row.created_at,
+        type: row.static_text ? "static" : "dynamic"
+      }));
+
+    console.log(
+      "[GET /questions/admin] final response count:",
+      questions.length
+    );
+    res.json({ success: true, questions });
+
+  } catch (error) {
+    console.error("Admin question fetch error:", error);
+    res.status(500).json({
+      message: "Failed to load question bank"
+    });
+  }
+});
 
 module.exports = router;

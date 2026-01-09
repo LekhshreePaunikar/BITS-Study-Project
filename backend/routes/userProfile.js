@@ -42,7 +42,7 @@ router.post(
   uploadResume.single('resume'),
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id || req.user.userId;
 
       if (!req.file) {
         return res.status(400).json({ message: 'No resume uploaded' });
@@ -69,7 +69,7 @@ router.post(
   uploadProfileImage.single('profileImage'),
   async (req, res) => {
     try {
-      const userId = req.user.id;
+      const userId = req.user.id || req.user.userId;
 
       if (!req.file) {
         return res.status(400).json({ message: 'No image uploaded' });

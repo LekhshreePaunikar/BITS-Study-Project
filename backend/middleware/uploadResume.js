@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
   },
 
   filename: (req, file, cb) => {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
     const ext = path.extname(file.originalname).toLowerCase();
 
     // Always overwrite with same name

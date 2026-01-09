@@ -27,7 +27,7 @@ const { pool } = require("../config/database");
 router.post('/start', async (req, res) => {
   try {
     // Coming from authenticateToken middleware already applied in server.js
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
 
     if (!userId) {
       return res.status(401).json({

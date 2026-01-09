@@ -22,6 +22,10 @@ import {
   Filter
 } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
+import api from "../utils/api";
+import { useEffect } from "react";
+
+
 
 interface ManageQuestionsProps {
   username: string;
@@ -29,15 +33,17 @@ interface ManageQuestionsProps {
 }
 
 interface Question {
-  id: string;
+  questionId: number;
   content: string;
   role: string;
   skill: string;
   language: string;
   level: 'easy' | 'medium' | 'hard';
-  createdBy: string;
+  createdBy: 'Admin' | 'LLM';
   dateTime: string;
+  type: 'static' | 'dynamic';
 }
+
 
 interface QuestionForm {
   content: string;
@@ -48,63 +54,14 @@ interface QuestionForm {
 }
 
 export default function ManageQuestions({ username, onBackToAdminDashboard }: ManageQuestionsProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock questions data
-  const [questions, setQuestions] = useState<Question[]>([
-    {
-      id: 'Q_001',
-      content: 'Explain the difference between let, const, and var in JavaScript.',
-      role: 'Frontend Developer',
-      skill: 'JavaScript Fundamentals',
-      language: 'JavaScript',
-      level: 'easy',
-      createdBy: 'Admin',
-      dateTime: '20 Jul 2025, 10:30 AM'
-    },
-    {
-      id: 'Q_002',
-      content: 'Design a system for handling millions of concurrent users in a web application.',
-      role: 'Backend Developer',
-      skill: 'System Design',
-      language: 'Python',
-      level: 'hard',
-      createdBy: 'Senior Admin',
-      dateTime: '19 Jul 2025, 02:15 PM'
-    },
-    {
-      id: 'Q_003',
-      content: 'Write a SQL query to find the second highest salary from an employees table.',
-      role: 'Data Analyst',
-      skill: 'Database Management',
-      language: 'SQL',
-      level: 'medium',
-      createdBy: 'Admin',
-      dateTime: '18 Jul 2025, 11:45 AM'
-    },
-    {
-      id: 'Q_004',
-      content: 'Implement a binary search algorithm and explain its time complexity.',
-      role: 'Software Engineer',
-      skill: 'Algorithm & Data Structures',
-      language: 'Java',
-      level: 'medium',
-      createdBy: 'Tech Lead',
-      dateTime: '17 Jul 2025, 04:20 PM'
-    },
-    {
-      id: 'Q_005',
-      content: 'Describe the SOLID principles and provide examples of each.',
-      role: 'Software Engineer',
-      skill: 'Software Design Patterns',
-      language: 'Python',
-      level: 'hard',
-      createdBy: 'Senior Admin',
-      dateTime: '16 Jul 2025, 09:00 AM'
-    }
-  ]);
+  const [searchTerm, setSearchTerm] = useState('');
+  // const [showAddForm, setShowAddForm] = useState(false);
+  // const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [showAddForm] = useState(false);
+  const [editingQuestion] = useState<Question | null>(null);
 
   const [questionForm, setQuestionForm] = useState<QuestionForm>({
     content: '',
@@ -113,6 +70,41 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
     language: '',
     level: 'easy'
   });
+
+  // Mock questions data
+  useEffect(() => {
+    console.log("[ManageQuestions] useEffect mounted");
+    const fetchQuestions = async () => {
+      try {
+        const res = await api.get("/questions/admin");
+        console.log(
+          "[ManageQuestions] questions array:",
+          Array.isArray(res.data.questions),
+          res.data.questions
+        );
+
+        setQuestions(res.data.questions);
+      } catch (err) {
+        console.error("[ManageQuestions] API ERROR", err);
+        console.error("[ManageQuestions] status:", err?.response?.status);
+        console.error("[ManageQuestions] data:", err?.response?.data);
+        console.error("Failed to load question bank", err);
+        toast.error("Failed to load questions from database");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading question bank...
+      </div>
+    );
+  }
 
   // Role options
   const roleOptions = [
@@ -152,133 +144,133 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
     }));
   };
 
-  const generateQuestionId = () => {
-    const maxId = questions.reduce((max, q) => {
-      const num = parseInt(q.id.split('_')[1]);
-      return num > max ? num : max;
-    }, 0);
-    return `Q_${String(maxId + 1).padStart(3, '0')}`;
-  };
+  // // TBR
+  //   const handleAddQuestion = () => {
+  //     if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+  //       toast.error('Please fill in all required fields');
+  //       return;
+  //     }
 
-  const handleAddQuestion = () => {
-    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+  //     const newQuestion: Question = {
+  //       id: generateQuestionId(),
+  //       content: questionForm.content.trim(),
+  //       role: questionForm.role,
+  //       skill: questionForm.skill,
+  //       language: questionForm.language,
+  //       level: questionForm.level,
+  //       createdBy: username,
+  //       dateTime: new Date().toLocaleString('en-GB', {
+  //         day: '2-digit',
+  //         month: 'short',
+  //         year: 'numeric',
+  //         hour: '2-digit',
+  //         minute: '2-digit',
+  //         hour12: true
+  //       })
+  //     };
 
-    const newQuestion: Question = {
-      id: generateQuestionId(),
-      content: questionForm.content.trim(),
-      role: questionForm.role,
-      skill: questionForm.skill,
-      language: questionForm.language,
-      level: questionForm.level,
-      createdBy: username,
-      dateTime: new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      })
-    };
+  //     setQuestions(prev => [newQuestion, ...prev]);
+  //     setQuestionForm({
+  //       content: '',
+  //       role: '',
+  //       skill: '',
+  //       language: '',
+  //       level: 'easy'
+  //     });
+  //     setShowAddForm(false);
 
-    setQuestions(prev => [newQuestion, ...prev]);
-    setQuestionForm({
-      content: '',
-      role: '',
-      skill: '',
-      language: '',
-      level: 'easy'
-    });
-    setShowAddForm(false);
+  //     toast.success('✅ Question added successfully', {
+  //       style: {
+  //         background: '#10B981',
+  //         color: 'white',
+  //         border: 'none'
+  //       }
+  //     });
+  //   };
 
-    toast.success('✅ Question added successfully', {
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none'
-      }
-    });
-  };
+  //   // TBR
+  //   const handleEditQuestion = (question: Question) => {
+  //     setEditingQuestion(question);
+  //     setQuestionForm({
+  //       content: question.content,
+  //       role: question.role,
+  //       skill: question.skill,
+  //       language: question.language,
+  //       level: question.level
+  //     });
+  //     setShowAddForm(true);
+  //   };
 
-  const handleEditQuestion = (question: Question) => {
-    setEditingQuestion(question);
-    setQuestionForm({
-      content: question.content,
-      role: question.role,
-      skill: question.skill,
-      language: question.language,
-      level: question.level
-    });
-    setShowAddForm(true);
-  };
+  //   // TBR
+  //   const handleUpdateQuestion = () => {
+  //     if (!editingQuestion) return;
 
-  const handleUpdateQuestion = () => {
-    if (!editingQuestion) return;
+  //     if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+  //       toast.error('Please fill in all required fields');
+  //       return;
+  //     }
 
-    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
+  //     setQuestions(prev =>
+  //       prev.map(q =>
+  //         q.questionId === editingQuestion.questionId
+  //           ? {
+  //             ...q,
+  //             content: questionForm.content.trim(),
+  //             role: questionForm.role,
+  //             skill: questionForm.skill,
+  //             language: questionForm.language,
+  //             level: questionForm.level
+  //           }
+  //           : q
+  //       )
+  //     );
 
-    setQuestions(prev =>
-      prev.map(q =>
-        q.id === editingQuestion.id
-          ? {
-            ...q,
-            content: questionForm.content.trim(),
-            role: questionForm.role,
-            skill: questionForm.skill,
-            language: questionForm.language,
-            level: questionForm.level
-          }
-          : q
-      )
-    );
+  //     setEditingQuestion(null);
+  //     setQuestionForm({
+  //       content: '',
+  //       role: '',
+  //       skill: '',
+  //       language: '',
+  //       level: 'easy'
+  //     });
+  //     setShowAddForm(false);
 
-    setEditingQuestion(null);
-    setQuestionForm({
-      content: '',
-      role: '',
-      skill: '',
-      language: '',
-      level: 'easy'
-    });
-    setShowAddForm(false);
+  //     toast.success('✅ Question updated successfully', {
+  //       style: {
+  //         background: '#10B981',
+  //         color: 'white',
+  //         border: 'none'
+  //       }
+  //     });
+  //   };
 
-    toast.success('✅ Question updated successfully', {
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none'
-      }
-    });
-  };
+  //   // TBR
+  //   const handleDeleteQuestion = (questionId: string) => {
+  //     setQuestions(prev => prev.filter(q => q.questionId !== questionId));
 
-  const handleDeleteQuestion = (questionId: string) => {
-    setQuestions(prev => prev.filter(q => q.id !== questionId));
+  //     toast.success('✅ Question deleted successfully', {
+  //       style: {
+  //         background: '#10B981',
+  //         color: 'white',
+  //         border: 'none'
+  //       }
+  //     });
+  //   };
 
-    toast.success('✅ Question deleted successfully', {
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none'
-      }
-    });
-  };
+  // const handleCancelEdit = () => {
+  //   setEditingQuestion(null);
+  //   setQuestionForm({
+  //     content: '',
+  //     role: '',
+  //     skill: '',
+  //     language: '',
+  //     level: 'easy'
+  //   });
+  //   setShowAddForm(false);
+  // };
 
   const handleCancelEdit = () => {
-    setEditingQuestion(null);
-    setQuestionForm({
-      content: '',
-      role: '',
-      skill: '',
-      language: '',
-      level: 'easy'
-    });
-    setShowAddForm(false);
+    toast.info("Cancel disabled for now");
   };
 
   const getLevelBadge = (level: string) => {
@@ -302,18 +294,25 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   // Filter questions based on search
   const filteredQuestions = questions.filter(question =>
     searchTerm === '' ||
-    question.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    question.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    question.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    question.skill.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    question.language.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    String(question.questionId).includes(searchTerm) ||
+    (question.content ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.role ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.skill ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.language ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
   const truncateText = (text: string, maxLength: number = 50) => {
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
+
+  console.log(
+    "[ManageQuestions] Render questions count:",
+    questions.length,
+    questions
+  );
 
   return (
     <TooltipProvider>
@@ -366,7 +365,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
               </div>
 
               <Button
-                onClick={() => setShowAddForm(!showAddForm)}
+                onClick={() => toast.info("Add question coming soon")}
                 className="flex items-center space-x-2 transition-all duration-200 hover:scale-105 text-white"
                 style={{
                   backgroundColor: '#3B82F6'
@@ -496,8 +495,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           type="button"
                           onClick={() => handleFormChange('level', level)}
                           className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 ${questionForm.level === level
-                              ? 'text-white'
-                              : 'border'
+                            ? 'text-white'
+                            : 'border'
                             }`}
                           style={{
                             backgroundColor: questionForm.level === level
@@ -516,7 +515,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <Button
-                      onClick={editingQuestion ? handleUpdateQuestion : handleAddQuestion}
+                      onClick={() => toast.info("Add / Edit functionality coming soon")}
                       className="flex items-center space-x-2 transition-all duration-200 hover:scale-105 text-white"
                       style={{
                         backgroundColor: '#3B82F6'
@@ -528,7 +527,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
 
                     <Button
                       variant="outline"
-                      onClick={handleCancelEdit}
+                      onClick={() => toast.info("Cancel disabled")}
                       className="transition-all duration-200"
                       style={{
                         color: '#9CA3AF',
@@ -572,20 +571,18 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                         }}
                       >
                         <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Question ID</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Role</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Skill</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Language</th>
+                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Question</th>
+                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Context</th>
                         <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Level</th>
                         <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Created By</th>
                         <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Date & Time</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Edit</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Delete</th>
+                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredQuestions.map((question, index) => (
                         <tr
-                          key={question.id}
+                          key={question.questionId}
                           className="border-b transition-colors duration-200"
                           style={{
                             borderColor: '#374151',
@@ -604,22 +601,33 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           >
                             <Tooltip>
                               <TooltipTrigger>
-                                <span>{question.id}</span>
+                                <span>{question.questionId}</span>
                               </TooltipTrigger>
                               <TooltipContent className="max-w-xs">
                                 <p>{question.content}</p>
                               </TooltipContent>
                             </Tooltip>
                           </td>
-                          <td className="p-4 text-sm text-white">
-                            {question.role}
+                          <td className="p-4 text-sm text-white max-w-md">
+                            {question.content || '—'}
                           </td>
                           <td className="p-4 text-sm text-white">
-                            {question.skill}
+                            <div className="space-y-1">
+                              <div>
+                                <span className="text-gray-400">Role:</span>{' '}
+                                {question.role || '—'}
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Skill:</span>{' '}
+                                {question.skill || '—'}
+                              </div>
+                              <div>
+                                <span className="text-gray-400">Language:</span>{' '}
+                                {question.language || '—'}
+                              </div>
+                            </div>
                           </td>
-                          <td className="p-4 text-sm text-white">
-                            {question.language}
-                          </td>
+
                           <td className="p-4">
                             {getLevelBadge(question.level)}
                           </td>
@@ -627,13 +635,22 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             {question.createdBy}
                           </td>
                           <td className="p-4 text-sm text-white">
-                            {question.dateTime}
+                            <div className="leading-tight">
+                              <div>{new Date(question.dateTime).toLocaleDateString()}</div>
+                              <div className="text-xs text-gray-400">
+                                {new Date(question.dateTime).toLocaleTimeString()}
+                              </div>
+                            </div>
                           </td>
+
                           <td className="p-4">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleEditQuestion(question)}
+                              onClick={() => {
+                                toast.info("Edit functionality coming soon");
+                              }}
+
                               className="h-8 w-8 p-0 text-white transition-all duration-200 hover:scale-110"
                               style={{ backgroundColor: 'transparent' }}
                               onMouseEnter={(e) => {
@@ -645,8 +662,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             >
                               <Edit3 className="h-4 w-4" />
                             </Button>
-                          </td>
-                          <td className="p-4">
+
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <Button
@@ -693,7 +709,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                     Cancel
                                   </AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => handleDeleteQuestion(question.id)}
+                                    onClick={() => {
+                                      toast.info("Delete functionality coming soon");
+                                    }}
+
                                     className="transition-all duration-200 hover:scale-105 text-white"
                                     style={{ backgroundColor: '#EF4444' }}
                                   >
@@ -713,7 +732,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                 <div className="lg:hidden space-y-4 p-4">
                   {filteredQuestions.map((question) => (
                     <Card
-                      key={question.id}
+                      key={question.questionId}
                       className="border transition-all duration-200 hover:shadow-lg"
                       style={{
                         backgroundColor: '#374151',
@@ -726,7 +745,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             className="text-sm"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
-                            {question.id}
+                            {question.questionId}
                           </span>
                           {getLevelBadge(question.level)}
                         </div>
@@ -745,7 +764,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             <strong>Created by:</strong> {question.createdBy}
                           </p>
                           <p className="text-sm text-white">
-                            <strong>Date:</strong> {question.dateTime}
+                            <strong>Date:</strong> {new Date(question.dateTime).toLocaleString()}
                           </p>
                           <p className="text-sm text-white mt-2">
                             <strong>Question:</strong> {truncateText(question.content, 100)}
@@ -753,20 +772,24 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                         </div>
 
                         <div className="flex space-x-2">
-                          <Button
+
+                          {question.type === "static" && (<Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleEditQuestion(question)}
+                            onClick={() => {
+                              toast.info("Edit functionality coming soon");
+                            }}
+
                             className="flex-1 text-white transition-all duration-200 hover:scale-105"
                             style={{ backgroundColor: '#3B82F6' }}
                           >
                             <Edit3 className="h-4 w-4 mr-1" />
                             Edit
-                          </Button>
+                          </Button>)}
 
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
-                              <Button
+                              {question.type === "static" && (<Button
                                 variant="ghost"
                                 size="sm"
                                 className="flex-1 text-white transition-all duration-200 hover:scale-105"
@@ -774,7 +797,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                               >
                                 <Trash2 className="h-4 w-4 mr-1" />
                                 Delete
-                              </Button>
+                              </Button>)}
                             </AlertDialogTrigger>
                             <AlertDialogContent
                               style={{
@@ -802,7 +825,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                   Cancel
                                 </AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeleteQuestion(question.id)}
+                                  onClick={() => {
+                                    toast.info("Delete functionality coming soon");
+                                  }}
+
                                   className="transition-all duration-200 hover:scale-105 text-white"
                                   style={{ backgroundColor: '#EF4444' }}
                                 >

@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
     cb(null, IMAGE_DIR);
   },
   filename: (req, file, cb) => {
-    const userId = req.user.id;
+    const userId = req.user.id || req.user.userId;
 
     // FIX 2: differentiate admin vs user
     const prefix = req.user.isAdmin ? "admin" : "user";
