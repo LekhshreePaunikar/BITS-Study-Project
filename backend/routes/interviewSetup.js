@@ -323,7 +323,7 @@ Do not include explanations, notes, comments, markdown, or any text outside the 
     console.log(JSON.stringify(parsed, null, 2));
 
   } catch (err) {
-    console.error("❌ Start Session Error:", err);
+    console.error("Start Session Error:", err);
   }
 })();
 
@@ -371,7 +371,7 @@ router.post("/end", async (req, res) => {
       message: "Session ended successfully",
     });
   } catch (err) {
-    console.error("❌ End Session Error:", err);
+    console.error(" End Session Error:", err);
     return res.status(500).json({
       success: false,
       error: "Internal server error",

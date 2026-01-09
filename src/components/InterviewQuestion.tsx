@@ -15,6 +15,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
   // DialogTrigger,
 } from "./ui/dialog";
 
@@ -58,6 +59,8 @@ export default function InterviewQuestion({
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEndingInterview, setIsEndingInterview] = useState(false);
+
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -144,6 +147,7 @@ export default function InterviewQuestion({
   // Prevent User from reloading the site mid-interview
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (isEndingInterview) return;
       event.preventDefault();
       (event as any).returnValue = "";
     };
@@ -265,6 +269,7 @@ export default function InterviewQuestion({
 
 
   const confirmEndInterview = async () => {
+    setIsEndingInterview(true);
     try {
       console.log("Ending interview session:", config.sessionId);
       // console.log("FINAL answers being sent:", answers);
@@ -348,7 +353,8 @@ export default function InterviewQuestion({
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className={`container mx-auto px-6 py-8 ${endDialogOpen ? "pointer-events-none select-none" : "pointer-events-auto"
+        }`}>
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Question Display */}
           <Card
@@ -634,17 +640,16 @@ export default function InterviewQuestion({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEndDialogOpen(false)}
-              style={{
-                borderColor: '#6B7280',
-                color: '#9CA3AF',
-                backgroundColor: 'transparent'
-              }}
-            >
-              Continue Interview
-            </Button>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsPaused(false);
+                }}
+              >
+                Continue Interview
+              </Button>
+            </DialogClose>
             <Button
               onClick={confirmEndInterview}
               className="text-white"
@@ -655,6 +660,6 @@ export default function InterviewQuestion({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
