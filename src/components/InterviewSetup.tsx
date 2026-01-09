@@ -80,7 +80,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
       const sessionId = sessionRes.data.session_id;
       console.log("Session Started:", sessionRes.data);
 
-  
+
       // Continue app flow
       onStartInterview({
         ...config,
@@ -118,41 +118,28 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
 
       {/* Header */}
-      <header
-        className="border-b"
-        style={{
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onBack}
-                className="transition-all duration-200"
-                style={{
-                  color: '#9CA3AF',
-                  backgroundColor: 'transparent'
-                }}
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
+        <div className="container mx-auto px-6 py-6">
+          <div className="grid grid-cols-3 items-center">
+            <div className="flex justify-start">
+              <Button variant="outline" onClick={onBack}
+                className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Back to Dashboard</span>
               </Button>
             </div>
-            <div
-              className="text-sm"
-              style={{ color: '#9CA3AF' }}
-            >
-              Welcome, {username}
+            <div className="text-center">
+              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Interview Setup</h1>
+              <p className="text-sm" style={{ color: '#9CA3AF' }}>
+                Welcome, {username}. Please select your interview configuration.
+              </p>
             </div>
             <div />
           </div>
         </div>
       </header>
-      
+      {/* Header */}
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
@@ -400,7 +387,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                               <div className="text-xs" style={{ color: '#9CA3AF' }}>30 minutes</div>
                             </div>
                           </div>
-                          
+
                         </div>
                       </Label>
                     </div>
@@ -592,7 +579,7 @@ export default function InterviewSetup({ username, onBack, onStartInterview }: I
                 type="submit"
                 size="lg"
                 className="w-full md:w-auto px-12 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
-                style={{ backgroundColor: '#10B981'  }}
+                style={{ backgroundColor: '#10B981' }}
               >
                 <Play className="h-5 w-5 mr-2" />
                 Start Interview
