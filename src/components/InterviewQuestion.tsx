@@ -5,7 +5,6 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
-// import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Label } from "./ui/label";
 import api from "../utils/api";
 
@@ -18,13 +17,7 @@ import {
   DialogTitle,
   // DialogTrigger,
 } from "./ui/dialog";
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from "./ui/select";
+
 import { Progress } from "./ui/progress";
 import {
   MessageSquare,
@@ -50,9 +43,10 @@ interface InterviewQuestionProps {
 }
 
 interface Question {
-  id: number;
+  questionId: number;
   text: string;
-  category: string;
+  difficulty: "easy" | "medium" | "hard";
+  type: "static" | "dynamic";
 }
 
 export default function InterviewQuestion({
@@ -61,93 +55,42 @@ export default function InterviewQuestion({
   onEndInterview,
   onBackToDashboard,
 }: InterviewQuestionProps) {
-  // Sample questions based on config
-  const generateQuestions = (): Question[] => {
-    const baseQuestions = [
-      {
-        id: 1,
-        text: "Tell me about yourself and your background.",
-        category: "General",
-      },
-      {
-        id: 2,
-        text: "What interests you most about this role?",
-        category: "Role-specific",
-      },
-      {
-        id: 3,
-        text: "Describe a challenging project you've worked on recently.",
-        category: "Experience",
-      },
-      {
-        id: 4,
-        text: "How do you handle working under pressure?",
-        category: "Behavioral",
-      },
-      {
-        id: 5,
-        text: "What are your biggest strengths and weaknesses?",
-        category: "Self-assessment",
-      },
-      {
-        id: 6,
-        text: "Where do you see yourself in 5 years?",
-        category: "Career Goals",
-      },
-      {
-        id: 7,
-        text: "Why should we hire you for this position?",
-        category: "Closing",
-      },
-    ];
 
-    // Adjust number based on level
-    const questionCount =
-      config.level === "easy"
-        ? 5
-        : config.level === "medium"
-          ? 7
-          : 10;
-    return baseQuestions.slice(0, questionCount);
-  };
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [questions] = useState<Question[]>(generateQuestions);
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const res = await api.get("/questions/predefined");
+        setQuestions(res.data.questions);
+      } catch (err) {
+        console.error("Failed to load questions", err);
+        alert("Failed to load interview questions");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuestions();
+  }, []);
+
   const [currentQuestionIndex, setCurrentQuestionIndex] =
     useState(0);
   const [timeRemaining, setTimeRemaining] = useState(150); // Default 150 seconds
   const [isPaused, setIsPaused] = useState(false);
-  const [difficulty, setDifficulty] = useState<
-    "easy" | "medium" | "hard"
-  >("medium");
 
-  useEffect(() => {
-    const category = questions[currentQuestionIndex].category;
-
-    if (["General", "Self-assessment"].includes(category)) {
-      setDifficulty("easy");
-    } else if (
-      ["Behavioral", "Career Goals"].includes(category)
-    ) {
-      setDifficulty("medium");
-    } else {
-      setDifficulty("hard");
-    }
-  }, [currentQuestionIndex, questions]);
 
   const [answerMode, setAnswerMode] = useState<
     "text" | "voice" | null
   >(null);
   const [textAnswer, setTextAnswer] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  // const [flagDialogOpen, setFlagDialogOpen] = useState(false);
-  // const [flagReason, setFlagReason] = useState("");
-  // const [flagComment, setFlagComment] = useState("");
   const [endDialogOpen, setEndDialogOpen] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState("");
 
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const autoSaveRef = useRef<NodeJS.Timeout | null>(null);
-  const [answers, setAnswers] = useState<any[]>([]);
+  const timerRef = useRef<number | null>(null);
+  const autoSaveRef = useRef<number | null>(null);
 
   // Initialize timer based on config level
   useEffect(() => {
@@ -200,17 +143,17 @@ export default function InterviewQuestion({
 
   // Prevent User from reloading the site mid-interview
   useEffect(() => {
-  const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-    event.preventDefault();
-    (event as any).returnValue = "";
-  };
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      (event as any).returnValue = "";
+    };
 
-  window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
-  return () => {
-    window.removeEventListener("beforeunload", handleBeforeUnload);
-  };
-}, []);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
 
   const formatTime = (seconds: number) => {
@@ -227,18 +170,12 @@ export default function InterviewQuestion({
 
     const currentQ = questions[currentQuestionIndex];
 
-    // const payload = {
-    //   questionText: currentQ.text,
-    //   userAnswer: textAnswer,
-    //    score: null
-    // };
-
     try {
 
       const answerRes = await api.post(
         `/interview/${config.sessionId}/answer`,
         {
-          questionId: currentQ.id,
+          questionId: currentQ.questionId,
           userAnswer: textAnswer
         }
       );
@@ -251,14 +188,14 @@ export default function InterviewQuestion({
       await api.post(
         `/interview/${config.sessionId}/history`,
         {
-          questionId: currentQ.id,
+          questionId: currentQ.questionId,
           answerId: answerId
         }
       );
 
       console.log("Session History Inserted:", {
         sessionId: config.sessionId,
-        questionId: currentQ.id,
+        questionId: currentQ.questionId,
         answerId
       });
 
@@ -269,23 +206,20 @@ export default function InterviewQuestion({
       return; // do NOT move to next question if save fails
     }
 
-    //   // Mock API call
-    //  const answerObject = {
-    //     questionId: questions[currentQuestionIndex].id,
-    //     answer: textAnswer,
-    //     mode: answerMode,
-    //     difficulty,
-    //     timeSpent: 150 - timeRemaining,
-    //   };
-    //   console.log("Submitting answer:", answerObject);
-    // setAnswers(prev => [...prev, structuredClone(answerObject)]);
 
     // Move to next question or end interview
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
       setTextAnswer("");
       setAnswerMode(null);
-      setTimeRemaining(150); // Reset timer for next question
+      setTimeRemaining(
+        config.level === "easy"
+          ? 15 * 60
+          : config.level === "medium"
+            ? 30 * 60
+            : 45 * 60
+      );
+
     } else {
       handleEndInterview();
     }
@@ -296,7 +230,14 @@ export default function InterviewQuestion({
       setCurrentQuestionIndex((prev) => prev + 1);
       setTextAnswer("");
       setAnswerMode(null);
-      setTimeRemaining(150);
+      setTimeRemaining(
+        config.level === "easy"
+          ? 15 * 60
+          : config.level === "medium"
+            ? 30 * 60
+            : 45 * 60
+      );
+
     } else {
       handleEndInterview();
     }
@@ -318,19 +259,6 @@ export default function InterviewQuestion({
     }
   };
 
-  // const handleFlag = () => {
-  //   // Mock API call
-  //   console.log("Flagging question:", {
-  //     questionId: questions[currentQuestionIndex].id,
-  //     reason: flagReason,
-  //     comment: flagComment,
-  //   });
-
-  //   setFlagDialogOpen(false);
-  //   setFlagReason("");
-  //   setFlagComment("");
-  // };
-
   const handleEndInterview = () => {
     setEndDialogOpen(true);
   };
@@ -339,7 +267,7 @@ export default function InterviewQuestion({
   const confirmEndInterview = async () => {
     try {
       console.log("Ending interview session:", config.sessionId);
-      console.log("FINAL answers being sent:", answers);
+      // console.log("FINAL answers being sent:", answers);
 
       await api.post("/interview/end", {
         session_id: config.sessionId,
@@ -359,8 +287,26 @@ export default function InterviewQuestion({
   };
 
   const currentQuestion = questions[currentQuestionIndex];
+  const difficulty = currentQuestion?.difficulty;
+
   const progressPercentage =
     ((currentQuestionIndex + 1) / questions.length) * 100;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading interview questions...
+      </div>
+    );
+  }
+
+  if (!questions.length) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        No questions available
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>

@@ -319,5 +319,79 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     });
   }
 });
+ 
+// NOTE: This will fetch only the latest 6 questions from the database
+// Later I plan to replace it with proper logic
+const INTERVIEW_QUESTION_COUNT = 6;
+// --------------------------------------------------
+// Interview: Fetch latest questions for interview
+// --------------------------------------------------
+router.get("/predefined", authenticateToken, async (req, res) => {
+  try {
+    const questions = [];
+
+    // Fetch latest N base questions
+    const baseQuestionsRes = await query(
+      `
+      SELECT question_id, is_predefined, difficulty
+      FROM "BaseQuestion"
+      ORDER BY created_at DESC
+      LIMIT $1
+      `,
+      [INTERVIEW_QUESTION_COUNT]
+    );
+
+    for (const base of baseQuestionsRes.rows) {
+      let text = "";
+
+      // Resolve question source
+      if (base.is_predefined) {
+        const staticRes = await query(
+          `
+          SELECT question_content
+          FROM "StaticQuestion"
+          WHERE base_question_id = $1
+          `,
+          [base.question_id]
+        );
+
+        text = staticRes.rows[0]?.question_content || "";
+      } else {
+        const dynamicRes = await query(
+          `
+          SELECT generated_question
+          FROM "DynamicQuestion"
+          WHERE base_question_id = $1
+          ORDER BY created_at DESC
+          LIMIT 1
+          `,
+          [base.question_id]
+        );
+
+        text = dynamicRes.rows[0]?.generated_question || "";
+      }
+
+      questions.push({
+        questionId: base.question_id,
+        text,
+        difficulty: base.difficulty,
+        type: base.is_predefined ? "static" : "dynamic",
+      });
+    }
+
+    return res.json({
+      success: true,
+      count: questions.length,
+      questions,
+    });
+
+  } catch (error) {
+    console.error("Predefined interview questions error:", error);
+    return res.status(500).json({
+      message: "Failed to fetch interview questions",
+    });
+  }
+});
+
 
 module.exports = router;
