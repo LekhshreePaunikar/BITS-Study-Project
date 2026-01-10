@@ -182,8 +182,6 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
   }
 
 
-
-
   const adminActions: AdminAction[] = [
     {
       title: 'Manage Questions',
@@ -219,10 +217,6 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     }
   ];
 
-
-
-
-
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -237,8 +231,8 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
           {/* Left: Profile + Name */}
           <div className="flex items-center space-x-4">
             <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-500 bg-gray-700 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 hover:ring-4 hover:ring-blue-500/70 hover:shadow-2xl"
-  onClick={onEditProfile}
-  style={{ boxShadow: "0 0 20px rgba(59, 130, 246, 0.35)" }}>
+              onClick={onEditProfile}
+              style={{ boxShadow: "0 0 20px rgba(59, 130, 246, 0.35)" }}>
               {admin.profile_image ? (
                 <img
                   src={`http://localhost:3001${admin.profile_image}`}
@@ -255,7 +249,7 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
             <h1 className="text-2xl md:text-3xl text-white">
               Welcome back, {admin.name}!
             </h1>
-            
+
             <Badge
               className="px-3 py-1 text-base border-2"
               style={{

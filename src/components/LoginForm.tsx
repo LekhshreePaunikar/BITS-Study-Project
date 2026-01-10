@@ -222,15 +222,6 @@ export default function LoginForm({
           </Button>
 
           <div className="text-center space-y-2">
-            <button
-              type="button"
-              className="text-sm transition-colors duration-200 underline"
-              style={{
-                color: "#9CA3AF",
-              }}
-            >
-              Forgot your password?
-            </button>
             <p className="text-sm" style={{ color: "#9CA3AF" }}>
               Don't have an account?{" "}
               <button
