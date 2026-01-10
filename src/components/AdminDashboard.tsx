@@ -27,6 +27,13 @@ import {
   TrendingUp
 } from 'lucide-react';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+
 import api from "../utils/api"; // or your axios instance
 
 interface AdminDashboardProps {
@@ -135,6 +142,10 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     onEditProfile();
   };
 
+  const [openPolicyModal, setOpenPolicyModal] = useState<
+    "privacy" | "terms" | null
+  >(null);
+
   const [admin, setAdmin] = useState<Admin | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -162,13 +173,13 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
   }, []);
 
   //  ADD THIS BLOCK — REQUIRED
-if (loading || !admin) {
-  return (
-    <div className="min-h-screen flex items-center justify-center text-white">
-      Loading admin dashboard...
-    </div>
-  );
-}
+  if (loading || !admin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-white">
+        Loading admin dashboard...
+      </div>
+    );
+  }
 
 
 
@@ -225,7 +236,9 @@ if (loading || !admin) {
         >
           {/* Left: Profile + Name */}
           <div className="flex items-center space-x-4">
-            <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-500 bg-gray-700 flex items-center justify-center">
+            <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-500 bg-gray-700 flex items-center justify-center cursor-pointer transition-all duration-300 hover:scale-110 hover:ring-4 hover:ring-blue-500/70 hover:shadow-2xl"
+  onClick={onEditProfile}
+  style={{ boxShadow: "0 0 20px rgba(59, 130, 246, 0.35)" }}>
               {admin.profile_image ? (
                 <img
                   src={`http://localhost:3001${admin.profile_image}`}
@@ -240,14 +253,11 @@ if (loading || !admin) {
             </div>
 
             <h1 className="text-2xl md:text-3xl text-white">
-              {admin.name}
+              Welcome back, {admin.name}!
             </h1>
-          </div>
-
-          {/* Right: Controls */}
-          <div className="flex items-center space-x-6">
+            
             <Badge
-              className="px-3 py-1 text-sm border-2"
+              className="px-3 py-1 text-base border-2"
               style={{
                 backgroundColor: 'transparent',
                 borderColor: '#3B82F6',
@@ -256,35 +266,10 @@ if (loading || !admin) {
             >
               Super Admin
             </Badge>
+          </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
-                  <Avatar className="h-8 w-8 border border-gray-500">
-                    {admin.profile_image ? (
-                      <img
-                        src={`http://localhost:3001${admin.profile_image}`}
-                        alt="Admin avatar"
-                        className="h-full w-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <AvatarFallback className="text-white bg-gray-700">
-                        {admin.name.charAt(0).toUpperCase()}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <ChevronDown className="h-4 w-4 text-white" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={onEditProfile}>
-                  <User className="h-4 w-4 mr-2" />
-                  Edit Profile
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
+          {/* Right: Controls */}
+          <div className="flex items-center space-x-6">
             <Button
               variant="outline"
               onClick={onLogout}
@@ -395,47 +380,6 @@ if (loading || !admin) {
               ))}
             </div>
 
-            {/* Support Panel */}
-            <Card
-              className="border transition-all duration-200 hover:shadow-lg"
-              style={{
-                backgroundColor: '#1F2937',
-                borderColor: '#374151'
-              }}
-            >
-              <CardHeader>
-                <CardTitle
-                  className="flex items-center space-x-2"
-                  style={{ color: '#9CA3AF' }}
-                >
-                  <Mail className="h-5 w-5" />
-                  <span>Admin Support</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-white mb-1">
-                      Need technical assistance?
-                    </p>
-                    <p className="text-sm" style={{ color: '#9CA3AF' }}>
-                      Contact: tech-support@mockinterview.ai
-                    </p>
-                  </div>
-                  <Button
-                    onClick={handleSubmitTicket}
-                    className="text-white transition-all duration-200 hover:shadow-lg hover:scale-105"
-                    style={{
-                      backgroundColor: '#3B82F6',
-                      boxShadow: '0 0 15px rgba(59, 130, 246, 0.3)'
-                    }}
-                  >
-                    <Settings className="h-4 w-4 mr-2" />
-                    Submit Admin Ticket
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </main >
 
@@ -460,6 +404,7 @@ if (loading || !admin) {
                   style={{ color: '#6B7280' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+                  onClick={() => setOpenPolicyModal("privacy")}
                 >
                   Privacy
                 </button>
@@ -469,6 +414,7 @@ if (loading || !admin) {
                   style={{ color: '#6B7280' }}
                   onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+                  onClick={() => setOpenPolicyModal("terms")}
                 >
                   Terms
                 </button>
@@ -486,6 +432,79 @@ if (loading || !admin) {
           </div>
         </footer >
       </div >
+
+      <Dialog open={!!openPolicyModal} onOpenChange={() => setOpenPolicyModal(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto"
+          style={{
+            backgroundColor: "#1F2937",
+            border: "1px solid #374151",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.65)",
+            color: "#E5E7EB",
+          }}>
+          <DialogHeader>
+            <DialogTitle>
+              {openPolicyModal === "privacy"
+                ? "Privacy Policy"
+                : "Terms & Conditions"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="text-base text-gray-300 space-y-4 leading-relaxed">
+            {openPolicyModal === "privacy" && (
+              <>
+                <p>
+                  This AI-Powered Mock Interview Platform respects your privacy and is
+                  committed to protecting your personal information.
+                </p>
+
+                <p>
+                  We collect basic account details, interview responses, session
+                  activity, and performance analytics solely for the purpose of
+                  improving interview experiences and platform accuracy.
+                </p>
+
+                <p>
+                  Your data is never sold or shared with third parties for marketing
+                  purposes. Interview responses may be processed using AI models to
+                  generate insights, feedback, and scoring.
+                </p>
+
+                <p>
+                  All data is securely stored, and access is restricted to authorized
+                  personnel only. By using this platform, you consent to the
+                  collection and processing of data as described above.
+                </p>
+              </>
+            )}
+
+            {openPolicyModal === "terms" && (
+              <>
+                <p>
+                  By accessing or using this AI-Powered Mock Interview Platform, you
+                  agree to comply with and be bound by these Terms and Conditions.
+                </p>
+
+                <p>
+                  The platform is intended for educational and preparatory purposes
+                  only. Interview feedback and scores are generated by AI models and
+                  should not be considered professional or employment guarantees.
+                </p>
+
+                <p>
+                  Users must not misuse the platform, attempt to manipulate results,
+                  upload harmful content, or reverse-engineer system behavior.
+                </p>
+
+                <p>
+                  We reserve the right to modify, suspend, or terminate access to the
+                  platform at any time without prior notice.
+                </p>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </TooltipProvider >
   );
 }
