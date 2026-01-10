@@ -1,6 +1,7 @@
 // root/backend/services/aiService.js
 
-const OpenAI = require('openai');
+// const OpenAI = require('openai');
+const { OpenAI } = require("openai");
 const dotenv = require('dotenv');
 const path = require('path');
 
@@ -241,6 +242,61 @@ const generateFallbackFeedback = (question, answer) => {
   };
 };
 
+// =====================================================
+// SESSION-LEVEL INTERVIEW EVALUATION (NEW)
+// =====================================================
+
+// Evaluate one answer using OpenAI (REAL scoring)
+const evaluateAnswerWithOpenAI = async ({ questionText, answerText }) => {
+  if (!openai) throw new Error("OpenAI not configured");
+
+  const prompt = `
+You are a strict technical interview evaluator.
+
+Score the answer on a scale of 0 to 10 (integers only).
+DO NOT use decimals.
+
+Scoring guide:
+- 9–10: Excellent, clear, confident, correct
+- 7–8: Good, mostly correct, minor gaps
+- 5–6: Average, partial understanding
+- 3–4: Weak, unclear, incorrect parts
+- 0–2: Very poor or irrelevant
+
+Question:
+"${questionText}"
+
+Answer:
+"${answerText}"
+
+Return ONLY valid JSON:
+
+{
+  "score_content": number,
+  "score_clarity": number,
+  "score_grammar": number,
+  "score_fluency": number,
+  "score_overall": number,
+  "suggestion_text": string
+}
+`;
+
+
+  const completion = await openai.chat.completions.create({
+    model: "gpt-4.1-mini",
+    messages: [
+      { role: "system", content: "Return valid JSON only. No extra text." },
+      { role: "user", content: prompt },
+    ],
+    temperature: 0.2,
+    max_tokens: 500,
+  });
+
+  const raw = completion.choices?.[0]?.message?.content?.trim() || "{}";
+  return JSON.parse(raw);
+};
+
+
 // Check if AI service is available
 const isAIAvailable = () => {
   return openai !== null;
@@ -251,5 +307,6 @@ module.exports = {
   generateAIFeedback,
   generateFallbackQuestions,
   generateFallbackFeedback,
+  evaluateAnswerWithOpenAI,
   isAIAvailable
 };

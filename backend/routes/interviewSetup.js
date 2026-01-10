@@ -1,12 +1,14 @@
 // backend/routes/interviewSetup.js
 
 require("dotenv").config({ path: "./.env.local" });
-const { OpenAI } = require("openai");
+
 
 const express = require('express');
 const router = express.Router();
 const { query } = require("../config/database");
-const { pool } = require("../config/database");
+
+const { evaluateAnswerWithOpenAI, isAIAvailable } = require("../services/aiService");
+
 
 
 
@@ -105,21 +107,18 @@ router.post('/start', async (req, res) => {
 
 
 
-// Answer route
-router.post('/:sessionId/answer', async (req, res) => {
+router.post("/:sessionId/answer", async (req, res) => {
   try {
     const sessionId = Number(req.params.sessionId);
     const userId = req.user?.id;
-    // const { userAnswer } = req.body;
-
-    // FIX: extract questionId
     const { questionId, userAnswer } = req.body;
 
     if (!userId || !sessionId || !questionId || !userAnswer) {
-      return res.status(400).json({ error: 'Invalid request' });
+      return res.status(400).json({ error: "Invalid request" });
     }
 
-    const result = await query(
+    // 1️⃣ Insert Answer
+    const insertResult = await query(
       `
       INSERT INTO "Answer" (
         session_id,
@@ -129,21 +128,105 @@ router.post('/:sessionId/answer', async (req, res) => {
         start_time,
         end_time
       )
-      VALUES ($1, $2, $3, $4, NOW(), NOW())
+      VALUES ($1, $2, 'text', $3, NOW(), NOW())
       RETURNING answer_id
       `,
-      [sessionId, questionId,'text', userAnswer]
+      [sessionId, questionId, userAnswer]
     );
 
-    res.status(201).json({ success: true, answer_id: result.rows[0].answer_id });
+    const answerId = insertResult.rows[0].answer_id;
+
+    // 2️⃣ Fetch REAL question text
+    const qRes = await query(
+      `
+      SELECT COALESCE(
+        sq.question_content,
+        dq.generated_question_content
+      ) AS question_text
+      FROM "BaseQuestion" b
+      LEFT JOIN "StaticQuestion" sq ON sq.base_question_id = b.question_id
+      LEFT JOIN "DynamicQuestion" dq ON dq.base_question_id = b.question_id
+      WHERE b.question_id = $1
+      `,
+      [questionId]
+    );
+
+    const questionText =
+      qRes.rows?.[0]?.question_text || "Question not found";
+
+    // Evaluate with OpenAI ONLY
+    if (!isAIAvailable()) {
+      console.error("OpenAI key missing/config invalid. Skipping scoring.");
+      return res.status(201).json({
+        success: true,
+        answer_id: answerId,
+        ai_used: false,
+        message: "Answer saved. OpenAI not available for scoring."
+      });
+    }
+
+    let evaluation;
+    try {
+      evaluation = await evaluateAnswerWithOpenAI({
+        questionText,
+        answerText: userAnswer,
+      });
+    } catch (e) {
+      console.error("OpenAI evaluation failed:", e.message);
+      return res.status(201).json({
+        success: true,
+        answer_id: answerId,
+        ai_used: false,
+        message: "Answer saved. OpenAI evaluation failed (quota/billing)."
+      });
+    }
+
+
+    // 4️⃣ Update Answer scores
+    await query(
+      `
+      UPDATE "Answer"
+      SET
+        score_content = $1,
+        score_clarity = $2,
+        score_grammar = $3,
+        score_fluency = $4,
+        score_overall = $5
+      WHERE answer_id = $6
+      `,
+      [
+        evaluation.score_content,
+        evaluation.score_clarity,
+        evaluation.score_grammar,
+        evaluation.score_fluency,
+        evaluation.score_overall,
+        answerId,
+      ]
+    );
+
+    // 5️⃣ Insert Feedback
+    await query(
+      `
+      INSERT INTO "Feedback"
+        (answer_id, evaluation_model_id, suggestion_text, generated_at)
+      VALUES ($1, 1, $2, NOW())
+      `,
+      [answerId, evaluation.suggestion_text]
+    );
+
+    return res.status(201).json({
+      success: true,
+      answer_id: answerId,
+      ai_used: true,
+    });
 
   } catch (err) {
-    console.error('Answer insert error FULL:', err.message, err);
-  res.status(500).json({
-    error: err.message,
-    detail: err.detail });
+    console.error("Answer insert/eval error:", err.message);
+    return res.status(500).json({ error: err.message });
   }
 });
+
+
 router.post('/:sessionId/history', async (req, res) => {
   try {
     const sessionId = Number(req.params.sessionId);
@@ -171,101 +254,6 @@ router.post('/:sessionId/history', async (req, res) => {
   }
 });
 
-
-(async () => {
-  try {
-    // Confirm that the API key is loading correctly
-    console.log("API Key Loaded:", process.env.OPENAI_API_KEY ? "Yes" : "No");
-
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    // Step 1: Fetch user profile from the database
-    const userResult = await query(
-      `SELECT name, education, experience, preferred_roles, skills, programming_languages
-       FROM "User" WHERE user_id = 2`
-    );
-
-    if (userResult.rows.length === 0) {
-      console.error("No user found with ID = 2");
-      return;
-    }
-
-    const user = userResult.rows[0];
-
-    // Convert stored values into readable strings
-    const preferredRoles = Array.isArray(user.preferred_roles)
-      ? user.preferred_roles.join(", ")
-      : user.preferred_roles || "None";
-
-    const skills = Array.isArray(user.skills)
-      ? user.skills.join(", ")
-      : user.skills || "None";
-
-    const languages = Array.isArray(user.programming_languages)
-      ? user.programming_languages.join(", ")
-      : user.programming_languages || "None";
-
-    // Step 2: Build the prompt to send to OpenAI
-    const customPrompt = `
-You are an expert technical interviewer. Generate exactly 6 interview questions tailored to the candidate below.
-
-Candidate Profile:
-- Name: ${user.name}
-- Education: ${user.education || "Not provided"}
-- Experience: ${user.experience || "Not provided"}
-- Preferred Roles: ${preferredRoles}
-- Skills: ${skills}
-- Programming Languages: ${languages}
-
-Generate exactly:
-- 2 easy questions
-- 2 medium difficulty questions
-- 2 hard difficulty questions
-
-The questions must be specific to the candidate's skills and background.
-
-Output must be valid JSON only, in this exact structure:
-
-{
-  "easy": ["question1", "question2"],
-  "medium": ["question1", "question2"],
-  "hard": ["question1", "question2"]
-}
-
-Do not include explanations, notes, comments, markdown, or any text outside the JSON response.
-`;
-
-    // Step 3: Call the OpenAI API
-    const completion = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
-      messages: [
-        { role: "system", content: "Your responses must be in clean, valid JSON only." },
-        { role: "user", content: customPrompt }
-      ],
-      temperature: 0.7
-    });
-
-    const rawResponse = completion.choices[0].message.content.trim();
-
-    console.log("\nRaw OpenAI Response:\n", rawResponse);
-
-    // Step 4: Attempt to parse the JSON returned by the model
-    let parsed;
-    try {
-      parsed = JSON.parse(rawResponse);
-    } catch (error) {
-      console.error("The model returned text that is not valid JSON.");
-      return;
-    }
-
-    // Step 5: Print the final structured questions
-    console.log("\nGenerated Questions:");
-    console.log(JSON.stringify(parsed, null, 2));
-
-  } catch (err) {
-    console.error("Start Session Error:", err);
-  }
-})();
 
 
 /**
@@ -303,6 +291,56 @@ router.post("/end", async (req, res) => {
       });
     }
 
+    // Build performance report
+    const agg = await query(
+      `
+  SELECT
+    AVG(a.score_overall) FILTER (WHERE a.score_overall IS NOT NULL) AS total_score,
+    COUNT(a.answer_id) AS answer_count,
+    EXTRACT(EPOCH FROM (s.end_time - s.start_time)) AS session_seconds
+  FROM "Session" s
+  LEFT JOIN "Answer" a ON a.session_id = s.session_id
+  WHERE s.session_id = $1
+  GROUP BY s.session_id, s.start_time, s.end_time
+  `,
+      [session_id]
+    );
+
+    const totalScore = Number(agg.rows[0]?.total_score) || 0;
+    const answerCount = Number(agg.rows[0]?.answer_count) || 0;
+    const sessionSeconds = Number(agg.rows[0]?.session_seconds) || 0;
+
+    const avgTime = answerCount > 0 ? sessionSeconds / answerCount : 0;
+
+
+    await query(
+      `
+  INSERT INTO "PerformanceReport"
+    (session_id, generated_at, total_score, avg_time_per_question)
+  VALUES ($1, NOW(), $2, $3)
+  ON CONFLICT (session_id)
+  DO UPDATE SET
+    total_score = EXCLUDED.total_score,
+    avg_time_per_question = EXCLUDED.avg_time_per_question,
+    generated_at = NOW()
+  `,
+      [session_id, totalScore, avgTime]
+    );
+
+    // Update Session table
+    await query(
+      `UPDATE "Session" SET total_score = $1 WHERE session_id = $2`,
+      [totalScore, session_id]
+    );
+
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Session not found or not owned by user",
+      });
+    }
+
     return res.json({
       success: true,
       session_id: result.rows[0].session_id,
@@ -318,6 +356,7 @@ router.post("/end", async (req, res) => {
     });
   }
 });
+
 
 
 module.exports = router;

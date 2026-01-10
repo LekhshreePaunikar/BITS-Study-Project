@@ -280,6 +280,7 @@ export default function InterviewQuestion({
 
       console.log("Interview session ended successfully");
 
+
     } catch (error) {
       console.error("Failed to end interview:", error);
     } finally {
