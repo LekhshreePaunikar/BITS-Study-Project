@@ -644,7 +644,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                     >
                       <ListChecks size={20} color="#C084FC" />
                     </div>
-                    <span style={{ color: "#FFFFFF" }}>Total Questions Attempted</span>
+                    <span style={{ color: "#FFFFFF" }}>Total Questions Available</span>
                   </div>
                   <span style={{ color: "#FFFFFF", fontSize: 18 }}>
                     {userStats.totalQuestions}
