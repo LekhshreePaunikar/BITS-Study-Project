@@ -20,6 +20,13 @@ import {
   Users
 } from 'lucide-react';
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
+
 interface DashboardProps {
   username: string;
   onLogout: () => void;
@@ -35,25 +42,25 @@ interface DashboardProps {
 export default function Dashboard({ username, onLogout, onProfileClick, onStartInterview, onViewPastSessions, onViewPerformanceReport, onGetHelp }: DashboardProps) {
   const [profileImage, setProfileImage] = useState<string | null>(null);
 
-useEffect(() => {
-  const fetchDashboardProfile = async () => {
-    try {
-      const res = await api.get('/user'); // Backend se data mangwayein
-      if (res.data.profileImage) {
-        // Timestamp (?t=...) add karne se browser hamesha nayi image download karega
-        const imageUrl = `http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`;
-        setProfileImage(imageUrl);
-        
-        // Optional: LocalStorage mein bhi save kar sakte hain instant access ke liye
-        localStorage.setItem('userPhoto', imageUrl);
+  useEffect(() => {
+    const fetchDashboardProfile = async () => {
+      try {
+        const res = await api.get('/user'); // Backend se data mangwayein
+        if (res.data.profileImage) {
+          // Timestamp (?t=...) add karne se browser hamesha nayi image download karega
+          const imageUrl = `http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`;
+          setProfileImage(imageUrl);
+
+          // Optional: LocalStorage mein bhi save kar sakte hain instant access ke liye
+          localStorage.setItem('userPhoto', imageUrl);
+        }
+      } catch (err) {
+        console.error('Header image fetch error:', err);
       }
-    } catch (err) {
-      console.error('Header image fetch error:', err);
-    }
-  };
-  
-  fetchDashboardProfile();
-}, []);
+    };
+
+    fetchDashboardProfile();
+  }, []);
   // Mock user data with enhanced metrics
   const userStats = {
     totalSessions: 24,
@@ -66,7 +73,7 @@ useEffect(() => {
     completionRate: 94
   };
 
-  
+
   const handleStartInterview = () => {
     onStartInterview();
   };
@@ -89,19 +96,9 @@ useEffect(() => {
     }
   };
 
-  // Helper function to get metric color based on value
-  const getMetricColor = (metric: string, value: number) => {
-    switch (metric) {
-      case 'averageScore':
-        return value >= 80 ? '#10B981' : value >= 60 ? '#F59E0B' : '#EF4444';
-      case 'improvementRate':
-        return value > 0 ? '#10B981' : value === 0 ? '#F59E0B' : '#EF4444';
-      case 'completionRate':
-        return value >= 90 ? '#10B981' : value >= 70 ? '#F59E0B' : '#EF4444';
-      default:
-        return '#10B981';
-    }
-  };
+  const [openPolicyModal, setOpenPolicyModal] = useState<
+    "privacy" | "terms" | null
+  >(null);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -117,17 +114,17 @@ useEffect(() => {
           <div className="flex items-center justify-between">
             {/* Left side - Profile and Welcome */}
             <div className="flex items-center space-x-4">
-              <Avatar 
-                className="h-12 w-12 cursor-pointer transition-all duration-200 hover:ring-2 hover:ring-blue-500/50 hover:shadow-lg" 
+              <Avatar
+                className="h-16 w-16 cursor-pointer transition-all duration-300 hover:scale-110 hover:ring-4 hover:ring-blue-500/70 hover:shadow-2xl"
                 onClick={onProfileClick}
-                style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
+                style={{ boxShadow: '0 0 30px rgba(59, 130, 246, 0.35)' }}
               >
                 <AvatarImage
-  src={profileImage || undefined}
-  alt={username}
-/>
+                  src={profileImage || undefined}
+                  alt={username}
+                />
 
-                <AvatarFallback 
+                <AvatarFallback
                   className="text-white"
                   style={{ backgroundColor: '#3B82F6' }}
                 >
@@ -167,17 +164,17 @@ useEffect(() => {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
-                className="text-sm"
+                className="text-xl"
                 style={{ color: '#9CA3AF' }}
               >
                 Total Sessions
               </CardTitle>
-              <Calendar className="h-4 w-4" style={{ color: '#6B7280' }} />
+              <Calendar className="h-6 w-6" style={{ color: '#3B82F6' }} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl text-white mb-1">{userStats.totalSessions}</div>
+              <div className="text-3xl text-white mb-1">{userStats.totalSessions}</div>
               <p
-                className="text-xs flex items-center"
+                className="text-base flex items-center"
                 style={{ color: '#10B981' }}
               >
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -196,22 +193,21 @@ useEffect(() => {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
-                className="text-sm"
+                className="text-xl"
                 style={{ color: '#9CA3AF' }}
               >
                 Average Score
               </CardTitle>
-              <Target className="h-4 w-4" style={{ color: '#6B7280' }} />
+              <Target className="h-6 w-6" style={{ color: '#10B981' }} />
             </CardHeader>
             <CardContent>
               <div
-                className="text-2xl mb-1"
-                style={{ color: getMetricColor('averageScore', userStats.averageScore) }}
+                className="text-3xl mb-1 text-white"
               >
                 {userStats.averageScore}%
               </div>
               <p
-                className="text-xs flex items-center"
+                className="text-base flex items-center"
                 style={{ color: '#10B981' }}
               >
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -230,17 +226,17 @@ useEffect(() => {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
-                className="text-sm"
+                className="text-xl"
                 style={{ color: '#9CA3AF' }}
               >
                 Hours Completed
               </CardTitle>
-              <Clock className="h-4 w-4" style={{ color: '#6B7280' }} />
+              <Clock className="h-6 w-6" style={{ color: '#F59E0B' }} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl text-white mb-1">{userStats.hoursCompleted}h</div>
+              <div className="text-3xl text-white mb-1">{userStats.hoursCompleted}h</div>
               <p
-                className="text-xs flex items-center"
+                className="text-base flex items-center"
                 style={{ color: '#10B981' }}
               >
                 <TrendingUp className="h-3 w-3 mr-1" />
@@ -259,23 +255,22 @@ useEffect(() => {
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle
-                className="text-sm"
+                className="text-xl"
                 style={{ color: '#9CA3AF' }}
               >
                 Improvement Rate
               </CardTitle>
-              <TrendingUp className="h-4 w-4" style={{ color: '#6B7280' }} />
+              <TrendingUp className="h-6 w-6" style={{ color: '#EF4444' }} />
             </CardHeader>
             <CardContent>
               <div
-                className="text-2xl mb-1"
-                style={{ color: getMetricColor('improvementRate', userStats.improvementRate) }}
+                className="text-3xl mb-1 text-white"
               >
                 +{userStats.improvementRate}%
               </div>
               <p
-                className="text-xs"
-                style={{ color: '#9CA3AF' }}
+                className="text-base"
+                style={{ color: '#10B981' }}
               >
                 Since you started
               </p>
@@ -448,8 +443,7 @@ useEffect(() => {
                 <div className="flex items-center justify-between">
                   <span className="text-white">Last Session Score</span>
                   <span
-                    className="text-lg"
-                    style={{ color: getMetricColor('averageScore', userStats.lastScore) }}
+                    className="text-lg text-white"
                   >
                     {userStats.lastScore}%
                   </span>
@@ -466,8 +460,7 @@ useEffect(() => {
                 <div className="flex items-center justify-between">
                   <span className="text-white">Completion Rate</span>
                   <span
-                    className="text-lg"
-                    style={{ color: getMetricColor('completionRate', userStats.completionRate) }}
+                    className="text-lg text-white"
                   >
                     {userStats.completionRate}%
                   </span>
@@ -544,6 +537,132 @@ useEffect(() => {
           </Card>
         </div>
       </main>
+      <footer
+        className="border-t mt-16"
+        style={{
+          backgroundColor: "#111827",
+          borderColor: "#1F2937",
+        }}
+      >
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-2 md:space-y-0">
+            <div className="flex items-center space-x-1">
+              <span style={{ color: "#6B7280" }}>Version:</span>
+              <span className="text-white">1.2.5</span>
+            </div>
+
+            <div className="flex items-center space-x-4 text-sm">
+              <button
+                style={{ color: "#6B7280" }}
+                onClick={() => setOpenPolicyModal("privacy")}
+                className="transition-colors duration-200"
+                style={{ color: '#6B7280' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+              >
+                Privacy
+              </button>
+
+              <span style={{ color: "#374151" }}>|</span>
+
+              <button
+                style={{ color: "#6B7280" }}
+                onClick={() => setOpenPolicyModal("terms")}
+                className="transition-colors duration-200"
+                style={{ color: '#6B7280' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
+              >
+                Terms
+              </button>
+
+              <span style={{ color: "#374151" }}>|</span>
+
+              <div className="flex items-center space-x-2">
+                <span style={{ color: "#6B7280" }}>Last Synced:</span>
+                <span className="text-white">Just now</span>
+                <div
+                  className="h-2 w-2 rounded-full animate-pulse"
+                  style={{ backgroundColor: "#10B981" }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <Dialog open={!!openPolicyModal} onOpenChange={() => setOpenPolicyModal(null)}>
+        <DialogContent
+          className="max-w-2xl max-h-[80vh] overflow-y-auto"
+          style={{
+            backgroundColor: "#1F2937",
+            border: "1px solid #374151",
+            boxShadow: "0 30px 70px rgba(0,0,0,0.75)",
+            color: "#E5E7EB",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>
+              {openPolicyModal === "privacy"
+                ? "Privacy Policy"
+                : "Terms & Conditions"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="text-base space-y-4 leading-relaxed text-gray-300">
+            {openPolicyModal === "privacy" && (
+              <>
+                <p>
+                  This AI-Powered Mock Interview Platform respects your privacy and is
+                  committed to protecting your personal information.
+                </p>
+
+                <p>
+                  We collect interview responses, performance metrics, session data,
+                  and account details solely to improve learning outcomes and system
+                  accuracy.
+                </p>
+
+                <p>
+                  Your data is processed securely using AI models and is never sold or
+                  shared with third parties for marketing purposes.
+                </p>
+
+                <p>
+                  By using this platform, you consent to the collection and processing
+                  of data as outlined above.
+                </p>
+              </>
+            )}
+
+            {openPolicyModal === "terms" && (
+              <>
+                <p>
+                  By using this AI-Powered Mock Interview Platform, you agree to these
+                  Terms and Conditions.
+                </p>
+
+                <p>
+                  This platform is intended solely for educational and preparation
+                  purposes. AI-generated feedback does not guarantee interview or
+                  employment outcomes.
+                </p>
+
+                <p>
+                  Users must not misuse the system, submit harmful content, or attempt
+                  to manipulate or reverse-engineer platform behavior.
+                </p>
+
+                <p>
+                  We reserve the right to modify or discontinue the service at any
+                  time without prior notice.
+                </p>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
