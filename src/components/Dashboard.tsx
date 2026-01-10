@@ -61,18 +61,32 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
 
     fetchDashboardProfile();
   }, []);
-  // Mock user data with enhanced metrics
-  const userStats = {
-    totalSessions: 24,
-    averageScore: 85,
-    hoursCompleted: 18,
-    improvementRate: 12,
-    lastScore: 92,
-    streakDays: 7,
-    totalQuestions: 156,
-    completionRate: 94
-  };
+  // user data with enhanced metrics
+  const [userStats, setUserStats] = useState({
+    totalSessions: 0,
+    averageScore: 0,
+    hoursCompleted: 0,
+    improvementRate: 0,
+  });
 
+  useEffect(() => {
+    const fetchUserKPIs = async () => {
+      try {
+        const res = await api.get("/user/kpis");
+
+        setUserStats({
+          totalSessions: res.data.total_sessions,
+          averageScore: res.data.average_score,
+          hoursCompleted: res.data.hours_completed,
+          improvementRate: res.data.improvement_rate,
+        });
+      } catch (err) {
+        console.error("Failed to load user KPIs", err);
+      }
+    };
+
+    fetchUserKPIs();
+  }, []);
 
   const handleStartInterview = () => {
     onStartInterview();
@@ -169,7 +183,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               >
                 Total Sessions
               </CardTitle>
-              <Calendar className="h-6 w-6" style={{ color: '#3B82F6' }} />
+              <div
+                className="p-2 rounded-lg"
+                style={{ backgroundColor: '#3B82F620' }} // 20% opacity
+              >
+                <Calendar className="h-6 w-6" style={{ color: '#3B82F6' }} />
+              </div>
+
             </CardHeader>
             <CardContent>
               <div className="text-3xl text-white mb-1">{userStats.totalSessions}</div>
@@ -198,7 +218,10 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               >
                 Average Score
               </CardTitle>
-              <Target className="h-6 w-6" style={{ color: '#10B981' }} />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#10B98120' }}>
+                <Target className="h-6 w-6" style={{ color: '#10B981' }} />
+              </div>
+
             </CardHeader>
             <CardContent>
               <div
@@ -231,7 +254,10 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               >
                 Hours Completed
               </CardTitle>
-              <Clock className="h-6 w-6" style={{ color: '#F59E0B' }} />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#F59E0B20' }}>
+                <Clock className="h-6 w-6" style={{ color: '#F59E0B' }} />
+              </div>
+
             </CardHeader>
             <CardContent>
               <div className="text-3xl text-white mb-1">{userStats.hoursCompleted}h</div>
@@ -260,7 +286,10 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               >
                 Improvement Rate
               </CardTitle>
-              <TrendingUp className="h-6 w-6" style={{ color: '#EF4444' }} />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#EF444420' }}>
+                <TrendingUp className="h-6 w-6" style={{ color: '#EF4444' }} />
+              </div>
+
             </CardHeader>
             <CardContent>
               <div
@@ -500,10 +529,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
-                  <BookOpen className="h-4 w-4 mt-1" style={{ color: '#3B82F6' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: '#3B82F620' }}>
+                    <BookOpen className="h-6 w-6 mt-1" style={{ color: '#3B82F6' }} />
+                  </div>
+
                   <div>
-                    <h4 className="text-white text-sm">Practice Regularly</h4>
-                    <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+                    <h4 className="text-white text-base">Practice Regularly</h4>
+                    <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>
                       Aim for 2-3 sessions per week to build confidence
                     </p>
                   </div>
@@ -512,10 +544,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
-                  <BarChart3 className="h-4 w-4 mt-1" style={{ color: '#10B981' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: '#10B98120' }}>
+                    <BarChart3 className="h-6 w-6" style={{ color: '#10B981' }} />
+                  </div>
+
                   <div>
-                    <h4 className="text-white text-sm">Review Feedback</h4>
-                    <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+                    <h4 className="text-white text-base">Review Feedback</h4>
+                    <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>
                       Study your performance reports to identify areas for improvement
                     </p>
                   </div>
@@ -524,10 +559,13 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                   className="flex items-start space-x-3 p-3 rounded-lg transition-all hover:shadow-md"
                   style={{ backgroundColor: '#374151' }}
                 >
-                  <Users className="h-4 w-4 mt-1" style={{ color: '#F59E0B' }} />
+                  <div className="p-2 rounded-lg" style={{ backgroundColor: '#F59E0B20' }}>
+                    <Users className="h-6 w-6" style={{ color: '#F59E0B' }} />
+                  </div>
+
                   <div>
-                    <h4 className="text-white text-sm">Stay Updated</h4>
-                    <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+                    <h4 className="text-white text-base">Stay Updated</h4>
+                    <p className="text-sm mt-1" style={{ color: '#9CA3AF' }}>
                       Keep practicing with new question types and scenarios
                     </p>
                   </div>

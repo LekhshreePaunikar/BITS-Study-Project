@@ -91,7 +91,7 @@ async function seed() {
     const users = [];
     for (let i = 1; i <= 10; i++) {
       const r = await db.query(
-   
+
         `
         INSERT INTO "User"
           (
@@ -129,7 +129,7 @@ RETURNING user_id, name;
           '1–3 years in backend development',
 
           ['Software Developer', 'Backend Developer'],
-         
+
 
           'Delhi, India',                           // address
           'Backend Developer',                       // preferred_role
@@ -255,7 +255,7 @@ RETURNING user_id, name;
 
     const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 
-        // -------------------------------------------------------
+    // -------------------------------------------------------
     // BASE QUESTIONS + STATIC QUESTIONS (PREDEFINED)
     // -------------------------------------------------------
     log("Inserting BaseQuestion + StaticQuestion...");
@@ -368,9 +368,9 @@ RETURNING user_id, name;
         2,
         ARRAY['APIs', 'React'],
         NOW(),
-        NOW(),
+        NOW() + INTERVAL '30 minutes',
         'easy',
-        NULL
+        80
       )
     `
         , [u.user_id]
@@ -378,6 +378,53 @@ RETURNING user_id, name;
     }
 
     log("Inserted dummy sessions for top 5 users.");
+
+    // -------------------------------------------------------
+    // ADD EXTRA COMPLETED SESSIONS FOR user_id = 2
+    // -------------------------------------------------------
+    log("Creating 3 completed sessions for user_id = 2...");
+
+    const completedSessionsForUser2 = [
+      { minutesAgo: 180, score: 50 }, // 3 hours ago
+      { minutesAgo: 120, score: 60 }, // 2 hours ago
+      { minutesAgo: 60, score: 70 }, // 1 hour ago
+    ];
+
+    for (const s of completedSessionsForUser2) {
+      await db.query(
+        `
+    INSERT INTO "Session"
+      (
+        user_id,
+        interview_mode,
+        question_source,
+        focus_area,
+        prep_time_minutes,
+        keywords,
+        start_time,
+        end_time,
+        selected_difficulty,
+        total_score
+      )
+    VALUES
+      (
+        $1,
+        'text',
+        'predefined',
+        'Backend Development',
+        2,
+        ARRAY['Node.js', 'Databases'],
+        NOW() - ($2 || ' minutes')::INTERVAL,
+        NOW() - ($2 || ' minutes')::INTERVAL + INTERVAL '30 minutes',
+        'medium',
+        $3
+      )
+    `,
+        [2, s.minutesAgo, s.score]
+      );
+    }
+
+    log("Inserted 3 completed sessions for user_id = 2.");
 
     // Evaluation models
     await db.query(

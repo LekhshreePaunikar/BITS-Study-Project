@@ -14,7 +14,6 @@ const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 const adminKpisRoutes = require("./routes/adminKpis");
 
-
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
@@ -75,22 +74,20 @@ const checkLogin = require('./middleware/checkLogin');
 
 // PUBLIC ROUTES
 app.use('/api/auth', require('./routes/auth'));
-app.use('/api/support', require('./routes/supportTicket')); // user creates tickets
+app.use('/api/support', require('./routes/supportTicket'));
 app.use('/api/questions', require('./routes/questions'));
 
 // ADMIN ROUTES
-app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets')); // specific first
-app.use('/api/admin', require('./routes/admin')); // general admin routes
-app.use("/api/admin", require("./routes/adminProfile"));
-app.use("/api/admin", adminKpisRoutes);
+app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets'));
+app.use('/api/admin', require('./routes/admin'));
+app.use('/api/admin', require('./routes/adminProfile'));
+app.use('/api/admin', adminKpisRoutes);
 
 // PROTECTED USER ROUTES
+app.use('/api/user', authenticateToken, checkLogin, require('./routes/userKpis'));
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
-
-
-
 
 
 // ==============================
