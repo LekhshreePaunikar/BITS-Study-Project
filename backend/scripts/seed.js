@@ -270,6 +270,12 @@ RETURNING user_id, name;
         (true, 'easy'),
         (true, 'medium'),
         (true, 'easy'),
+        (true, 'easy'),
+        (true, 'easy'),
+        (true, 'easy'),
+        (true, 'easy'),
+        (true, 'easy'),
+        (true, 'easy'),
         (true, 'medium')
       RETURNING question_id;
     `);
@@ -287,7 +293,13 @@ RETURNING user_id, name;
         ($4, 'Dummy Question-4 for testing', NULL, NULL, NULL),
         ($5, 'Dummy Question-5 for testing', NULL, NULL, NULL),
         ($6, 'Dummy Question-6 for testing', NULL, NULL, NULL),
-        ($7, 'Dummy Question-7 for testing', NULL, NULL, NULL)
+        ($7, 'Dummy Question-7 for testing', NULL, NULL, NULL),
+        ($8, 'Dummy Question-8 for testing', NULL, NULL, NULL),
+        ($9, 'Dummy Question-9 for testing', NULL, NULL, NULL),
+        ($10, 'Dummy Question-10 for testing', NULL, NULL, NULL),
+        ($11, 'Dummy Question-11 for testing', NULL, NULL, NULL),
+        ($12, 'Dummy Question-12 for testing', NULL, NULL, NULL),
+        ($13, 'Dummy Question-113 for testing', NULL, NULL, NULL)
     `, baseIds);
 
     log("Inserted predefined questions (Base + Static)");

@@ -5,8 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Avatar, AvatarFallback } from './ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
+// import { Avatar, AvatarFallback } from './ui/avatar';
+// import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import {
   User,
@@ -69,45 +69,28 @@ type Admin = {
   email: string;
   profile_image: string | null;
 };
+const BASELINE_COUNT = 10;
+const BASELINE_SESSION_MIN = 10;
+
+const calculateTrend = (actual: number, baseline: number) => {
+  const diff = actual - baseline;
+  const percent = Math.round((diff / baseline) * 100);
+  return percent >= 0 ? `+${percent}%` : `${percent}%`;
+};
+
+const trendColor = (trend: string) =>
+  trend.startsWith("+") ? "#10B981" : "#EF4444";
 
 export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicket, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
-  // Mock metrics data
-  const metricsData: MetricCard[] = [
-    {
-      title: 'Questions Added',
-      value: '1,247',
-      subtitle: '+23 this week',
-      icon: <BookOpen className="h-6 w-6" />,
-      color: '#3B82F6',
-      trend: '+12%'
-    },
-    {
-      title: 'Support Tickets Generated',
-      value: '34',
-      subtitle: '8 pending review',
-      icon: <Flag className="h-6 w-6" />,
-      color: '#EF4444',
-      trend: '-5%'
-    },
-    {
-      title: 'Active Users',
-      value: '8,932',
-      subtitle: '2,341 online now',
-      icon: <Users className="h-6 w-6" />,
-      color: '#10B981',
-      trend: '+18%'
-    },
-    {
-      title: 'Avg. Session Time',
-      value: '24.5 min',
-      subtitle: 'across all levels',
-      icon: <Clock className="h-6 w-6" />,
-      color: '#F59E0B',
-      trend: '+3%'
-    }
-  ];
 
   // Admin action handlers
+    const [kpiData, setKpiData] = useState({
+    questionsLastWeek: 0,
+    ticketsLastWeek: 0,
+    usersLastWeek: 0,
+    avgSessionMinutes: 0,
+  });
+
   const handleManageQuestions = () => {
     if (onManageQuestions) {
       onManageQuestions();
@@ -172,6 +155,25 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     fetchAdminProfile();
   }, []);
 
+  useEffect(() => {
+    const fetchAdminKPIs = async () => {
+      try {
+        const res = await api.get("/admin/kpis/weekly");
+
+        setKpiData({
+          questionsLastWeek: res.data.questions_last_week,
+          ticketsLastWeek: res.data.tickets_last_week,
+          usersLastWeek: res.data.users_last_week,
+          avgSessionMinutes: res.data.avg_session_minutes,
+        });
+      } catch (err) {
+        console.error("Failed to load admin KPI data", err);
+      }
+    };
+
+    fetchAdminKPIs();
+  }, []);
+
   //  ADD THIS BLOCK — REQUIRED
   if (loading || !admin) {
     return (
@@ -181,7 +183,41 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     );
   }
 
-
+  // Metrics data
+  const metricsData: MetricCard[] = [
+    {
+      title: "Questions Added",
+      value: kpiData.questionsLastWeek.toLocaleString(),
+      subtitle: "Last 7 days",
+      icon: <BookOpen className="h-6 w-6" />,
+      color: "#3B82F6",
+      trend: calculateTrend(kpiData.questionsLastWeek, BASELINE_COUNT),
+    },
+    {
+      title: "Support Tickets Generated",
+      value: kpiData.ticketsLastWeek.toString(),
+      subtitle: "Last 7 days",
+      icon: <Flag className="h-6 w-6" />,
+      color: "#EF4444",
+      trend: calculateTrend(kpiData.ticketsLastWeek, BASELINE_COUNT),
+    },
+    {
+      title: "Active Users",
+      value: kpiData.usersLastWeek.toLocaleString(),
+      subtitle: "Active in last 7 days",
+      icon: <Users className="h-6 w-6" />,
+      color: "#10B981",
+      trend: calculateTrend(kpiData.usersLastWeek, BASELINE_COUNT),
+    },
+    {
+      title: "Avg. Session Time",
+      value: `${kpiData.avgSessionMinutes.toFixed(1)} min`,
+      subtitle: "Last 7 days",
+      icon: <Clock className="h-6 w-6" />,
+      color: "#F59E0B",
+      trend: calculateTrend(kpiData.avgSessionMinutes, BASELINE_SESSION_MIN),
+    },
+  ];
   const adminActions: AdminAction[] = [
     {
       title: 'Manage Questions',
@@ -303,10 +339,10 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
                         </div>
                       </div>
                       <div
-                        className="text-sm px-2 py-1 rounded flex items-center"
+                        className="text-xl px-2 py-1 rounded flex items-center"
                         style={{
-                          backgroundColor: metric.trend?.startsWith('+') ? 'rgba(16, 185, 129, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                          color: metric.trend?.startsWith('+') ? '#10B981' : '#EF4444'
+                          backgroundColor: trendColor(metric.trend || "+0%") + "20",
+                          color: trendColor(metric.trend || "+0%")
                         }}
                       >
                         {metric.trend?.startsWith('+') ?
@@ -317,13 +353,13 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-2xl text-white mb-1">
+                      <h3 className="text-3xl text-white mb-1">
                         {metric.value}
                       </h3>
-                      <p className="text-sm" style={{ color: '#6B7280' }}>
+                      <p className="text-lg" style={{ color: '#ffffff' }}>
                         {metric.title}
                       </p>
-                      <p className="text-xs mt-1" style={{ color: '#9CA3AF' }}>
+                      <p className="text-base mt-1" style={{ color: '#9CA3AF' }}>
                         {metric.subtitle}
                       </p>
                     </div>
@@ -354,10 +390,10 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
                         >
                           {action.icon}
                         </div>
-                        <h3 className="text-xl text-white mb-2">
+                        <h3 className="text-2xl text-white mb-2">
                           {action.title}
                         </h3>
-                        <p className="text-sm" style={{ color: '#6B7280' }}>
+                        <p className="text-base" style={{ color: '#6B7280' }}>
                           {action.description}
                         </p>
                         <div

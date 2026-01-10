@@ -12,6 +12,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
+const adminKpisRoutes = require("./routes/adminKpis");
 
 
 // Load environment variables
@@ -81,6 +82,7 @@ app.use('/api/questions', require('./routes/questions'));
 app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets')); // specific first
 app.use('/api/admin', require('./routes/admin')); // general admin routes
 app.use("/api/admin", require("./routes/adminProfile"));
+app.use("/api/admin", adminKpisRoutes);
 
 // PROTECTED USER ROUTES
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
