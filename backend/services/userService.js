@@ -12,6 +12,7 @@ exports.getUserProfile = async (userId) => {
         name,
         email,
         profile_image,
+        resume_path,
         phone_number,
         location,
         gender,
@@ -39,12 +40,13 @@ exports.getUserProfile = async (userId) => {
     fullName: u.name,
     email: u.email,
     profileImage: u.profile_image,
+    resumePath: u.resume_path,
     phone_number: u.phone_number,
     location: u.location,
     gender: u.gender,
     education: u.education,
     university: u.university,
-    graduationYear: u.graduation_year,
+    graduation_year: u.graduation_year,
     experienceLevel: u.experience_level,
     preferredRole: u.preferred_role,
     skills: u.skills || [],
@@ -61,57 +63,59 @@ exports.getUserProfile = async (userId) => {
 // ==============================
 exports.updateUserProfile = async (userId, data) => {
   const {
-    fullName, email, gender, phone_number, location,
+    fullName, gender, phone_number, location,
     preferredRole, skills, programmingLanguages, experienceLevel,
-    education, university, graduationYear,
+    education, university, graduation_year, 
     hobbies, linkedinProfile, githubProfile, portfolio
   } = data;
+
+  // Sanitize numeric fields - convert empty strings to null
+  const sanitizedGraduationYear = graduation_year && graduation_year !== '' 
+    ? parseInt(graduation_year, 10) 
+    : null;
 
   const sql = `
     UPDATE "User"
     SET
       name = $1,
-      email = $2,
-      phone_number = $3,
-      location = $4,
-      gender = $5,
-      preferred_role = $6,
-      skills = $7,
-      programming_languages = $8,
-      experience_level = $9,
-      education = $10,
-      university = $11,
-      graduation_year = $12,
-      hobbies = $13,
-      linkedin_profile = $14,
-      github_profile = $15,
-      portfolio = $16,
+      phone_number = $2,
+      location = $3,
+      gender = $4,
+      preferred_role = $5,
+      skills = $6,
+      programming_languages = $7,
+      experience_level = $8,
+      education = $9,
+      university = $10,
+      graduation_year = $11,
+      hobbies = $12,
+      linkedin_profile = $13,
+      github_profile = $14,
+      portfolio = $15,
       updated_at = NOW()
-    WHERE user_id = $17
+    WHERE user_id = $16
   `;
 
   const params = [
-    fullName,
-    email,
-    phone_number,
-    location,
-    gender,
+    fullName, 
+    phone_number || null,  // Handle empty phone numbers
+    location, 
+    gender, 
     preferredRole,
-    skills,
-    programmingLanguages,
-    experienceLevel,
+    skills, 
+    programmingLanguages, 
+    experienceLevel, 
     education,
-    university,
-    graduationYear,
-    hobbies,
+    university, 
+    sanitizedGraduationYear,  // Use sanitized value
+    hobbies, 
     linkedinProfile,
-    githubProfile,
-    portfolio,
+    githubProfile, 
+    portfolio, 
     userId
   ];
 
   await query(sql, params);
-
   return { success: true };
 };
 
@@ -140,4 +144,3 @@ exports.updateProfileImage = async (userId, imagePath) => {
 
   return { success: true };
 };
-

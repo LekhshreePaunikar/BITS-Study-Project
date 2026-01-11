@@ -28,30 +28,32 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
-const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+// const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+//   const file = e.target.files?.[0];
+//   if (!file) return;
 
-  if (file.type !== 'application/pdf') {
-    alert('Only PDF resumes are allowed');
-    return;
-  }
+//   if (file.type !== 'application/pdf') {
+//     alert('Only PDF resumes are allowed');
+//     return;
+//   }
 
-  const formData = new FormData();
-  formData.append('resume', file);
+//   const formData = new FormData();
+//   formData.append('resume', file);
 
-  try {
-    const res = await uploadResume(formData);
-    setResumePreview(res.resume_path);
-  } catch (err) {
-    alert('Failed to upload resume');
-  }
-};
+//   try {
+//     const res = await uploadResume(formData);
+//     setResumePreview(res.resume_path);
+//   } catch (err) {
+//     alert('Failed to upload resume');
+//   }
+// };
 
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [resumePreview, setResumePreview] = useState<string | null>(null);
+  const [localResumePreview, setLocalResumePreview] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const handleProfileImageChange = async (
   e: React.ChangeEvent<HTMLInputElement>
 ) => {
@@ -99,7 +101,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     // Education & Background
     education: '',
     university: '',
-    graduationYear: '',
+    graduation_year: '',
 
     // Additional Information
     hobbies: '',
@@ -111,8 +113,10 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     resumeFile: null as File | null
   }));
 
+  
   useEffect(() => {
     const fetchProfile = async () => {
+      setIsLoading(true);
       try {
         const token = localStorage.getItem('authToken');
         if (!token) {
@@ -122,12 +126,19 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
 
         // GET /api/profile  (axios instance already has /api base usually)
         const res = await api.get('/user');
-        const data = res.data; // this is what userService.getUserProfile returns
-        // ✅ load saved profile image if exists
+        const data = res.data;
+        console.log('Fetched profile data:', data); // Debug log
+
 if (data.profileImage) {
   setProfileImage(`http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`);
 }
 
+// const res = await api.get('/user');
+// const data = res.data;
+
+if (data.resumePath) {
+  setResumePreview(`http://localhost:3001${data.resumePath}`);
+}
 
 
         // Normalize null → '' and ensure arrays:
@@ -147,7 +158,7 @@ if (data.profileImage) {
 
           education: data.education || '',
           university: data.university || '',
-          graduationYear: data.graduationYear || '',
+          graduation_year: data.graduation_year || '',
 
           hobbies: data.hobbies || '',
           linkedinProfile: data.linkedinProfile || '',
@@ -158,14 +169,35 @@ if (data.profileImage) {
           resumeFile: null
         };
 
-        setProfileData(prev => ({
-          ...prev,
-          ...normalized
-        }));
-      } catch (err) {
+        setProfileData({
+  fullName: data.fullName || username || '',
+  email: data.email || '',
+  password: '********',
+  gender: data.gender || '',
+  phone_number: data.phone_number || '',
+  location: data.location || '',
+  preferredRole: data.preferredRole || '',
+  skills: Array.isArray(data.skills) ? data.skills : [],
+  programmingLanguages: Array.isArray(data.programmingLanguages) ? data.programmingLanguages : [],
+  experienceLevel: data.experienceLevel || '',
+  education: data.education || '',
+  university: data.university || '',
+  graduation_year: data.graduation_year ? String(data.graduation_year) : '',
+  hobbies: data.hobbies || '',
+  linkedinProfile: data.linkedinProfile || '',
+  githubProfile: data.githubProfile || '',
+  portfolio: data.portfolio || '',
+  resumeFile: null
+});
+
+}catch (err) {
         console.error('Error fetching profile:', err);
         // optional: toast / alert but not required
       }
+      finally {
+  setIsLoading(false);
+}
+      
     };
 
     fetchProfile();
@@ -261,33 +293,23 @@ if (data.profileImage) {
     }));
   };
 
-  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleResumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (file.type !== "application/pdf") {
-      alert("Only PDF resumes are allowed");
+    if (file.type !== 'application/pdf') {
+      alert('Only PDF files are allowed');
       return;
     }
 
-    try {
-      const formData = new FormData();
-      formData.append("resume", file);
+    // Store the file for later upload
+    setProfileData(prev => ({
+      ...prev,
+      resumeFile: file
+    }));
 
-      const res = await api.post("/user/resume", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      setResumePreview(res.data.resumePath);
-
-      setProfileData(prev => ({
-        ...prev,
-        resumeFile: file
-      }));
-    } catch (err) {
-      console.error(err);
-      alert("Resume upload failed");
-    }
+    // Show local preview
+    setLocalResumePreview(URL.createObjectURL(file));
   };
 
 
@@ -302,9 +324,27 @@ if (data.profileImage) {
     }
 
     try {
-      // assuming api has baseURL like /api
-      const { resumeFile, ...payload } = profileData;
+      // 1. Upload resume first if a new file was selected
+      if (profileData.resumeFile) {
+        const formData = new FormData();
+        formData.append("resume", profileData.resumeFile);
+
+        const resumeRes = await api.post("/user/resume", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        // Update saved resume preview
+        setResumePreview(`http://localhost:3001${resumeRes.data.resume_path}`);
+        // Clear local preview after successful upload
+        setLocalResumePreview(null);
+      }
+
+      // 2. Update profile data
+      const { resumeFile, password, email, ...payload } = profileData;
+console.log('Sending payload to backend:', payload); // Debug log
       await api.put("/user", payload);
+      
+      // ✅ Only show success alert AFTER everything is saved
       alert("Profile saved successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -312,6 +352,13 @@ if (data.profileImage) {
     }
   };
 
+  if (isLoading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
+      <p className="text-white text-xl">Loading profile...</p>
+    </div>
+  );
+}
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
@@ -519,7 +566,7 @@ if (data.profileImage) {
                   id="phone_number"
                   placeholder="Enter your phone number"
                   value={profileData.phone_number}
-                  onChange={(e) => handleInputChange('phone', e.target.value)}
+                  onChange={(e) => handleInputChange('phone_number', e.target.value)}
                   className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
                   style={{
                     backgroundColor: '#374151',
@@ -738,16 +785,16 @@ if (data.profileImage) {
 
               <div className="space-y-2">
                 <Label
-                  htmlFor="graduationYear"
+                  htmlFor="graduation_year"
                   style={{ color: '#9CA3AF' }}
                 >
                   Graduation Year
                 </Label>
                 <Input
-                  id="graduationYear"
+                  id="graduation_year"
                   placeholder="e.g., 2024"
-                  value={profileData.graduationYear}
-                  onChange={(e) => handleInputChange('graduationYear', e.target.value)}
+                  value={profileData.graduation_year}
+                  onChange={(e) => handleInputChange('graduation_year', e.target.value)}
                   className="transition-all duration-200 hover:shadow-md focus:shadow-lg text-white"
                   style={{
                     backgroundColor: '#374151',
@@ -770,7 +817,7 @@ if (data.profileImage) {
             <CardHeader>
               <CardTitle style={{ color: '#9CA3AF' }}>Resume</CardTitle>
               <CardDescription style={{ color: '#9CA3AF' }}>
-                Upload your resume (PDF or DOC format)
+                Upload your resume (PDF only)
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -787,11 +834,14 @@ if (data.profileImage) {
                     Drag and drop your resume here, or click to browse
                   </p>
                   <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleResumeUpload}
-                  />
+  id="resume-upload"
+  type="file"
+  accept=".pdf"
+  onChange={handleResumeChange}
+/>
+
                   <Button
+                    type="button"
                     variant="outline"
                     onClick={() => document.getElementById('resume-upload')?.click()}
                     className="transition-all duration-200 hover:scale-105"
@@ -808,19 +858,35 @@ if (data.profileImage) {
                       Selected: {profileData.resumeFile.name}
                     </p>
                   )}
-                  {resumePreview && (
-                    <p className="text-sm mt-2">
-                      <a
-                        href={resumePreview}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="underline"
-                        style={{ color: "#60A5FA" }}
-                      >
-                        View uploaded resume
-                      </a>
-                    </p>
-                  )}
+                  {/* Instant preview BEFORE save */}
+{localResumePreview && (
+  <p className="text-sm mt-2">
+    <a
+      href={localResumePreview}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline"
+      style={{ color: "#60A5FA" }}
+    >
+      Preview selected resume
+    </a>
+  </p>
+)}
+
+{/* Saved preview AFTER save */}
+{resumePreview && (
+  <p className="text-sm mt-2">
+    <a
+      href={resumePreview}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="underline"
+      style={{ color: "#34D399" }}
+    >
+      View saved resume
+    </a>
+  </p>
+)}
 
                 </div>
               </div>

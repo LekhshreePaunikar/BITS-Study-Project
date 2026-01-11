@@ -18,24 +18,14 @@ const storage = multer.diskStorage({
 
   filename: (req, file, cb) => {
     const userId = req.user.id || req.user.userId;
-    const ext = path.extname(file.originalname).toLowerCase();
 
     // Always overwrite with same name
-    const filename = `user-${userId}-resume${ext}`;
+    const filename = `user-${userId}-resume.pdf`;
     cb(null, filename);
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype !== 'application/pdf') {
-    return cb(new Error('Only PDF files are allowed'), false);
-  }
-  cb(null, true);
-};
+const uploadResume = multer({ storage });
 
-const uploadResume = multer({
-  storage,
-  fileFilter
-});
 
 module.exports = uploadResume;
