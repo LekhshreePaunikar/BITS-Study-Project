@@ -69,7 +69,6 @@ exports.updateUserProfile = async (userId, data) => {
     hobbies, linkedinProfile, githubProfile, portfolio
   } = data;
 
-  // Sanitize numeric fields - convert empty strings to null
   const sanitizedGraduationYear = graduation_year && graduation_year !== '' 
     ? parseInt(graduation_year, 10) 
     : null;
@@ -98,7 +97,7 @@ exports.updateUserProfile = async (userId, data) => {
 
   const params = [
     fullName, 
-    phone_number || null,  // Handle empty phone numbers
+    phone_number || null,  
     location, 
     gender, 
     preferredRole,
@@ -107,7 +106,7 @@ exports.updateUserProfile = async (userId, data) => {
     experienceLevel, 
     education,
     university, 
-    sanitizedGraduationYear,  // Use sanitized value
+    sanitizedGraduationYear,  
     hobbies, 
     linkedinProfile,
     githubProfile, 

@@ -28,25 +28,6 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
-// const handleResumeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-//   const file = e.target.files?.[0];
-//   if (!file) return;
-
-//   if (file.type !== 'application/pdf') {
-//     alert('Only PDF resumes are allowed');
-//     return;
-//   }
-
-//   const formData = new FormData();
-//   formData.append('resume', file);
-
-//   try {
-//     const res = await uploadResume(formData);
-//     setResumePreview(res.resume_path);
-//   } catch (err) {
-//     alert('Failed to upload resume');
-//   }
-// };
 
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -66,7 +47,6 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     return;
   }
 
-  // 🔥 instant preview
   setProfileImage(URL.createObjectURL(file));
 
   try {
@@ -124,7 +104,6 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
           return;
         }
 
-        // GET /api/profile  (axios instance already has /api base usually)
         const res = await api.get('/user');
         const data = res.data;
         console.log('Fetched profile data:', data); // Debug log
@@ -133,19 +112,14 @@ if (data.profileImage) {
   setProfileImage(`http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`);
 }
 
-// const res = await api.get('/user');
-// const data = res.data;
-
 if (data.resumePath) {
   setResumePreview(`http://localhost:3001${data.resumePath}`);
 }
 
-
-        // Normalize null → '' and ensure arrays:
         const normalized = {
           fullName: data.fullName || username || '',
           email: data.email || '',
-          password: '********', // never show real password, just non-null placeholder
+          password: '********', 
 
           gender: data.gender || '',
           phone_number: data.phone_number || '',
@@ -165,7 +139,6 @@ if (data.resumePath) {
           githubProfile: data.githubProfile || '',
           portfolio: data.portfolio || '',
 
-          // resumeFile stays null because backend doesn't handle it yet
           resumeFile: null
         };
 
@@ -192,7 +165,6 @@ if (data.resumePath) {
 
 }catch (err) {
         console.error('Error fetching profile:', err);
-        // optional: toast / alert but not required
       }
       finally {
   setIsLoading(false);
@@ -341,10 +313,9 @@ if (data.resumePath) {
 
       // 2. Update profile data
       const { resumeFile, password, email, ...payload } = profileData;
-console.log('Sending payload to backend:', payload); // Debug log
+console.log('Sending payload to backend:', payload); 
       await api.put("/user", payload);
       
-      // ✅ Only show success alert AFTER everything is saved
       alert("Profile saved successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
