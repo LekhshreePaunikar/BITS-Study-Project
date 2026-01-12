@@ -17,45 +17,45 @@ router.get('/dashboard', async (req, res) => {
     const userStatsResult = await query(`
       SELECT 
         COUNT(*) as total_users,
-        COUNT(CASE WHEN is_active = true THEN 1 END) as active_users,
+        COUNT(CASE WHEN is_blacklisted = false THEN 1 END) as active_users,
         COUNT(CASE WHEN created_at >= CURRENT_DATE - INTERVAL '30 days' THEN 1 END) as new_users_30d
-      FROM users
+      FROM "User"
     `);
 
     // Get session statistics
     const sessionStatsResult = await query(`
       SELECT 
         COUNT(*) as total_sessions,
-        COUNT(CASE WHEN session_status = 'completed' THEN 1 END) as completed_sessions,
-        COUNT(CASE WHEN started_at >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as sessions_7d,
-        AVG(CASE WHEN overall_score IS NOT NULL THEN overall_score END) as avg_score
-      FROM interview_sessions
+        COUNT(CASE WHEN end_time IS NOT NULL THEN 1 END) as completed_sessions,
+        COUNT(CASE WHEN start_time >= CURRENT_DATE - INTERVAL '7 days' THEN 1 END) as sessions_7d,
+        AVG(CASE WHEN total_score IS NOT NULL THEN total_score END) as avg_score
+      FROM "Session"
     `);
 
     // Get question statistics
     const questionStatsResult = await query(`
       SELECT 
         COUNT(*) as total_questions,
-        COUNT(CASE WHEN is_active = true THEN 1 END) as active_questions,
-        COUNT(DISTINCT category) as categories
-      FROM questions
+        COUNT(CASE WHEN is_predefined = true THEN 1 END) as predefined_questions,
+        COUNT(DISTINCT difficulty) as difficulty_levels
+      FROM "BaseQuestion"
     `);
 
-    // Get recent activity
+    // Get recent activity (sessions in last 24 hours)
     const recentActivityResult = await query(`
       SELECT 
         'session' as activity_type,
-        u.username,
-        s.started_at as activity_time,
+        u.name as username,
+        s.start_time as activity_time,
         json_build_object(
-          'sessionId', s.id,
-          'status', s.session_status,
-          'score', s.overall_score
+          'sessionId', s.session_id,
+          'mode', s.interview_mode,
+          'score', s.total_score
         ) as activity_data
-      FROM interview_sessions s
-      JOIN users u ON s.user_id = u.id
-      WHERE s.started_at >= CURRENT_DATE - INTERVAL '24 hours'
-      ORDER BY s.started_at DESC
+      FROM "Session" s
+      JOIN "User" u ON s.user_id = u.user_id
+      WHERE s.start_time >= CURRENT_DATE - INTERVAL '24 hours'
+      ORDER BY s.start_time DESC
       LIMIT 10
     `);
 
@@ -78,8 +78,8 @@ router.get('/dashboard', async (req, res) => {
         },
         questionStats: {
           totalQuestions: parseInt(questionStats.total_questions),
-          activeQuestions: parseInt(questionStats.active_questions),
-          categories: parseInt(questionStats.categories)
+          predefinedQuestions: parseInt(questionStats.predefined_questions),
+          difficultyLevels: parseInt(questionStats.difficulty_levels)
         },
         recentActivity: recentActivityResult.rows.map(activity => ({
           type: activity.activity_type,
@@ -109,50 +109,74 @@ router.get('/users', async (req, res) => {
     let paramCount = 1;
 
     if (search) {
-      whereClause += ` AND (username ILIKE $${paramCount} OR email ILIKE $${paramCount} OR full_name ILIKE $${paramCount})`;
+      whereClause += ` AND (u.name ILIKE $${paramCount} OR u.email ILIKE $${paramCount} OR CONCAT('USER', LPAD(u.user_id::text, 4, '0')) ILIKE $${paramCount})`;
       params.push(`%${search}%`);
       paramCount++;
     }
 
-    if (active !== undefined) {
-      whereClause += ` AND is_active = $${paramCount++}`;
-      params.push(active === 'true');
+    if (active !== undefined && active !== 'all') {
+      const isBlacklisted = active === 'false' || active === 'inactive';
+      whereClause += ` AND u.is_blacklisted = $${paramCount}`;
+      params.push(isBlacklisted);
+      paramCount++;
     }
 
-    // Add pagination parameters
     params.push(limit, offset);
 
     const usersResult = await query(`
       SELECT 
-        u.id, u.username, u.email, u.full_name, u.is_admin, u.is_active, u.created_at,
-        COUNT(s.id) as session_count,
-        AVG(s.overall_score) as avg_score
-      FROM users u
-      LEFT JOIN interview_sessions s ON u.id = s.user_id AND s.session_status = 'completed'
+        u.user_id,
+        u.name,
+        u.email,
+        u.is_admin,
+        u.is_blacklisted,
+        u.created_at,
+        u.profile_image,
+        u.preferred_roles,
+        u.updated_at as last_login,
+        COUNT(DISTINCT s.session_id) as session_count,
+        COALESCE(AVG(s.total_score), 0) as avg_score,
+        CASE 
+          WHEN u.university IS NOT NULL AND u.graduation_year IS NOT NULL 
+            AND u.skills IS NOT NULL AND array_length(u.skills, 1) > 0 
+          THEN 100
+          WHEN u.university IS NOT NULL OR u.graduation_year IS NOT NULL 
+          THEN 50
+          ELSE 0
+        END as profile_completion_percentage
+      FROM "User" u
+      LEFT JOIN "Session" s ON u.user_id = s.user_id
       ${whereClause}
-      GROUP BY u.id
+      GROUP BY u.user_id
       ORDER BY u.created_at DESC
-      LIMIT $${paramCount++} OFFSET $${paramCount}
+      LIMIT $${paramCount} OFFSET $${paramCount + 1}
     `, params);
 
-    // Get total count
     const countResult = await query(`
-      SELECT COUNT(*) as total FROM users ${whereClause}
-    `, params.slice(0, -2)); // Remove limit and offset params
+      SELECT COUNT(*) as total FROM "User" u ${whereClause}
+    `, params.slice(0, -2));
 
     const totalUsers = parseInt(countResult.rows[0].total);
     const totalPages = Math.ceil(totalUsers / limit);
 
     res.json({
       users: usersResult.rows.map(user => ({
-        id: user.id,
-        username: user.username,
+        id: user.user_id,
+        displayId: `USER${String(user.user_id).padStart(4, '0')}`,
+        name: user.name,
         email: user.email,
-        fullName: user.full_name,
         isAdmin: user.is_admin,
-        isActive: user.is_active,
+        isBlacklisted: user.is_blacklisted,
+        status: user.is_blacklisted ? 'Inactive' : 'Active',
         createdAt: user.created_at,
-        sessionCount: parseInt(user.session_count),
+        lastLogin: user.last_login,
+        role: user.preferred_roles || 'Not Specified',
+        profileImage: user.profile_image,
+        profileCompletion: {
+          percentage: parseInt(user.profile_completion_percentage),
+          status: parseInt(user.profile_completion_percentage) >= 100 ? 'Complete' : 'Incomplete'
+        },
+        sessionCount: parseInt(user.session_count) || 0,
         averageScore: parseFloat(user.avg_score) || 0
       })),
       pagination: {
@@ -172,7 +196,7 @@ router.get('/users', async (req, res) => {
   }
 });
 
-// Toggle user active status
+// Toggle user blacklist status (replaces toggle-status)
 router.put('/users/:userId/toggle-status', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
@@ -184,19 +208,19 @@ router.put('/users/:userId/toggle-status', async (req, res) => {
       });
     }
 
-    // Don't allow admin to deactivate themselves
+    // Don't allow admin to blacklist themselves
     if (userId === req.user.id) {
       return res.status(400).json({
         message: 'Cannot modify own status',
-        error: 'Administrators cannot deactivate their own accounts'
+        error: 'Administrators cannot blacklist their own accounts'
       });
     }
 
     const result = await query(`
-      UPDATE users 
-      SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP 
-      WHERE id = $1 
-      RETURNING id, username, is_active
+      UPDATE "User"
+      SET is_blacklisted = NOT is_blacklisted, updated_at = NOW()
+      WHERE user_id = $1 
+      RETURNING user_id, name, is_blacklisted
     `, [userId]);
 
     if (result.rows.length === 0) {
@@ -208,24 +232,12 @@ router.put('/users/:userId/toggle-status', async (req, res) => {
 
     const user = result.rows[0];
 
-    // Log admin action
-    await query(`
-      INSERT INTO admin_logs (admin_user_id, action, target_user_id, details, ip_address)
-      VALUES ($1, $2, $3, $4, $5)
-    `, [
-      req.user.id,
-      user.is_active ? 'activate_user' : 'deactivate_user',
-      userId,
-      { username: user.username },
-      req.ip
-    ]);
-
     res.json({
-      message: `User ${user.is_active ? 'activated' : 'deactivated'} successfully`,
+      message: `User ${user.is_blacklisted ? 'blacklisted' : 'activated'} successfully`,
       user: {
-        id: user.id,
-        username: user.username,
-        isActive: user.is_active
+        id: user.user_id,
+        name: user.name,
+        isBlacklisted: user.is_blacklisted
       }
     });
   } catch (error) {
@@ -260,13 +272,13 @@ router.get('/analytics', async (req, res) => {
     // Session analytics
     const sessionAnalyticsResult = await query(`
       SELECT 
-        DATE(started_at) as date,
+        DATE(start_time) as date,
         COUNT(*) as total_sessions,
-        COUNT(CASE WHEN session_status = 'completed' THEN 1 END) as completed_sessions,
-        AVG(CASE WHEN overall_score IS NOT NULL THEN overall_score END) as avg_score
-      FROM interview_sessions
-      WHERE started_at >= CURRENT_DATE - ${intervalClause}
-      GROUP BY DATE(started_at)
+        COUNT(CASE WHEN end_time IS NOT NULL THEN 1 END) as completed_sessions,
+        AVG(CASE WHEN total_score IS NOT NULL THEN total_score END) as avg_score
+      FROM "Session"
+      WHERE start_time >= CURRENT_DATE - ${intervalClause}
+      GROUP BY DATE(start_time)
       ORDER BY date DESC
     `);
 
@@ -275,26 +287,20 @@ router.get('/analytics', async (req, res) => {
       SELECT 
         DATE(created_at) as date,
         COUNT(*) as new_users
-      FROM users
+      FROM "User"
       WHERE created_at >= CURRENT_DATE - ${intervalClause}
       GROUP BY DATE(created_at)
       ORDER BY date DESC
     `);
 
-    // Question category performance
-    const categoryPerformanceResult = await query(`
+    // Question difficulty distribution
+    const difficultyDistributionResult = await query(`
       SELECT 
-        q.category,
-        COUNT(sq.id) as times_asked,
-        AVG(sq.score) as avg_score,
-        AVG(sq.time_spent) as avg_time
-      FROM session_questions sq
-      JOIN questions q ON sq.question_id = q.id
-      JOIN interview_sessions s ON sq.session_id = s.id
-      WHERE s.started_at >= CURRENT_DATE - ${intervalClause}
-        AND sq.score IS NOT NULL
-      GROUP BY q.category
-      ORDER BY times_asked DESC
+        difficulty,
+        COUNT(*) as question_count
+      FROM "BaseQuestion"
+      GROUP BY difficulty
+      ORDER BY question_count DESC
     `);
 
     res.json({
@@ -310,11 +316,9 @@ router.get('/analytics', async (req, res) => {
           date: row.date,
           newUsers: parseInt(row.new_users)
         })),
-        categoryPerformance: categoryPerformanceResult.rows.map(row => ({
-          category: row.category,
-          timesAsked: parseInt(row.times_asked),
-          averageScore: parseFloat(row.avg_score) || 0,
-          averageTime: parseFloat(row.avg_time) || 0
+        difficultyDistribution: difficultyDistributionResult.rows.map(row => ({
+          difficulty: row.difficulty,
+          count: parseInt(row.question_count)
         }))
       }
     });
@@ -327,73 +331,169 @@ router.get('/analytics', async (req, res) => {
   }
 });
 
-// Get admin logs
-router.get('/logs', async (req, res) => {
+// View specific user details (personal, professional, performance)
+router.get('/view_user/:userId', async (req, res) => {
   try {
-    const { page = 1, limit = 50, action } = req.query;
-    const offset = (page - 1) * limit;
+    const userId = parseInt(req.params.userId);
 
-    let whereClause = 'WHERE 1=1';
-    let params = [];
-    let paramCount = 1;
-
-    if (action) {
-      whereClause += ` AND action = $${paramCount++}`;
-      params.push(action);
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        message: 'Invalid user ID',
+        error: 'User ID must be a number'
+      });
     }
 
-    // Add pagination parameters
-    params.push(limit, offset);
-
-    const logsResult = await query(`
+    // Get user personal and professional details (NO PASSWORD)
+    const userResult = await query(`
       SELECT 
-        l.*,
-        a.username as admin_username,
-        t.username as target_username
-      FROM admin_logs l
-      JOIN users a ON l.admin_user_id = a.id
-      LEFT JOIN users t ON l.target_user_id = t.id
-      ${whereClause}
-      ORDER BY l.created_at DESC
-      LIMIT $${paramCount++} OFFSET $${paramCount}
-    `, params);
+        user_id,
+        name,
+        gender,
+        email,
+        profile_image,
+        university,
+        graduation_year,
+        phone_number,
+        education,
+        experience,
+        preferred_roles,
+        skills,
+        programming_languages,
+        location,
+        hobbies,
+        linkedin_profile,
+        github_profile,
+        portfolio,
+        is_admin,
+        is_blacklisted,
+        created_at
+      FROM "User"
+      WHERE user_id = $1
+    `, [userId]);
 
-    // Get total count
-    const countResult = await query(`
-      SELECT COUNT(*) as total FROM admin_logs ${whereClause}
-    `, params.slice(0, -2)); // Remove limit and offset params
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        message: 'User not found',
+        error: 'User does not exist'
+      });
+    }
 
-    const totalLogs = parseInt(countResult.rows[0].total);
-    const totalPages = Math.ceil(totalLogs / limit);
+    const user = userResult.rows[0];
+
+    // Get performance statistics
+    const performanceResult = await query(`
+      SELECT 
+        COUNT(*) as total_attempts,
+        AVG(total_score) as average_score,
+        MAX(total_score) as best_score,
+        MIN(total_score) as lowest_score
+      FROM "Session"
+      WHERE user_id = $1 AND total_score IS NOT NULL
+    `, [userId]);
+
+    const performance = performanceResult.rows[0];
 
     res.json({
-      logs: logsResult.rows.map(log => ({
-        id: log.id,
-        action: log.action,
-        adminUsername: log.admin_username,
-        targetUsername: log.target_username,
-        details: log.details,
-        ipAddress: log.ip_address,
-        userAgent: log.user_agent,
-        createdAt: log.created_at
-      })),
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages,
-        totalLogs,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1
+      personal: {
+        userId: user.user_id,
+        name: user.name,
+        gender: user.gender,
+        email: user.email,
+        profileImage: user.profile_image,
+        phoneNumber: user.phone_number,
+        location: user.location,
+        hobbies: user.hobbies,
+        createdAt: user.created_at,
+        isAdmin: user.is_admin,
+        isBlacklisted: user.is_blacklisted
+      },
+      professional: {
+        university: user.university,
+        graduationYear: user.graduation_year,
+        education: user.education,
+        experience: user.experience,
+        preferredRoles: user.preferred_roles,
+        skills: user.skills,
+        programmingLanguages: user.programming_languages,
+        linkedinProfile: user.linkedin_profile,
+        githubProfile: user.github_profile,
+        portfolio: user.portfolio
+      },
+      performance: {
+        totalAttempts: parseInt(performance.total_attempts) || 0,
+        averageScore: parseFloat(performance.average_score) || 0,
+        bestScore: parseFloat(performance.best_score) || 0,
+        lowestScore: parseFloat(performance.lowest_score) || 0
       }
     });
   } catch (error) {
-    console.error('Get admin logs error:', error);
+    console.error('View user error:', error);
     res.status(500).json({
-      message: 'Failed to get admin logs',
+      message: 'Failed to get user details',
       error: 'Internal server error'
     });
   }
 });
 
+// Blacklist/Un-blacklist user
+router.put('/blacklist_user/:userId', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const { blacklist } = req.body; // true to blacklist, false to un-blacklist
+
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        message: 'Invalid user ID',
+        error: 'User ID must be a number'
+      });
+    }
+
+    if (typeof blacklist !== 'boolean') {
+      return res.status(400).json({
+        message: 'Invalid blacklist value',
+        error: 'Blacklist must be true or false'
+      });
+    }
+
+    // Don't allow admin to blacklist themselves
+    if (userId === req.user.id) {
+      return res.status(400).json({
+        message: 'Cannot modify own status',
+        error: 'Administrators cannot blacklist their own accounts'
+      });
+    }
+
+    const result = await query(`
+      UPDATE "User"
+      SET is_blacklisted = $1, updated_at = NOW()
+      WHERE user_id = $2
+      RETURNING user_id, name, is_blacklisted
+    `, [blacklist, userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: 'User not found',
+        error: 'User does not exist'
+      });
+    }
+
+    const user = result.rows[0];
+
+    res.json({
+      message: `User ${blacklist ? 'blacklisted' : 'un-blacklisted'} successfully`,
+      user: {
+        userId: user.user_id,
+        name: user.name,
+        isBlacklisted: user.is_blacklisted
+      }
+    });
+  } catch (error) {
+    console.error('Blacklist user error:', error);
+    res.status(500).json({
+      message: 'Failed to update blacklist status',
+      error: 'Internal server error'
+    });
+  }
+});
 
 module.exports = router;
-
