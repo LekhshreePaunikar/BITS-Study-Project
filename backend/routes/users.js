@@ -43,7 +43,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
         education: user.education,
         experience: user.experience,
         preferredRoles: user.preferred_roles,
-        preferredLanguages: user.preferred_languages
+        preferredLanguages: user.programming_languages
       }
     });
   } catch (error) {

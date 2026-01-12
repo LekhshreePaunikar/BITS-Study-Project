@@ -55,22 +55,17 @@ CREATE TABLE IF NOT EXISTS "User" (
     university VARCHAR(255),
     graduation_year INT,
     phone_number VARCHAR(20),
-    bio TEXT,
-    experience_level VARCHAR(100),
     resume_path TEXT,
 
     -- Professional Info
     education TEXT,
     experience TEXT,
-    preferred_role TEXT,
-    preferred_roles TEXT[],
-    preferred_languages TEXT[],
+    preferred_roles TEXT,
     skills TEXT[],
     programming_languages TEXT[],
     
     -- Location & Social
     location TEXT,
-    address TEXT,
     hobbies TEXT,
     linkedin_profile TEXT,
     github_profile TEXT,

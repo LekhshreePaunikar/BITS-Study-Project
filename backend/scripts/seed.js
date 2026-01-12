@@ -76,10 +76,10 @@ async function seed() {
       `
       INSERT INTO "User"
         (name, email, password_hash,
-         address, preferred_role, skills, programming_languages,
+ preferred_roles, skills, programming_languages,
          is_admin, is_blacklisted)
       VALUES
-        ($1, $2, $3, NULL, NULL, NULL, NULL, $4, $5)
+        ($1, $2, $3, NULL, NULL, NULL, $4, $5)
       
       RETURNING user_id, name
       `,
@@ -101,8 +101,6 @@ async function seed() {
             education,
             experience,
             preferred_roles,
-            address,
-            preferred_role,
             skills,
             programming_languages,
             phone_number,
@@ -116,7 +114,7 @@ async function seed() {
           )
         VALUES
          (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16
   )
 RETURNING user_id, name;
 
@@ -128,10 +126,6 @@ RETURNING user_id, name;
           'B.Tech Computer Science',
           '1–3 years in backend development',
 
-          ['Software Developer', 'Backend Developer'],
-
-
-          'Delhi, India',                           // address
           'Backend Developer',                       // preferred_role
           ['UI/UX Design', 'Data Analytics'],        // skills
           ['JavaScript', 'Python', 'SQL'],           // programming_languages

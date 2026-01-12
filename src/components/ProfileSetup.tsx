@@ -76,7 +76,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     preferredRole: '',
     skills: [] as string[],
     programmingLanguages: [] as string[],
-    experienceLevel: '',
+    experience: '',
 
     // Education & Background
     education: '',
@@ -128,7 +128,7 @@ if (data.resumePath) {
           preferredRole: data.preferredRole || '',
           skills: data.skills || [],
           programmingLanguages: data.programmingLanguages || [],
-          experienceLevel: data.experienceLevel || '',
+          experience: data.experience|| '',
 
           education: data.education || '',
           university: data.university || '',
@@ -152,7 +152,7 @@ if (data.resumePath) {
   preferredRole: data.preferredRole || '',
   skills: Array.isArray(data.skills) ? data.skills : [],
   programmingLanguages: Array.isArray(data.programmingLanguages) ? data.programmingLanguages : [],
-  experienceLevel: data.experienceLevel || '',
+  experience: data.experience || '',
   education: data.education || '',
   university: data.university || '',
   graduation_year: data.graduation_year ? String(data.graduation_year) : '',
@@ -618,7 +618,7 @@ console.log('Sending payload to backend:', payload);
                   >
                     Experience Level
                   </Label>
-                  <Select value={profileData.experienceLevel} onValueChange={(value) => handleInputChange('experienceLevel', value)}>
+                  <Select value={profileData.experience} onValueChange={(value) => handleInputChange('experience', value)}>
                     <SelectTrigger
                       style={{
                         backgroundColor: '#374151',
