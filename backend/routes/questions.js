@@ -463,4 +463,40 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
+// DELETE question (via BaseQuestion cascade)
+router.delete("/admin/:questionId", async (req, res) => {
+  const { questionId } = req.params;
+
+  try {
+    const baseRes = await query(
+      `
+      SELECT base_question_id
+      FROM "StaticQuestion"
+      WHERE static_question_id = $1
+      `,
+      [questionId]
+    );
+
+    if (baseRes.rowCount === 0) {
+      return res.status(404).json({ message: "Question not found" });
+    }
+
+    const baseQuestionId = baseRes.rows[0].base_question_id;
+    
+    await query(
+      `
+      DELETE FROM "BaseQuestion"
+      WHERE question_id = $1
+      `,
+      [baseQuestionId]
+    );
+
+    res.json({ message: "Question deleted successfully" });
+  } catch (err) {
+    console.error("Delete Question Error:", err);
+    res.status(500).json({ message: "Failed to delete question" });
+  }
+});
+
+
 module.exports = router;

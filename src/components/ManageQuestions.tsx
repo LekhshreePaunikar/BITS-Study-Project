@@ -58,10 +58,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState('');
-  // const [showAddForm, setShowAddForm] = useState(false);
-  // const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  const [showAddForm] = useState(false);
-  const [editingQuestion] = useState<Question | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  // const [showAddForm] = useState(false);
+  // const [editingQuestion] = useState<Question | null>(null);
 
   const [questionForm, setQuestionForm] = useState<QuestionForm>({
     content: '',
@@ -145,133 +145,141 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   };
 
   // // TBR
-  //   const handleAddQuestion = () => {
-  //     if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-  //       toast.error('Please fill in all required fields');
-  //       return;
-  //     }
+    const handleAddQuestion = () => {
+      if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
 
-  //     const newQuestion: Question = {
-  //       id: generateQuestionId(),
-  //       content: questionForm.content.trim(),
-  //       role: questionForm.role,
-  //       skill: questionForm.skill,
-  //       language: questionForm.language,
-  //       level: questionForm.level,
-  //       createdBy: username,
-  //       dateTime: new Date().toLocaleString('en-GB', {
-  //         day: '2-digit',
-  //         month: 'short',
-  //         year: 'numeric',
-  //         hour: '2-digit',
-  //         minute: '2-digit',
-  //         hour12: true
-  //       })
-  //     };
+      const newQuestion: Question = {
+        id: generateQuestionId(),
+        content: questionForm.content.trim(),
+        role: questionForm.role,
+        skill: questionForm.skill,
+        language: questionForm.language,
+        level: questionForm.level,
+        createdBy: username,
+        dateTime: new Date().toLocaleString('en-GB', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true
+        })
+      };
 
-  //     setQuestions(prev => [newQuestion, ...prev]);
-  //     setQuestionForm({
-  //       content: '',
-  //       role: '',
-  //       skill: '',
-  //       language: '',
-  //       level: 'easy'
-  //     });
-  //     setShowAddForm(false);
+      setQuestions(prev => [newQuestion, ...prev]);
+      setQuestionForm({
+        content: '',
+        role: '',
+        skill: '',
+        language: '',
+        level: 'easy'
+      });
+      setShowAddForm(false);
 
-  //     toast.success('✅ Question added successfully', {
-  //       style: {
-  //         background: '#10B981',
-  //         color: 'white',
-  //         border: 'none'
-  //       }
-  //     });
-  //   };
-
-  //   // TBR
-  //   const handleEditQuestion = (question: Question) => {
-  //     setEditingQuestion(question);
-  //     setQuestionForm({
-  //       content: question.content,
-  //       role: question.role,
-  //       skill: question.skill,
-  //       language: question.language,
-  //       level: question.level
-  //     });
-  //     setShowAddForm(true);
-  //   };
+      toast.success('✅ Question added successfully', {
+        style: {
+          background: '#10B981',
+          color: 'white',
+          border: 'none'
+        }
+      });
+    };
 
   //   // TBR
-  //   const handleUpdateQuestion = () => {
-  //     if (!editingQuestion) return;
-
-  //     if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-  //       toast.error('Please fill in all required fields');
-  //       return;
-  //     }
-
-  //     setQuestions(prev =>
-  //       prev.map(q =>
-  //         q.questionId === editingQuestion.questionId
-  //           ? {
-  //             ...q,
-  //             content: questionForm.content.trim(),
-  //             role: questionForm.role,
-  //             skill: questionForm.skill,
-  //             language: questionForm.language,
-  //             level: questionForm.level
-  //           }
-  //           : q
-  //       )
-  //     );
-
-  //     setEditingQuestion(null);
-  //     setQuestionForm({
-  //       content: '',
-  //       role: '',
-  //       skill: '',
-  //       language: '',
-  //       level: 'easy'
-  //     });
-  //     setShowAddForm(false);
-
-  //     toast.success('✅ Question updated successfully', {
-  //       style: {
-  //         background: '#10B981',
-  //         color: 'white',
-  //         border: 'none'
-  //       }
-  //     });
-  //   };
+    const handleEditQuestion = (question: Question) => {
+      setEditingQuestion(question);
+      setQuestionForm({
+        content: question.content,
+        role: question.role,
+        skill: question.skill,
+        language: question.language,
+        level: question.level
+      });
+      setShowAddForm(true);
+    };
 
   //   // TBR
-  //   const handleDeleteQuestion = (questionId: string) => {
-  //     setQuestions(prev => prev.filter(q => q.questionId !== questionId));
+    const handleUpdateQuestion = () => {
+      if (!editingQuestion) return;
 
-  //     toast.success('✅ Question deleted successfully', {
-  //       style: {
-  //         background: '#10B981',
-  //         color: 'white',
-  //         border: 'none'
-  //       }
-  //     });
-  //   };
+      if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+        toast.error('Please fill in all required fields');
+        return;
+      }
 
-  // const handleCancelEdit = () => {
-  //   setEditingQuestion(null);
-  //   setQuestionForm({
-  //     content: '',
-  //     role: '',
-  //     skill: '',
-  //     language: '',
-  //     level: 'easy'
-  //   });
-  //   setShowAddForm(false);
-  // };
+      setQuestions(prev =>
+        prev.map(q =>
+          q.questionId === editingQuestion.questionId
+            ? {
+              ...q,
+              content: questionForm.content.trim(),
+              role: questionForm.role,
+              skill: questionForm.skill,
+              language: questionForm.language,
+              level: questionForm.level
+            }
+            : q
+        )
+      );
+
+      setEditingQuestion(null);
+      setQuestionForm({
+        content: '',
+        role: '',
+        skill: '',
+        language: '',
+        level: 'easy'
+      });
+      setShowAddForm(false);
+
+      toast.success('✅ Question updated successfully', {
+        style: {
+          background: '#10B981',
+          color: 'white',
+          border: 'none'
+        }
+      });
+    };
+
+  //   // TBR
+const handleDeleteQuestion = async (questionId: number) => {
+  try {
+    await api.delete(`/questions/admin/${questionId}`);
+
+    setQuestions(prev => prev.filter(q => q.questionId !== questionId));
+
+    toast.success('Question deleted successfully', {
+      style: {
+        background: '#10B981',
+        color: 'white',
+        border: 'none'
+      }
+    });
+  } catch (err) {
+    console.error("Delete failed:", err);
+    toast.error("Failed to delete question");
+  }
+};
+
 
   const handleCancelEdit = () => {
-    toast.info("Cancel disabled for now");
+    setEditingQuestion(null);
+    setQuestionForm({
+      content: '',
+      role: '',
+      skill: '',
+      language: '',
+      level: 'easy'
+    });
+    setShowAddForm(false);
   };
+
+  // const handleCancelEdit = () => {
+  //   toast.info("Cancel disabled for now");
+  // };
 
   const getLevelBadge = (level: string) => {
     const colors = {
@@ -283,7 +291,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
 
     return (
       <Badge
-        className="text-xs px-2 py-1 border-0 text-white"
+        className="text-sm px-2 py-1 border-0 text-white"
         style={{ backgroundColor: color }}
       >
         {level.toUpperCase()}
@@ -365,7 +373,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
               </div>
 
               <Button
-                onClick={() => toast.info("Add question coming soon")}
+                  onClick={() => {
+    setEditingQuestion(null);
+    setShowAddForm(true);
+  }}
                 className="flex items-center space-x-2 transition-all duration-200 hover:scale-105 text-white"
                 style={{
                   backgroundColor: '#3B82F6'
@@ -494,7 +505,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           key={level}
                           type="button"
                           onClick={() => handleFormChange('level', level)}
-                          className={`px-4 py-2 rounded-full text-sm transition-all duration-200 hover:scale-105 ${questionForm.level === level
+                          className={`px-4 py-2 rounded-full text-base transition-all duration-200 hover:scale-105 ${questionForm.level === level
                             ? 'text-white'
                             : 'border'
                             }`}
@@ -515,7 +526,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                   {/* Action Buttons */}
                   <div className="flex flex-col sm:flex-row gap-3 pt-4">
                     <Button
-                      onClick={() => toast.info("Add / Edit functionality coming soon")}
+                      onClick={editingQuestion ? handleUpdateQuestion : handleAddQuestion}
                       className="flex items-center space-x-2 transition-all duration-200 hover:scale-105 text-white"
                       style={{
                         backgroundColor: '#3B82F6'
@@ -527,7 +538,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
 
                     <Button
                       variant="outline"
-                      onClick={() => toast.info("Cancel disabled")}
+                     onClick={handleCancelEdit}
                       className="transition-all duration-200"
                       style={{
                         color: '#9CA3AF',
@@ -552,8 +563,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
             >
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle style={{ color: '#9CA3AF' }}>Questions Database</CardTitle>
-                  <div className="text-sm" style={{ color: '#9CA3AF' }}>
+                  <CardTitle style={{ color: 'white' }} className="text-xl">Questions Database</CardTitle>
+                  <div className="text-xl" style={{ color: '#9CA3AF' }}>
                     {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
                   </div>
                 </div>
@@ -570,13 +581,13 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           backgroundColor: '#374151'
                         }}
                       >
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Question ID</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Question</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Context</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Level</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Created By</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Date & Time</th>
-                        <th className="text-left p-4 text-sm" style={{ color: '#9CA3AF' }}>Action</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Question ID</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Question</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Context</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Level</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Created By</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Date & Time</th>
+                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -596,7 +607,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           }}
                         >
                           <td
-                            className="p-4 text-sm"
+                            className="p-4 text-base"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
                             <Tooltip>
@@ -608,10 +619,10 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                               </TooltipContent>
                             </Tooltip>
                           </td>
-                          <td className="p-4 text-sm text-white max-w-md">
+                          <td className="p-4 text-base text-white max-w-md">
                             {question.content || '—'}
                           </td>
-                          <td className="p-4 text-sm text-white">
+                          <td className="p-4 text-base text-white">
                             <div className="space-y-1">
                               <div>
                                 <span className="text-gray-400">Role:</span>{' '}
@@ -631,13 +642,13 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           <td className="p-4">
                             {getLevelBadge(question.level)}
                           </td>
-                          <td className="p-4 text-sm text-white">
+                          <td className="p-4 text-base text-white">
                             {question.createdBy}
                           </td>
-                          <td className="p-4 text-sm text-white">
+                          <td className="p-4 text-base text-white">
                             <div className="leading-tight">
                               <div>{new Date(question.dateTime).toLocaleDateString()}</div>
-                              <div className="text-xs text-gray-400">
+                              <div className="text-base text-gray-400">
                                 {new Date(question.dateTime).toLocaleTimeString()}
                               </div>
                             </div>
@@ -647,9 +658,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                toast.info("Edit functionality coming soon");
-                              }}
+                              onClick={() => handleEditQuestion(question)}
+
 
                               className="h-8 w-8 p-0 text-white transition-all duration-200 hover:scale-110"
                               style={{ backgroundColor: 'transparent' }}
@@ -660,7 +670,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                 e.currentTarget.style.backgroundColor = 'transparent';
                               }}
                             >
-                              <Edit3 className="h-4 w-4" />
+                              <Edit3 className="h-6 w-6" />
                             </Button>
 
                             <AlertDialog>
@@ -709,9 +719,8 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                                     Cancel
                                   </AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={() => {
-                                      toast.info("Delete functionality coming soon");
-                                    }}
+                                   onClick={() => handleDeleteQuestion(question.questionId)}
+
 
                                     className="transition-all duration-200 hover:scale-105 text-white"
                                     style={{ backgroundColor: '#EF4444' }}
@@ -742,7 +751,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-3">
                           <span
-                            className="text-sm"
+                            className="text-base"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
                             {question.questionId}
@@ -751,22 +760,22 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                         </div>
 
                         <div className="space-y-2 mb-3">
-                          <p className="text-sm text-white">
+                          <p className="text-base text-white">
                             <strong>Role:</strong> {question.role}
                           </p>
-                          <p className="text-sm text-white">
+                          <p className="text-base text-white">
                             <strong>Skill:</strong> {question.skill}
                           </p>
-                          <p className="text-sm text-white">
+                          <p className="text-base text-white">
                             <strong>Language:</strong> {question.language}
                           </p>
-                          <p className="text-sm text-white">
+                          <p className="text-base text-white">
                             <strong>Created by:</strong> {question.createdBy}
                           </p>
-                          <p className="text-sm text-white">
+                          <p className="text-base text-white">
                             <strong>Date:</strong> {new Date(question.dateTime).toLocaleString()}
                           </p>
-                          <p className="text-sm text-white mt-2">
+                          <p className="text-base text-white mt-2">
                             <strong>Question:</strong> {truncateText(question.content, 100)}
                           </p>
                         </div>
