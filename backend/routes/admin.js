@@ -104,7 +104,7 @@ router.get('/users', async (req, res) => {
     const { page = 1, limit = 20, search, active } = req.query;
     const offset = (page - 1) * limit;
 
-    let whereClause = 'WHERE 1=1';
+    let whereClause = 'WHERE u.is_admin = false';
     let params = [];
     let paramCount = 1;
 
