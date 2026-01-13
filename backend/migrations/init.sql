@@ -82,40 +82,40 @@ CREATE TABLE IF NOT EXISTS "User" (
 -- CLASSIFICATION TABLES
 -- ============================================================
 
-CREATE TABLE IF NOT EXISTS "Role" (
-    role_id SERIAL PRIMARY KEY,
-    role_name VARCHAR(100) NOT NULL,
-    role_description TEXT
-);
+-- CREATE TABLE IF NOT EXISTS "Role" (
+--     role_id SERIAL PRIMARY KEY,
+--     role_name VARCHAR(100) NOT NULL,
+--     role_description TEXT
+-- );
 
-CREATE TABLE IF NOT EXISTS "Skill" (
-    skill_id SERIAL PRIMARY KEY,
-    skill_name VARCHAR(100) NOT NULL,
-    skill_description TEXT
-);
+-- CREATE TABLE IF NOT EXISTS "Skill" (
+--     skill_id SERIAL PRIMARY KEY,
+--     skill_name VARCHAR(100) NOT NULL,
+--     skill_description TEXT
+-- );
 
-CREATE TABLE IF NOT EXISTS "ProgrammingLanguage" (
-    lang_id SERIAL PRIMARY KEY,
-    lang_name VARCHAR(100) NOT NULL,
-    lang_description TEXT
-);
+-- CREATE TABLE IF NOT EXISTS "ProgrammingLanguage" (
+--     lang_id SERIAL PRIMARY KEY,
+--     lang_name VARCHAR(100) NOT NULL,
+--     lang_description TEXT
+-- );
 
-CREATE TABLE IF NOT EXISTS "UserProfilePreference" (
-    user_id INT UNIQUE REFERENCES "User"(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
-    role_id INT REFERENCES "Role"(role_id) ON DELETE SET NULL ON UPDATE CASCADE,
-    skill_id INT REFERENCES "Skill"(skill_id) ON DELETE SET NULL ON UPDATE CASCADE,
-    lang_id INT REFERENCES "ProgrammingLanguage"(lang_id) ON DELETE SET NULL ON UPDATE CASCADE
-);
+-- CREATE TABLE IF NOT EXISTS "UserProfilePreference" (
+--     user_id INT UNIQUE REFERENCES "User"(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
+--     role_id INT REFERENCES "Role"(role_id) ON DELETE SET NULL ON UPDATE CASCADE,
+--     skill_id INT REFERENCES "Skill"(skill_id) ON DELETE SET NULL ON UPDATE CASCADE,
+--     lang_id INT REFERENCES "ProgrammingLanguage"(lang_id) ON DELETE SET NULL ON UPDATE CASCADE
+-- );
 
-CREATE TABLE IF NOT EXISTS "Resume" (
-    resume_id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
-    file_path TEXT,
-    parsed_skills TEXT[],
-    parsed_experience TEXT[],
-    parsed_education TEXT[],
-    uploaded_at TIMESTAMP DEFAULT NOW() NOT NULL
-);
+-- CREATE TABLE IF NOT EXISTS "Resume" (
+--     resume_id SERIAL PRIMARY KEY,
+--     user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
+--     file_path TEXT,
+--     parsed_skills TEXT[],
+--     parsed_experience TEXT[],
+--     parsed_education TEXT[],
+--     uploaded_at TIMESTAMP DEFAULT NOW() NOT NULL
+-- );
 
 -- ============================================================
 -- QUESTION MANAGEMENT
@@ -140,17 +140,17 @@ CREATE TABLE IF NOT EXISTS "StaticQuestion" (
     static_question_id SERIAL PRIMARY KEY,
     base_question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
     question_content TEXT NOT NULL,
-    role_id INT REFERENCES "Role"(role_id) ON DELETE SET NULL,
-    skill_id INT REFERENCES "Skill"(skill_id) ON DELETE SET NULL,
-    lang_id INT REFERENCES "ProgrammingLanguage"(lang_id) ON DELETE SET NULL
+    roles  TEXT[],
+    skills TEXT[],
+    langs  TEXT[]
 );
 
 CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
     dynamic_question_id SERIAL PRIMARY KEY,
     base_question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
     model_id INT REFERENCES "EvaluationModel"(model_id) ON DELETE SET NULL,
-    generated_question_content TEXT NOT NULL,
-    resume_id INT REFERENCES "Resume"(resume_id) ON DELETE SET NULL
+    user_id INT NOT NULL REFERENCES "User"(user_id) ON DELETE CASCADE,
+    generated_question_content TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (

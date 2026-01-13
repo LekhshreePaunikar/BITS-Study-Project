@@ -35,9 +35,9 @@ interface ManageQuestionsProps {
 interface Question {
   questionId: number;
   content: string;
-  role: string;
-  skill: string;
-  language: string;
+  roles: string[];
+  skills: string[];
+  langs: string[];
   level: 'easy' | 'medium' | 'hard';
   createdBy: 'Admin' | 'LLM';
   dateTime: string;
@@ -47,9 +47,9 @@ interface Question {
 
 interface QuestionForm {
   content: string;
-  role: string;
-  skill: string;
-  language: string;
+  roles: string[];
+  skills: string[];
+  langs: string[];
   level: 'easy' | 'medium' | 'hard';
 }
 
@@ -145,124 +145,124 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   };
 
   // // TBR
-    const handleAddQuestion = () => {
-      if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
+  const handleAddQuestion = () => {
+    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
 
-      const newQuestion: Question = {
-        id: generateQuestionId(),
-        content: questionForm.content.trim(),
-        role: questionForm.role,
-        skill: questionForm.skill,
-        language: questionForm.language,
-        level: questionForm.level,
-        createdBy: username,
-        dateTime: new Date().toLocaleString('en-GB', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: true
-        })
-      };
-
-      setQuestions(prev => [newQuestion, ...prev]);
-      setQuestionForm({
-        content: '',
-        role: '',
-        skill: '',
-        language: '',
-        level: 'easy'
-      });
-      setShowAddForm(false);
-
-      toast.success('✅ Question added successfully', {
-        style: {
-          background: '#10B981',
-          color: 'white',
-          border: 'none'
-        }
-      });
+    const newQuestion: Question = {
+      id: generateQuestionId(),
+      content: questionForm.content.trim(),
+      role: questionForm.role,
+      skill: questionForm.skill,
+      language: questionForm.language,
+      level: questionForm.level,
+      createdBy: username,
+      dateTime: new Date().toLocaleString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+      })
     };
 
-  //   // TBR
-    const handleEditQuestion = (question: Question) => {
-      setEditingQuestion(question);
-      setQuestionForm({
-        content: question.content,
-        role: question.role,
-        skill: question.skill,
-        language: question.language,
-        level: question.level
-      });
-      setShowAddForm(true);
-    };
+    setQuestions(prev => [newQuestion, ...prev]);
+    setQuestionForm({
+      content: '',
+      role: '',
+      skill: '',
+      language: '',
+      level: 'easy'
+    });
+    setShowAddForm(false);
 
-  //   // TBR
-    const handleUpdateQuestion = () => {
-      if (!editingQuestion) return;
-
-      if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      setQuestions(prev =>
-        prev.map(q =>
-          q.questionId === editingQuestion.questionId
-            ? {
-              ...q,
-              content: questionForm.content.trim(),
-              role: questionForm.role,
-              skill: questionForm.skill,
-              language: questionForm.language,
-              level: questionForm.level
-            }
-            : q
-        )
-      );
-
-      setEditingQuestion(null);
-      setQuestionForm({
-        content: '',
-        role: '',
-        skill: '',
-        language: '',
-        level: 'easy'
-      });
-      setShowAddForm(false);
-
-      toast.success('✅ Question updated successfully', {
-        style: {
-          background: '#10B981',
-          color: 'white',
-          border: 'none'
-        }
-      });
-    };
-
-  //   // TBR
-const handleDeleteQuestion = async (questionId: number) => {
-  try {
-    await api.delete(`/questions/admin/${questionId}`);
-
-    setQuestions(prev => prev.filter(q => q.questionId !== questionId));
-
-    toast.success('Question deleted successfully', {
+    toast.success('✅ Question added successfully', {
       style: {
         background: '#10B981',
         color: 'white',
         border: 'none'
       }
     });
-  } catch (err) {
-    console.error("Delete failed:", err);
-    toast.error("Failed to delete question");
-  }
-};
+  };
+
+  //   // TBR
+  const handleEditQuestion = (question: Question) => {
+    setEditingQuestion(question);
+    setQuestionForm({
+      content: question.content,
+      role: question.role,
+      skill: question.skill,
+      language: question.language,
+      level: question.level
+    });
+    setShowAddForm(true);
+  };
+
+  //   // TBR
+  const handleUpdateQuestion = () => {
+    if (!editingQuestion) return;
+
+    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setQuestions(prev =>
+      prev.map(q =>
+        q.questionId === editingQuestion.questionId
+          ? {
+            ...q,
+            content: questionForm.content.trim(),
+            role: questionForm.role,
+            skill: questionForm.skill,
+            language: questionForm.language,
+            level: questionForm.level
+          }
+          : q
+      )
+    );
+
+    setEditingQuestion(null);
+    setQuestionForm({
+      content: '',
+      role: '',
+      skill: '',
+      language: '',
+      level: 'easy'
+    });
+    setShowAddForm(false);
+
+    toast.success('✅ Question updated successfully', {
+      style: {
+        background: '#10B981',
+        color: 'white',
+        border: 'none'
+      }
+    });
+  };
+
+  //   // TBR
+  const handleDeleteQuestion = async (questionId: number) => {
+    try {
+      await api.delete(`/questions/admin/${questionId}`);
+
+      setQuestions(prev => prev.filter(q => q.questionId !== questionId));
+
+      toast.success('Question deleted successfully', {
+        style: {
+          background: '#10B981',
+          color: 'white',
+          border: 'none'
+        }
+      });
+    } catch (err) {
+      console.error("Delete failed:", err);
+      toast.error("Failed to delete question");
+    }
+  };
 
 
   const handleCancelEdit = () => {
@@ -304,9 +304,9 @@ const handleDeleteQuestion = async (questionId: number) => {
     searchTerm === '' ||
     String(question.questionId).includes(searchTerm) ||
     (question.content ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (question.role ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (question.skill ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (question.language ?? '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.roles ?? []).join(' ').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.skills ?? []).join(' ').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (question.langs ?? []).join(' ').toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.level.toLowerCase().includes(searchTerm.toLowerCase()) ||
     question.createdBy.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -373,10 +373,10 @@ const handleDeleteQuestion = async (questionId: number) => {
               </div>
 
               <Button
-                  onClick={() => {
-    setEditingQuestion(null);
-    setShowAddForm(true);
-  }}
+                onClick={() => {
+                  setEditingQuestion(null);
+                  setShowAddForm(true);
+                }}
                 className="flex items-center space-x-2 transition-all duration-200 hover:scale-105 text-white"
                 style={{
                   backgroundColor: '#3B82F6'
@@ -538,7 +538,7 @@ const handleDeleteQuestion = async (questionId: number) => {
 
                     <Button
                       variant="outline"
-                     onClick={handleCancelEdit}
+                      onClick={handleCancelEdit}
                       className="transition-all duration-200"
                       style={{
                         color: '#9CA3AF',
@@ -625,17 +625,18 @@ const handleDeleteQuestion = async (questionId: number) => {
                           <td className="p-4 text-base text-white">
                             <div className="space-y-1">
                               <div>
-                                <span className="text-gray-400">Role:</span>{' '}
-                                {question.role || '—'}
+                                <span className="text-gray-400"><strong>Roles:</strong></span>{' '}
+                                {question.roles.length ? question.roles.join(', ') : '—'}
                               </div>
                               <div>
-                                <span className="text-gray-400">Skill:</span>{' '}
-                                {question.skill || '—'}
+                                <span className="text-gray-400"><strong>Skills:</strong></span>{' '}
+                                {question.skills.length ? question.skills.join(', ') : '—'}
                               </div>
                               <div>
-                                <span className="text-gray-400">Language:</span>{' '}
-                                {question.language || '—'}
+                                <span className="text-gray-400"><strong>Languages:</strong></span>{' '}
+                                {question.langs.length ? question.langs.join(', ') : '—'}
                               </div>
+
                             </div>
                           </td>
 
@@ -719,7 +720,7 @@ const handleDeleteQuestion = async (questionId: number) => {
                                     Cancel
                                   </AlertDialogCancel>
                                   <AlertDialogAction
-                                   onClick={() => handleDeleteQuestion(question.questionId)}
+                                    onClick={() => handleDeleteQuestion(question.questionId)}
 
 
                                     className="transition-all duration-200 hover:scale-105 text-white"
@@ -761,13 +762,13 @@ const handleDeleteQuestion = async (questionId: number) => {
 
                         <div className="space-y-2 mb-3">
                           <p className="text-base text-white">
-                            <strong>Role:</strong> {question.role}
+                            <strong>Roles:</strong> {question.roles.join(', ') || '—'}
                           </p>
                           <p className="text-base text-white">
-                            <strong>Skill:</strong> {question.skill}
+                            <strong>Skills:</strong> {question.skills.join(', ') || '—'}
                           </p>
                           <p className="text-base text-white">
-                            <strong>Language:</strong> {question.language}
+                            <strong>Languages:</strong> {question.langs.join(', ') || '—'}
                           </p>
                           <p className="text-base text-white">
                             <strong>Created by:</strong> {question.createdBy}

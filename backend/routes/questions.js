@@ -413,9 +413,9 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
 
         -- Static question fields
         s.question_content AS static_text,
-        s.role_id,
-        s.skill_id,
-        s.lang_id,
+        s.roles,
+        s.skills,
+        s.langs,
 
         -- Dynamic question fields
         d.generated_question_content AS dynamic_text
@@ -440,9 +440,9 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
       .map(row => ({
         questionId: row.question_id,
         content: row.static_text || row.dynamic_text,
-        role: row.role_id || "-",
-        skill: row.skill_id || "-",
-        language: row.lang_id || "-",
+        roles: row.roles || [],
+        skills: row.skills || [],
+        langs: row.langs || [],
         level: row.difficulty,
         createdBy: row.static_text ? "Admin" : "LLM",
         dateTime: row.created_at,
@@ -482,7 +482,7 @@ router.delete("/admin/:questionId", async (req, res) => {
     }
 
     const baseQuestionId = baseRes.rows[0].base_question_id;
-    
+
     await query(
       `
       DELETE FROM "BaseQuestion"
