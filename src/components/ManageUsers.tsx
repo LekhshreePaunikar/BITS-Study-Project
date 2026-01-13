@@ -104,7 +104,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
-  
+
   // Modal states
   const [selectedUser, setSelectedUser] = useState<UserDetailsData | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -129,7 +129,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
       }
 
       const response = await api.get('/admin/users', { params });
-      
+
       setUsers(response.data.users);
       setTotalPages(response.data.pagination.totalPages);
       setTotalUsers(response.data.pagination.totalUsers);
@@ -175,7 +175,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
       await api.put(`/admin/blacklist_user/${userId}`, {
         blacklist: !currentStatus
       });
-      
+
       alert(`User ${!currentStatus ? 'blacklisted' : 'activated'} successfully`);
       fetchUsers();
     } catch (error) {
@@ -187,7 +187,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
   // Delete user (for future implementation)
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
-    
+
     // Implement delete functionality here if needed
     alert('Delete functionality not implemented yet');
     setDeleteModalOpen(false);
@@ -250,8 +250,8 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
             </div>
             <div className="flex justify-end">
               <div className="flex items-center space-x-2">
-                <UsersIcon className="h-5 w-5" style={{ color: '#3B82F6' }} />
-                <span className="text-white font-semibold">Total Registered Users: {totalUsers}</span>
+                <UsersIcon className="h-7 w-7" style={{ color: '#3B82F6' }} />
+                <span className="text-xl text-white font-semibold">Total Registered Users: {totalUsers}</span>
               </div>
             </div>
           </div>
@@ -266,7 +266,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4" style={{ color: '#9CA3AF' }} />
                 <Input
-                  placeholder="Search users by ID, name, email, or role..."
+                  placeholder="Search users by ID, name, or email..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 text-white"
@@ -315,18 +315,18 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 max-w-[1600px] mx-auto">
             {users.map((user) => (
               <Card
-  key={user.id}
-  className="border transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
-  style={{
-    backgroundColor: '#1F2937',
-    borderColor: '#374151',
-    maxWidth: '400px'
-  }}
->
+                key={user.id}
+                className="border transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
+                style={{
+                  backgroundColor: '#1F2937',
+                  borderColor: '#374151',
+                  maxWidth: '400px'
+                }}
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0">
+                      <div className="h-16 w-16 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 border-2 border-white">
                         {user.profileImage ? (
                           <img
                             src={`http://localhost:3001${user.profileImage}`}
@@ -339,17 +339,17 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
                           </span>
                         )}
                       </div>
+
                       <div className="flex-1 min-w-0">
-  <CardTitle className="text-white text-sm font-semibold truncate">{user.name}</CardTitle>
-  <p className="text-xs" style={{ color: '#9CA3AF' }}>{user.displayId}</p>
-</div>
+                        <CardTitle className="text-white text-lg font-semibold truncate">{user.name}</CardTitle>
+                        <p className="text-base" style={{ color: '#9CA3AF' }}>{user.displayId}</p>
+                      </div>
                     </div>
                     <Badge
-                      className={`px-2 py-1 text-xs ${
-                        user.status === 'Active'
-                          ? 'bg-green-500/20 text-green-400 border-green-500'
-                          : 'bg-gray-500/20 text-gray-400 border-gray-500'
-                      }`}
+                      className={`px-2 py-1 text-sm ${user.status === 'Active'
+                        ? 'bg-green-500/20 text-gray-400 border-gray-500'
+                        : 'bg-gray-500/20 text-red-400 border-red-500'
+                        }`}
                     >
                       {user.status}
                     </Badge>
@@ -357,29 +357,29 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
                 </CardHeader>
 
                 <CardContent className="space-y-2 pt-2">
-                  <div className="flex items-center space-x-2 text-xs" style={{ color: '#9CA3AF' }}>
-  <Mail className="h-3 w-3 flex-shrink-0" />
-  <span className="truncate">{user.email}</span>
-</div>
+                  <div className="flex items-center space-x-2 text-base" style={{ color: '#9CA3AF' }}>
+                    <Mail className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">{user.email}</span>
+                  </div>
 
-                  <div className="flex items-center space-x-2 text-xs" style={{ color: '#9CA3AF' }}>
-  <Calendar className="h-3 w-3 flex-shrink-0" />
-  <span className="truncate">Registered: {formatDate(user.createdAt)}</span>
-</div>
+                  <div className="flex items-center space-x-2 text-base" style={{ color: '#9CA3AF' }}>
+                    <Calendar className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Registered: {formatDate(user.createdAt)}</span>
+                  </div>
 
-<div className="flex items-center space-x-2 text-xs" style={{ color: '#9CA3AF' }}>
-  <Clock className="h-3 w-3 flex-shrink-0" />
-  <span className="truncate">Last Login: {formatDateTime(user.lastLogin)}</span>
-</div>
+                  <div className="flex items-center space-x-2 text-base" style={{ color: '#9CA3AF' }}>
+                    <Clock className="h-3 w-3 flex-shrink-0" />
+                    <span className="truncate">Last Login: {formatDateTime(user.lastLogin)}</span>
+                  </div>
 
                   <div className="pt-2 border-t" style={{ borderColor: '#374151' }}>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm" style={{ color: '#9CA3AF' }}>Role:</span>
-                      <span className="text-sm" style={{ color: '#9CA3AF' }}>Profile:</span>
+                      <span className="text-base" style={{ color: '#9CA3AF' }}>Role:</span>
+                      <span className="text-base" style={{ color: '#9CA3AF' }}>Profile:</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <Badge
-                        className="text-xs"
+                        className="text-base"
                         style={{
                           backgroundColor: '#3B82F6',
                           color: 'white'
@@ -388,63 +388,62 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
                         {user.role || 'Not Specified'}
                       </Badge>
                       <Badge
-                        className={`text-xs ${
-                          user.profileCompletion.status === 'Complete'
-                            ? 'bg-green-500 text-white'
-                            : 'bg-orange-500 text-white'
-                        }`}
+                        className={`text-base ${user.profileCompletion.status === 'Complete'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-orange-500 text-white'
+                          }`}
                       >
                         {user.profileCompletion.status}
                       </Badge>
                     </div>
                   </div>
 
-<div className="pt-2 space-y-1">
-  <div className="flex items-center justify-between text-xs">
-    <span style={{ color: '#9CA3AF' }}>Sessions:</span>
-    <span className="text-white font-semibold">{user.sessionCount}</span>
-  </div>
-  <div className="flex items-center justify-between text-xs">
-    <span style={{ color: '#9CA3AF' }}>Avg Score:</span>
-    <div className="flex items-center space-x-1">
-      <Award className="h-3 w-3" style={{ color: '#F59E0B' }} />
-      <span className="text-white font-semibold">
-        {user.averageScore.toFixed(1)}%
-      </span>
-    </div>
-  </div>
-</div>
+                  <div className="pt-2 space-y-1">
+                    <div className="flex items-center justify-between text-base">
+                      <span style={{ color: '#9CA3AF' }}>Sessions:</span>
+                      <span className="text-white font-semibold">{user.sessionCount}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-base">
+                      <span style={{ color: '#9CA3AF' }}>Avg Score:</span>
+                      <div className="flex items-center space-x-1">
+                        <Award className="h-4 w-4" style={{ color: '#F59E0B' }} />
+                        <span className="text-white font-semibold">
+                          {user.averageScore.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="flex gap-2 pt-2">
-  <Button
-    size="sm"
-    className="flex-1 text-xs"
-    style={{
-      backgroundColor: '#3B82F6',
-      color: 'white'
-    }}
-    onClick={() => handleViewProfile(user.id)}
-  >
-    <Eye className="h-3 w-3 mr-1" />
-    View
-  </Button>
                     <Button
-  size="sm"
-  variant="outline"
-  className="px-2"
-  style={{
-    borderColor: user.isBlacklisted ? '#10B981' : '#EF4444',
-    color: user.isBlacklisted ? '#10B981' : '#EF4444',
-    backgroundColor: 'transparent'
-  }}
-  onClick={() => handleToggleBlacklist(user.id, user.isBlacklisted)}
->
-  {user.isBlacklisted ? (
-    <CheckCircle className="h-3 w-3" />
-  ) : (
-    <Ban className="h-3 w-3" />
-  )}
-</Button>
+                      size="sm"
+                      className="flex-1 text-base"
+                      style={{
+                        backgroundColor: '#3B82F6',
+                        color: 'white'
+                      }}
+                      onClick={() => handleViewProfile(user.id)}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="px-2"
+                      style={{
+                        borderColor: user.isBlacklisted ? '#EF4444' : '#10B981',
+                        color: user.isBlacklisted ? '#EF4444' : '#10B981',
+                        backgroundColor: 'transparent'
+                      }}
+                      onClick={() => handleToggleBlacklist(user.id, user.isBlacklisted)}
+                    >
+                      {user.isBlacklisted ? (
+                        <Ban className="h-3 w-3" />
+                      ) : (
+                        <CheckCircle className="h-3 w-3" />
+                      )}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -468,11 +467,11 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
               <ChevronLeft className="h-4 w-4 mr-2" />
               Previous
             </Button>
-            
+
             <span className="text-white">
               Page {currentPage} of {totalPages}
             </span>
-            
+
             <Button
               variant="outline"
               disabled={currentPage === totalPages}
@@ -491,35 +490,35 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
       </main>
 
       {/* View Profile Modal */}
-<Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-  <DialogContent
-    className="max-w-3xl max-h-[85vh] overflow-y-auto"
-    style={{
-      backgroundColor: '#1F2937',
-      borderColor: '#374151',
-      color: '#FFFFFF'
-    }}
-  >
+      <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
+        <DialogContent
+          className="max-w-xl max-h-[60vh] overflow-y-auto"
+          style={{
+            backgroundColor: '#1F2937',
+            borderColor: '#374151',
+            color: '#FFFFFF'
+          }}
+        >
           <DialogHeader className="pb-1">
-  <DialogTitle className="text-xl text-white">User Profile Details</DialogTitle>
-  <DialogDescription className="text-sm" style={{ color: '#9CA3AF' }}>
-    Complete information about the user
-  </DialogDescription>
-</DialogHeader>
+            <DialogTitle className="text-xl text-white">User Profile Details</DialogTitle>
+            <DialogDescription className="text-sm" style={{ color: '#9CA3AF' }}>
+              Complete information about the user
+            </DialogDescription>
+          </DialogHeader>
 
- {selectedUser && (
-  <div className="space-y-2">
+          {selectedUser && (
+            <div className="space-y-2">
               {/* Personal Information */}
               <div>
                 <h3 className="text-base font-semibold text-white mb-2 flex items-center space-x-2">
-  <UsersIcon className="h-3 w-3" style={{ color: '#3B82F6' }} />
-  <span>Personal Information</span>
-</h3>
-<div className="grid grid-cols-2 gap-3 text-sm">
+                  <UsersIcon className="h-3 w-3" style={{ color: '#3B82F6' }} />
+                  <span>Personal Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-  <p className="text-xs font-medium mb-1" style={{ color: '#9CA3AF' }}>Name</p>
-  <p className="text-sm text-white">{selectedUser.personal.name}</p>
-</div>
+                    <p className="text-xs font-medium mb-1" style={{ color: '#9CA3AF' }}>Name</p>
+                    <p className="text-sm text-white">{selectedUser.personal.name}</p>
+                  </div>
                   <div>
                     <p className="text-sm" style={{ color: '#9CA3AF' }}>Gender</p>
                     <p className="text-white">{selectedUser.personal.gender || 'Not specified'}</p>
@@ -544,12 +543,12 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
               </div>
 
               {/* Professional Information */}
-<div className="pt-2 border-t" style={{ borderColor: '#374151' }}>
+              <div className="pt-2 border-t" style={{ borderColor: '#374151' }}>
                 <h3 className="text-base font-semibold text-white mb-2 flex items-center space-x-2">
-  <Award className="h-2 w-2" style={{ color: '#10B981' }} />
-  <span>Professional Information</span>
-</h3>
-<div className="grid grid-cols-2 gap-3 text-sm">
+                  <Award className="h-2 w-2" style={{ color: '#10B981' }} />
+                  <span>Professional Information</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-sm" style={{ color: '#9CA3AF' }}>University</p>
                     <p className="text-white">{selectedUser.professional.university || 'Not specified'}</p>
@@ -567,13 +566,13 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
                     <p className="text-white">{selectedUser.professional.preferredRoles || 'Not specified'}</p>
                   </div>
                   <div className="col-span-2">
-  <p className="text-xs font-medium mb-1" style={{ color: '#9CA3AF' }}>Skills</p>
-  <div className="flex flex-wrap gap-1.5 mt-1">
+                    <p className="text-xs font-medium mb-1" style={{ color: '#9CA3AF' }}>Skills</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
                       {selectedUser.professional.skills && selectedUser.professional.skills.length > 0 ? (
                         selectedUser.professional.skills.map((skill, idx) => (
                           <Badge key={idx} className="text-xs px-2 py-0.5" style={{ backgroundColor: '#3B82F6', color: 'white' }}>
-  {skill}
-</Badge>
+                            {skill}
+                          </Badge>
                         ))
                       ) : (
                         <span className="text-white">No skills listed</span>
@@ -629,15 +628,15 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
 
               {/* Performance Statistics */}
               <div className="pt-3 border-t" style={{ borderColor: '#374151' }}>
-  <h3 className="text-base font-semibold text-white mb-2 flex items-center space-x-2">
-    <Award className="h-4 w-4" style={{ color: '#F59E0B' }} />
-    <span>Performance Statistics</span>
-  </h3>
-  <div className="grid grid-cols-4 gap-3">
+                <h3 className="text-base font-semibold text-white mb-2 flex items-center space-x-2">
+                  <Award className="h-4 w-4" style={{ color: '#F59E0B' }} />
+                  <span>Performance Statistics</span>
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
                   <div className="text-center p-0.1 rounded-lg" style={{ backgroundColor: '#374151' }}>
-  <p className="text-xs mb-1" style={{ color: '#9CA3AF' }}>Total Attempts</p>
-  <p className="text-xl font-bold text-white">{selectedUser.performance.totalAttempts}</p>
-</div>
+                    <p className="text-xs mb-1" style={{ color: '#9CA3AF' }}>Total Attempts</p>
+                    <p className="text-xl font-bold text-white">{selectedUser.performance.totalAttempts}</p>
+                  </div>
                   <div className="text-center p-0.1 rounded-lg" style={{ backgroundColor: '#374151' }}>
                     <p className="text-xs mb-1" style={{ color: '#9CA3AF' }}>Average Score</p>
                     <p className="text-xl font-bold text-white">{selectedUser.performance.averageScore.toFixed(1)}%</p>
@@ -655,18 +654,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
             </div>
           )}
 
-<DialogFooter className="pt-3">
-  <Button
-    size="sm"
-    onClick={() => setViewModalOpen(false)}
-    style={{
-      backgroundColor: '#3B82F6',
-      color: 'white'
-    }}
-  >
-    Close
-  </Button>
-</DialogFooter>
+          
         </DialogContent>
       </Dialog>
     </div>

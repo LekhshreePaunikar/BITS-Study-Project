@@ -330,7 +330,7 @@ export default function HelpAndSupport({ username, onBackToDashboard }: HelpAndS
                       <div className="text-sm text-white">
                         <p>AI Mock Interview Platform Pvt. Ltd.</p>
                         <p>5th Floor, Tech Hub Tower,</p>
-                        <p>Bengaluru, Karnataka, 560103, India</p>
+                        <p>Bengaluru, Karnataka, 5xxxxx, India</p>
                       </div>
                     </div>
                   </div>

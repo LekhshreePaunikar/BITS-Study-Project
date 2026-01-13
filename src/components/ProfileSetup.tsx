@@ -667,7 +667,7 @@ console.log('Sending payload to backend:', payload);
               <div className="space-y-2">
                 <Label style={{ color: '#9CA3AF' }}>Programming Languages</Label>
                 <div
-                  className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto p-2 border rounded-lg"
+                  className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-50 overflow-y-auto p-2 border rounded-lg"
                   style={{
                     backgroundColor: '#374151',
                     borderColor: '#4B5563'

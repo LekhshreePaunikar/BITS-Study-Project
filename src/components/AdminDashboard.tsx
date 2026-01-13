@@ -70,6 +70,7 @@ type Admin = {
   email: string;
   profile_image: string | null;
 };
+
 const BASELINE_COUNT = 10;
 const BASELINE_SESSION_MIN = 10;
 
