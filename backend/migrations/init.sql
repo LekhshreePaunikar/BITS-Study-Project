@@ -31,10 +31,6 @@ DO $$ BEGIN
     CREATE TYPE "TicketStatus" AS ENUM ('open', 'closed', 'in_progress');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
--- DO $$ BEGIN
---     CREATE TYPE "FlagStatus" AS ENUM ('pending', 'resolved');
--- EXCEPTION WHEN duplicate_object THEN null; END $$;
-
 DO $$ BEGIN
     CREATE TYPE "DifficultyLevelType" AS ENUM ('easy', 'medium', 'hard');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
@@ -48,74 +44,27 @@ CREATE TABLE IF NOT EXISTS "User" (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(120) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    
-    -- updated Fields 
     profile_image TEXT,
     gender VARCHAR(50),
     university VARCHAR(255),
     graduation_year INT,
     phone_number VARCHAR(20),
     resume_path TEXT,
-
-    -- Professional Info
     education TEXT,
     experience TEXT,
     preferred_roles TEXT,
     skills TEXT[],
     programming_languages TEXT[],
-    
-    -- Location & Social
     location TEXT,
     hobbies TEXT,
     linkedin_profile TEXT,
     github_profile TEXT,
     portfolio TEXT,
-
-    -- Account Metadata
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(), 
     is_admin BOOLEAN DEFAULT FALSE NOT NULL,
     is_blacklisted BOOLEAN DEFAULT FALSE NOT NULL
 );
-
--- ============================================================
--- CLASSIFICATION TABLES
--- ============================================================
-
--- CREATE TABLE IF NOT EXISTS "Role" (
---     role_id SERIAL PRIMARY KEY,
---     role_name VARCHAR(100) NOT NULL,
---     role_description TEXT
--- );
-
--- CREATE TABLE IF NOT EXISTS "Skill" (
---     skill_id SERIAL PRIMARY KEY,
---     skill_name VARCHAR(100) NOT NULL,
---     skill_description TEXT
--- );
-
--- CREATE TABLE IF NOT EXISTS "ProgrammingLanguage" (
---     lang_id SERIAL PRIMARY KEY,
---     lang_name VARCHAR(100) NOT NULL,
---     lang_description TEXT
--- );
-
--- CREATE TABLE IF NOT EXISTS "UserProfilePreference" (
---     user_id INT UNIQUE REFERENCES "User"(user_id) ON DELETE CASCADE ON UPDATE CASCADE,
---     role_id INT REFERENCES "Role"(role_id) ON DELETE SET NULL ON UPDATE CASCADE,
---     skill_id INT REFERENCES "Skill"(skill_id) ON DELETE SET NULL ON UPDATE CASCADE,
---     lang_id INT REFERENCES "ProgrammingLanguage"(lang_id) ON DELETE SET NULL ON UPDATE CASCADE
--- );
-
--- CREATE TABLE IF NOT EXISTS "Resume" (
---     resume_id SERIAL PRIMARY KEY,
---     user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
---     file_path TEXT,
---     parsed_skills TEXT[],
---     parsed_experience TEXT[],
---     parsed_education TEXT[],
---     uploaded_at TIMESTAMP DEFAULT NOW() NOT NULL
--- );
 
 -- ============================================================
 -- QUESTION MANAGEMENT

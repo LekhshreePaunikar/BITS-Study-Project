@@ -60,18 +60,16 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
-  // const [showAddForm] = useState(false);
-  // const [editingQuestion] = useState<Question | null>(null);
 
   const [questionForm, setQuestionForm] = useState<QuestionForm>({
     content: '',
-    role: '',
-    skill: '',
-    language: '',
+    roles: [],
+    skills: [],
+    langs: [],
     level: 'easy'
   });
 
-  // Mock questions data
+  // questions data
   useEffect(() => {
     console.log("[ManageQuestions] useEffect mounted");
     const fetchQuestions = async () => {
@@ -111,31 +109,57 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
     'Frontend Developer',
     'Backend Developer',
     'Full Stack Developer',
-    'Data Analyst',
-    'Data Scientist',
-    'Software Engineer',
-    'DevOps Engineer',
     'Cloud Engineer',
+    'DevOps Engineer',
+    'Data Scientist',
+    'Machine Learning Engineer',
     'Mobile Developer',
-    'UI/UX Designer'
+    'UI/UX Designer',
+    'Product Manager',
+    'Software Architect',
+    'Quality Assurance Engineer'
   ];
 
   // Skill options
   const skillOptions = [
-    'JavaScript Fundamentals',
-    'React/Angular/Vue',
-    'System Design',
-    'Database Management',
-    'Algorithm & Data Structures',
-    'Software Design Patterns',
-    'API Development',
-    'Cloud Architecture',
+    'UI/UX Design',
     'Problem Solving',
-    'Testing & QA'
+    'API Development',
+    'Project Management',
+    'Agile Methodologies',
+    'Data Analytics',
+    'System Design',
+    'Cloud Computing',
+    'Version Control (Git)',
+    'Communication Skills',
+    'Data Structures & Algorithms',
+    'Database Management',
+    'Machine Learning',
+    'Testing & QA',
+    'Leadership'
   ];
 
   // Language options
-  const languageOptions = ['Python', 'JavaScript', 'Java', 'SQL', 'C++', 'Go', 'TypeScript'];
+  const languageOptions = [
+    'JavaScript',
+    'Python',
+    'Java',
+    'C++',
+    'C#',
+    'TypeScript',
+    'Go',
+    'Rust',
+    'Swift',
+    'Kotlin',
+    'PHP',
+    'Ruby',
+    'SQL',
+    'HTML/CSS',
+    'React',
+    'Node.js',
+    'Angular',
+    'Vue.js'
+  ];
 
   const handleFormChange = (field: keyof QuestionForm, value: string) => {
     setQuestionForm(prev => ({
@@ -144,107 +168,97 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
     }));
   };
 
-  // // TBR
-  const handleAddQuestion = () => {
-    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    const newQuestion: Question = {
-      id: generateQuestionId(),
-      content: questionForm.content.trim(),
-      role: questionForm.role,
-      skill: questionForm.skill,
-      language: questionForm.language,
-      level: questionForm.level,
-      createdBy: username,
-      dateTime: new Date().toLocaleString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      })
-    };
-
-    setQuestions(prev => [newQuestion, ...prev]);
-    setQuestionForm({
-      content: '',
-      role: '',
-      skill: '',
-      language: '',
-      level: 'easy'
-    });
-    setShowAddForm(false);
-
-    toast.success('✅ Question added successfully', {
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none'
-      }
-    });
+  const toggleArrayValue = (
+    field: 'roles' | 'skills' | 'langs',
+    value: string
+  ) => {
+    setQuestionForm(prev => ({
+      ...prev,
+      [field]: prev[field].includes(value)
+        ? prev[field].filter(v => v !== value)
+        : [...prev[field], value]
+    }));
   };
 
-  //   // TBR
+
+  const handleAddQuestion = async () => {
+    try {
+      if (
+        !questionForm.content.trim() ||
+        questionForm.roles.length === 0 ||
+        questionForm.skills.length === 0 ||
+        questionForm.langs.length === 0
+      ) {
+        toast.error("All fields are required");
+        return;
+      }
+
+      await api.post("/questions/admin", {
+        content: questionForm.content,
+        roles: questionForm.roles,
+        skills: questionForm.skills,
+        langs: questionForm.langs,
+        level: questionForm.level,
+      });
+
+      const res = await api.get("/questions/admin");
+      setQuestions(res.data.questions);
+
+      setShowAddForm(false);
+      setQuestionForm({
+        content: "",
+        roles: [],
+        skills: [],
+        langs: [],
+        level: "easy",
+      });
+
+      toast.success("Question added successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add question");
+    }
+  };
+
+
   const handleEditQuestion = (question: Question) => {
     setEditingQuestion(question);
     setQuestionForm({
       content: question.content,
-      role: question.role,
-      skill: question.skill,
-      language: question.language,
+      roles: question.roles,
+      skills: question.skills,
+      langs: question.langs,
       level: question.level
     });
+
     setShowAddForm(true);
   };
 
-  //   // TBR
-  const handleUpdateQuestion = () => {
+  const handleUpdateQuestion = async () => {
     if (!editingQuestion) return;
 
-    if (!questionForm.content.trim() || !questionForm.role || !questionForm.skill || !questionForm.language) {
-      toast.error('Please fill in all required fields');
-      return;
+    try {
+      await api.put(`/questions/admin/${editingQuestion.questionId}`, {
+        content: questionForm.content,
+        roles: questionForm.roles,
+        skills: questionForm.skills,
+        langs: questionForm.langs,
+        level: questionForm.level,
+      });
+
+      const res = await api.get("/questions/admin");
+      setQuestions(res.data.questions);
+
+      setEditingQuestion(null);
+      setShowAddForm(false);
+      toast.success("Question updated successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update question");
     }
-
-    setQuestions(prev =>
-      prev.map(q =>
-        q.questionId === editingQuestion.questionId
-          ? {
-            ...q,
-            content: questionForm.content.trim(),
-            role: questionForm.role,
-            skill: questionForm.skill,
-            language: questionForm.language,
-            level: questionForm.level
-          }
-          : q
-      )
-    );
-
-    setEditingQuestion(null);
-    setQuestionForm({
-      content: '',
-      role: '',
-      skill: '',
-      language: '',
-      level: 'easy'
-    });
-    setShowAddForm(false);
-
-    toast.success('✅ Question updated successfully', {
-      style: {
-        background: '#10B981',
-        color: 'white',
-        border: 'none'
-      }
-    });
   };
 
-  //   // TBR
+
   const handleDeleteQuestion = async (questionId: number) => {
     try {
       await api.delete(`/questions/admin/${questionId}`);
@@ -276,10 +290,6 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
     });
     setShowAddForm(false);
   };
-
-  // const handleCancelEdit = () => {
-  //   toast.info("Cancel disabled for now");
-  // };
 
   const getLevelBadge = (level: string) => {
     const colors = {
@@ -397,7 +407,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                 }}
               >
                 <CardHeader>
-                  <CardTitle style={{ color: '#9CA3AF' }}>
+                  <CardTitle style={{ color: 'white', fontSize: '1.3rem' }}>
                     {editingQuestion ? 'Edit Question' : 'Add New Question'}
                   </CardTitle>
                 </CardHeader>
@@ -406,7 +416,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                   <div className="space-y-2">
                     <Label
                       htmlFor="question-content"
-                      style={{ color: '#9CA3AF' }}
+                      style={{ color: '#9CA3AF', fontSize: '1.1rem' }}
                     >
                       Question Content *
                     </Label>
@@ -425,80 +435,82 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                     />
                   </div>
 
-                  {/* Form Fields Row */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Role Dropdown */}
-                    <div className="space-y-2">
-                      <Label style={{ color: '#9CA3AF' }}>Role *</Label>
-                      <Select value={questionForm.role} onValueChange={(value) => handleFormChange('role', value)}>
-                        <SelectTrigger
-                          style={{
-                            backgroundColor: '#374151',
-                            borderColor: '#4B5563',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <SelectValue placeholder="Select role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {roleOptions.map(role => (
-                            <SelectItem key={role} value={role}>{role}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Skill Dropdown */}
-                    <div className="space-y-2">
-                      <Label style={{ color: '#9CA3AF' }}>Skill *</Label>
-                      <Select value={questionForm.skill} onValueChange={(value) => handleFormChange('skill', value)}>
-                        <SelectTrigger
-                          style={{
-                            backgroundColor: '#374151',
-                            borderColor: '#4B5563',
-                            color: '#FFFFFF'
-                          }}
-                        >
-                          <SelectValue placeholder="Select skill" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {skillOptions.map(skill => (
-                            <SelectItem key={skill} value={skill}>{skill}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                  {/* Roles */}
+                  <div className="space-y-2">
+                    <Label style={{ color: '#9CA3AF', fontSize: '1.1rem' }}>Roles *</Label>
+                    <div className="rounded-lg p-4"
+                      style={{ backgroundColor: '#374151', border: '1px solid #4B5563' }}>
+                      <div className="grid grid-cols-4 md:grid-cols-4 gap-3">
+                        {roleOptions.map(role => (
+                          <label
+                            key={role}
+                            className="flex items-center gap-2 text-white cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={questionForm.roles.includes(role)}
+                              onChange={() => toggleArrayValue('roles', role)}
+                              className="accent-blue-500 w-4 h-4"
+                            />
+                            <span>{role}</span>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Programming Language Radio Buttons */}
-                  <div className="space-y-3">
-                    <Label style={{ color: '#9CA3AF' }}>Programming Language *</Label>
-                    <RadioGroup
-                      value={questionForm.language}
-                      onValueChange={(value) => handleFormChange('language', value)}
-                      className="flex flex-wrap gap-4"
-                    >
-                      {languageOptions.map(lang => (
-                        <div key={lang} className="flex items-center space-x-2">
-                          <RadioGroupItem
-                            value={lang}
-                            id={`lang-${lang}`}
-                            style={{ borderColor: '#9CA3AF' }}
-                          />
-                          <Label
-                            htmlFor={`lang-${lang}`}
-                            className="text-white cursor-pointer"
+
+                  {/* Skills */}
+                  <div className="space-y-2">
+                    <Label style={{ color: '#9CA3AF', fontSize: '1.1rem' }}>Skills *</Label>
+                    <div className="rounded-lg p-4"
+                      style={{ backgroundColor: '#374151', border: '1px solid #4B5563' }}>
+                      <div className="grid grid-cols-4 md:grid-cols-4 gap-3">
+                        {skillOptions.map(skill => (
+                          <label
+                            key={skill}
+                            className="flex items-center gap-2 text-white cursor-pointer"
                           >
-                            {lang}
-                          </Label>
-                        </div>
-                      ))}
-                    </RadioGroup>
+                            <input
+                              type="checkbox"
+                              checked={questionForm.skills.includes(skill)}
+                              onChange={() => toggleArrayValue('skills', skill)}
+                              className="accent-blue-500 w-4 h-4"
+                            />
+                            <span>{skill}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Programming Languages */}
+                  <div className="space-y-2">
+                    <Label style={{ color: '#9CA3AF', fontSize: '1.1rem' }}>Programming Languages *</Label>
+                    <div className="rounded-lg p-4"
+                      style={{ backgroundColor: '#374151', border: '1px solid #4B5563' }}>
+                      <div className="grid grid-cols-4 md:grid-cols-4 gap-3">
+                        {languageOptions.map(lang => (
+                          <label
+                            key={lang}
+                            className="flex items-center gap-2 text-white cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={questionForm.langs.includes(lang)}
+                              onChange={() => toggleArrayValue('langs', lang)}
+                              className="accent-blue-500 w-4 h-4"
+                            />
+                            <span>{lang}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
 
                   {/* Difficulty Level Pills */}
                   <div className="space-y-3">
-                    <Label style={{ color: '#9CA3AF' }}>Difficulty Level</Label>
+                    <Label style={{ color: '#9CA3AF', fontSize: '1.1rem' }}>Difficulty Level</Label>
                     <div className="flex gap-2">
                       {['easy', 'medium', 'hard'].map(level => (
                         <button
@@ -581,13 +593,13 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           backgroundColor: '#374151'
                         }}
                       >
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Question ID</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Question</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Context</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Level</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Created By</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Date & Time</th>
-                        <th className="text-left p-4 text-lg" style={{ color: '#9CA3AF' }}>Action</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Question ID</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Question</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Context</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Level</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Created By</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Date & Time</th>
+                        <th className="text-Center p-4 text-lg" style={{ color: '#9CA3AF' }}>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -607,7 +619,7 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                           }}
                         >
                           <td
-                            className="p-4 text-base"
+                            className="p-4 text-base text-center"
                             style={{ color: '#9CA3AF', fontFamily: 'monospace' }}
                           >
                             <Tooltip>
@@ -619,21 +631,21 @@ export default function ManageQuestions({ username, onBackToAdminDashboard }: Ma
                               </TooltipContent>
                             </Tooltip>
                           </td>
-                          <td className="p-4 text-base text-white max-w-md">
+                          <td className="p-4 text-base text-white max-w-md italic">
                             {question.content || '—'}
                           </td>
-                          <td className="p-4 text-base text-white">
+                          <td className="p-4 text-sm text-white">
                             <div className="space-y-1">
                               <div>
-                                <span className="text-gray-400"><strong>Roles:</strong></span>{' '}
+                                <span style={{ color: '#9bb6e3' }}><strong>Roles:</strong></span>{' '}
                                 {question.roles.length ? question.roles.join(', ') : '—'}
                               </div>
                               <div>
-                                <span className="text-gray-400"><strong>Skills:</strong></span>{' '}
+                                <span style={{ color: '#9bb6e3' }}><strong>Skills:</strong></span>{' '}
                                 {question.skills.length ? question.skills.join(', ') : '—'}
                               </div>
                               <div>
-                                <span className="text-gray-400"><strong>Languages:</strong></span>{' '}
+                                <span style={{ color: '#9bb6e3' }}><strong>Languages:</strong></span>{' '}
                                 {question.langs.length ? question.langs.join(', ') : '—'}
                               </div>
 

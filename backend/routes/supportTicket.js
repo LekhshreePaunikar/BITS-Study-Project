@@ -10,7 +10,7 @@ const checkLogin = require('../middleware/checkLogin');
 
 console.log('supportTicket.js loaded');
 router.get('/test', (req, res) => {
-  res.json({ message: 'Support ticket route reached ✅' });
+  res.json({ message: 'Support ticket route reached' });
 });
 
 

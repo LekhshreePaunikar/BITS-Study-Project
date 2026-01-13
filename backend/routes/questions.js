@@ -109,178 +109,115 @@ router.get('/categories', authenticateToken, async (req, res) => {
   }
 });
 
-// Create new question (admin only)
-router.post('/', authenticateToken, requireAdmin, async (req, res) => {
+//(admin only) Create Static Question (BaseQuestion + StaticQuestion)
+router.post("/admin", authenticateToken, requireAdmin, async (req, res) => {
+  const userId = req.user.id;
+
+  const {
+    content,
+    roles,
+    skills,
+    langs,
+    level
+  } = req.body;
+
+  if (
+    !content ||
+    !Array.isArray(roles) || roles.length === 0 ||
+    !Array.isArray(skills) || skills.length === 0 ||
+    !Array.isArray(langs) || langs.length === 0
+  ) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
   try {
-    const {
-      questionText,
-      category,
-      difficultyLevel,
-      expectedDuration,
-      sampleAnswer,
-      evaluationCriteria
-    } = req.body;
+    // 1️⃣ Create BaseQuestion
+    const baseRes = await query(
+      `
+      INSERT INTO "BaseQuestion"
+        (is_predefined, difficulty, created_by)
+      VALUES
+        (true, $1, $2)
+      RETURNING question_id, created_at
+      `,
+      [level, userId]
+    );
 
-    // Input validation
-    if (!questionText || !category || !difficultyLevel) {
-      return res.status(400).json({
-        message: 'Missing required fields',
-        error: 'Question text, category, and difficulty level are required'
-      });
-    }
+    const baseQuestionId = baseRes.rows[0].question_id;
 
-    if (!['easy', 'medium', 'hard'].includes(difficultyLevel)) {
-      return res.status(400).json({
-        message: 'Invalid difficulty level',
-        error: 'Difficulty level must be easy, medium, or hard'
-      });
-    }
-
-    const questionResult = await query(`
-      INSERT INTO questions (
-        question_text, category, difficulty, expected_duration, 
-        sample_answer, evaluation_criteria, created_by
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, question_text, category, difficulty, expected_duration, created_at
-    `, [
-      questionText,
-      category,
-      difficultyLevel,
-      expectedDuration || 3,
-      sampleAnswer,
-      evaluationCriteria || [],
-      req.user.id
-    ]);
-
-    const question = questionResult.rows[0];
+    // 2️⃣ Create StaticQuestion
+    await query(
+      `
+      INSERT INTO "StaticQuestion"
+        (base_question_id, question_content, roles, skills, langs)
+      VALUES
+        ($1, $2, $3, $4, $5)
+      `,
+      [baseQuestionId, content, roles, skills, langs]
+    );
 
     res.status(201).json({
-      message: 'Question created successfully',
-      question: {
-        id: question.id,
-        text: question.question_text,
-        category: question.category,
-        difficultyLevel: question.difficulty,
-        expectedDuration: question.expected_duration,
-        createdAt: question.created_at
-      }
+      success: true,
+      message: "Question created successfully",
+      questionId: baseQuestionId
     });
-  } catch (error) {
-    console.error('Create question error:', error);
-    res.status(500).json({
-      message: 'Failed to create question',
-      error: 'Internal server error'
-    });
+
+  } catch (err) {
+    console.error("Create static question error:", err);
+    res.status(500).json({ message: "Failed to create question" });
   }
 });
 
-// Update question (admin only)
-router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
+
+// (admin only) Update Static Question
+router.put("/admin/:questionId", authenticateToken, requireAdmin, async (req, res) => {
+  const { questionId } = req.params;
+  const {
+    content,
+    roles,
+    skills,
+    langs,
+    level
+  } = req.body;
+
+  if (!content || !roles || !skills || !langs || !level) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
   try {
-    const questionId = parseInt(req.params.id);
-    const {
-      questionText,
-      category,
-      difficultyLevel,
-      expectedDuration,
-      sampleAnswer,
-      evaluationCriteria
-    } = req.body;
+    await query(
+      `
+      UPDATE "BaseQuestion"
+      SET difficulty = $1,
+          last_updated = NOW()
+      WHERE question_id = $2
+      `,
+      [level, questionId]
+    );
 
-    if (isNaN(questionId)) {
-      return res.status(400).json({
-        message: 'Invalid question ID',
-        error: 'Question ID must be a number'
-      });
+    const result = await query(
+      `
+      UPDATE "StaticQuestion"
+      SET
+        question_content = $1,
+        roles = $2,
+        skills = $3,
+        langs = $4
+      WHERE base_question_id = $5
+      RETURNING static_question_id
+      `,
+      [content, roles, skills, langs, questionId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Question not found" });
     }
 
-    // Build update query dynamically
-    let updateFields = [];
-    let values = [];
-    let paramCount = 1;
+    res.json({ success: true, message: "Question updated successfully" });
 
-    if (questionText) {
-      updateFields.push(`question_text = $${paramCount++}`);
-      values.push(questionText);
-    }
-
-    if (category) {
-      updateFields.push(`category = $${paramCount++}`);
-      values.push(category);
-    }
-
-    if (difficultyLevel) {
-      if (!['easy', 'medium', 'hard'].includes(difficultyLevel)) {
-        return res.status(400).json({
-          message: 'Invalid difficulty level',
-          error: 'Difficulty level must be easy, medium, or hard'
-        });
-      }
-      updateFields.push(`difficulty = $${paramCount++}`);
-      values.push(difficultyLevel);
-    }
-
-    if (expectedDuration !== undefined) {
-      updateFields.push(`expected_duration = $${paramCount++}`);
-      values.push(expectedDuration);
-    }
-
-    if (sampleAnswer !== undefined) {
-      updateFields.push(`sample_answer = $${paramCount++}`);
-      values.push(sampleAnswer);
-    }
-
-    if (evaluationCriteria !== undefined) {
-      updateFields.push(`evaluation_criteria = $${paramCount++}`);
-      values.push(evaluationCriteria);
-    }
-
-    if (updateFields.length === 0) {
-      return res.status(400).json({
-        message: 'No fields to update',
-        error: 'Please provide at least one field to update'
-      });
-    }
-
-    // Add updated_at and question ID
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
-    values.push(questionId);
-
-    const updateQuery = `
-      UPDATE questions 
-      SET ${updateFields.join(', ')} 
-      WHERE id = $${paramCount}
-      RETURNING id, question_text, category, difficulty, expected_duration, updated_at
-    `;
-
-    const updatedQuestion = await query(updateQuery, values);
-
-    if (updatedQuestion.rows.length === 0) {
-      return res.status(404).json({
-        message: 'Question not found',
-        error: 'Question does not exist'
-      });
-    }
-
-    const question = updatedQuestion.rows[0];
-
-    res.json({
-      message: 'Question updated successfully',
-      question: {
-        id: question.id,
-        text: question.question_text,
-        category: question.category,
-        difficultyLevel: question.difficulty,
-        expectedDuration: question.expected_duration,
-        updatedAt: question.updated_at
-      }
-    });
-  } catch (error) {
-    console.error('Update question error:', error);
-    res.status(500).json({
-      message: 'Failed to update question',
-      error: 'Internal server error'
-    });
+  } catch (err) {
+    console.error("Update question error:", err);
+    res.status(500).json({ message: "Failed to update question" });
   }
 });
 
@@ -322,7 +259,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 
 // NOTE: This will fetch only the latest 6 questions from the database
 // Later I plan to replace it with proper logic
-const INTERVIEW_QUESTION_COUNT = 6;
+const INTERVIEW_QUESTION_COUNT = 3;
 // --------------------------------------------------
 // Interview: Fetch latest questions for interview
 // --------------------------------------------------
@@ -464,39 +401,26 @@ router.get("/admin", authenticateToken, requireAdmin, async (req, res) => {
 });
 
 // DELETE question (via BaseQuestion cascade)
-router.delete("/admin/:questionId", async (req, res) => {
+router.delete("/admin/:questionId", authenticateToken, requireAdmin, async (req, res) => {
   const { questionId } = req.params;
 
   try {
-    const baseRes = await query(
-      `
-      SELECT base_question_id
-      FROM "StaticQuestion"
-      WHERE static_question_id = $1
-      `,
+    const result = await query(
+      `DELETE FROM "BaseQuestion" WHERE question_id = $1 RETURNING question_id`,
       [questionId]
     );
 
-    if (baseRes.rowCount === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: "Question not found" });
     }
 
-    const baseQuestionId = baseRes.rows[0].base_question_id;
-
-    await query(
-      `
-      DELETE FROM "BaseQuestion"
-      WHERE question_id = $1
-      `,
-      [baseQuestionId]
-    );
-
-    res.json({ message: "Question deleted successfully" });
+    res.json({ success: true, message: "Question deleted successfully" });
   } catch (err) {
-    console.error("Delete Question Error:", err);
+    console.error(err);
     res.status(500).json({ message: "Failed to delete question" });
   }
 });
+
 
 
 module.exports = router;
