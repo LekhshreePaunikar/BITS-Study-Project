@@ -36,7 +36,9 @@ export default function LogoutConfirmation({
 
   if (isLoggedOut) {
     return (
+
       <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: '#111827' }}>
+
         <Card
           className="w-full max-w-md mx-auto border transition-all duration-200 hover:shadow-xl"
           style={{
@@ -46,13 +48,22 @@ export default function LogoutConfirmation({
           }}
         >
           <CardHeader className="text-center">
+            <img
+              src="http://localhost:3001/static/platform/logo.png"
+              alt="ClariPrep Logo"
+              className="h-20 w-auto object-contain mx-auto"
+            />
+
             <div
               className="mx-auto mb-4 w-16 h-16 rounded-full flex items-center justify-center"
               style={{ backgroundColor: 'rgba(16, 185, 129, 0.2)' }}
             >
               <CheckCircle className="h-8 w-8" style={{ color: '#10B981' }} />
+
             </div>
-            <CardTitle className="text-white">Successfully Logged Out</CardTitle>
+
+            <CardTitle className="text-white">
+              Successfully Logged Out</CardTitle>
             <CardDescription style={{ color: '#9CA3AF' }}>
               Thank you for using our interview practice platform, {username}!
             </CardDescription>
@@ -101,6 +112,8 @@ export default function LogoutConfirmation({
   }
 
   return (
+
+
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
 
       {/* Header */}
@@ -115,20 +128,29 @@ export default function LogoutConfirmation({
                 <span>Back to Dashboard</span>
               </Button>
             </div>
-            
-            <div className="text-center">
-              <h1 className="text-2xl md:text-3xl mb-2 text-white"> Logout Confirmation</h1>
-              <p className="text-sm" style={{ color: '#9CA3AF' }}>
-                Are you sure you want to end your session?
-              </p>
+
+
+            <div className="flex items-center justify-center gap-4 text-left">
+              <div className="flex-shrink-0">
+                <img
+                  src="http://localhost:3001/static/platform/logo.png"
+                  alt="ClariPrep Logo"
+                  className="h-20 w-auto object-contain"
+                />
+              </div>
+
+
             </div>
+
+
 
           </div>
         </div>
       </header>
 
+
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8 flex items-center justify-center min-h-[calc(100vh-88px)]">
+      <main className="container mt-1 mx-auto px-6 py-8 flex items-center justify-center min-h-[calc(100vh-88px)]">
         <Card
           className="w-full max-w-md mx-auto border transition-all duration-200 hover:shadow-xl"
           style={{

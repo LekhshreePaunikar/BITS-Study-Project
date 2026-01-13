@@ -93,15 +93,28 @@ export default function LoginForm({
 
 
   return (
-    <Card
-      className="w-full max-w-md mx-auto border transition-all duration-200 hover:shadow-xl"
-      style={{
-        backgroundColor: "#1F2937",
-        borderColor: "#374151",
-        boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
-      }}
-    >
+    
+    <div>
+      <div className="flex justify-center mb-12">
+        <img
+          src="http://localhost:3001/static/platform/logo.png"
+          alt="ClariPrep Logo"
+          className="h-52 w-auto object-contain"
+        />
+
+      </div>
+
+      <Card
+        className="w-full min-w-[400px] max-w-[400px] mx-auto border rounded-2xl transition-all duration-200 hover:shadow-xl"
+        style={{
+          backgroundColor: "#1F2937",
+          borderColor: "#374151",
+          boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)",
+          borderRadius: "10px",
+        }}
+      >
       <CardHeader className="space-y-1">
+        
         <CardTitle className="text-center text-white">
           Welcome Back
         </CardTitle>
@@ -111,11 +124,7 @@ export default function LoginForm({
         >
           Enter your credentials to access your account
         </CardDescription>
-        {/* <div className="mt-3 p-3 rounded-md" style={{ backgroundColor: "#374151" }}>
-          <p className="text-xs text-center" style={{ color: "#9CA3AF" }}>
-            💡 Admin login: <span style={{ color: "#60A5FA" }}>admin@email.com</span> / <span style={{ color: "#60A5FA" }}>admin1234</span>
-          </p>
-        </div> */}
+        
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -236,5 +245,6 @@ export default function LoginForm({
         </form>
       </CardContent>
     </Card>
+    </div>
   );
 }

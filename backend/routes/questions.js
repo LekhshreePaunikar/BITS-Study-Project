@@ -272,8 +272,9 @@ router.get("/predefined", authenticateToken, async (req, res) => {
       `
       SELECT question_id, is_predefined, difficulty
       FROM "BaseQuestion"
-      ORDER BY created_at DESC
+      ORDER BY RANDOM()
       LIMIT $1
+
       `,
       [INTERVIEW_QUESTION_COUNT]
     );
