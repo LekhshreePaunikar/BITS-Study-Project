@@ -166,12 +166,14 @@ export default function InterviewQuestion({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const handleSubmitAnswer = async () => {
     if (answerMode === "text" && !textAnswer.trim()) {
       alert("Please provide an answer before submitting.");
       return;
     }
-
+    if (isSubmitting) return;
+        setIsSubmitting(true);
     const currentQ = questions[currentQuestionIndex];
 
     try {
@@ -207,9 +209,10 @@ export default function InterviewQuestion({
     } catch (err) {
       console.error("Failed to save answer:", err);
       alert("Failed to save answer");
+      setIsSubmitting(false);
       return; // do NOT move to next question if save fails
     }
-
+    setIsSubmitting(false);
 
     // Move to next question or end interview
     if (currentQuestionIndex < questions.length - 1) {
@@ -225,7 +228,7 @@ export default function InterviewQuestion({
       );
 
     } else {
-      handleEndInterview();
+      setEndDialogOpen(true);
     }
   };
 
@@ -354,8 +357,7 @@ export default function InterviewQuestion({
       </header>
 
       {/* Main Content */}
-      <main className={`container mx-auto px-6 py-8 ${endDialogOpen ? "pointer-events-none select-none" : "pointer-events-auto"
-        }`}>
+      <main className={`container mx-auto px-6 py-8`}>
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Question Display */}
           <Card
@@ -642,14 +644,14 @@ export default function InterviewQuestion({
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsPaused(false);
-                }}
-              >
-                Continue Interview
-              </Button>
+              <div>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPaused(false)}
+                >
+                  Continue Interview
+                </Button>
+              </div>
             </DialogClose>
             <Button
               onClick={confirmEndInterview}

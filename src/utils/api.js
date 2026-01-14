@@ -411,3 +411,7 @@ export const supportAPI = {
 //   return response.data;
 // };
 
+// // Interview Summary API
+// export const getSessionSummary = (sessionId: number) => {
+//   return api.get(`/interview/session-summary/${sessionId}`);
+// };

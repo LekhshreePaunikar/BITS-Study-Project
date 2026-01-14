@@ -55,8 +55,10 @@ Return JSON only:
     const completion = await client.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "Return valid JSON only." },
-        { role: "user", content: prompt },
+        { role: "system", 
+          content: "Return ONLY valid JSON. Do not use markdown, backticks, or explanations." },
+        { role: "user", 
+          content: prompt },
       ],
       temperature: 0.7,
     });

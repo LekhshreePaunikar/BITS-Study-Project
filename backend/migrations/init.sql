@@ -1,6 +1,6 @@
--- ============================================================
+--  ============================================================
 -- CLEAN INITIAL SCHEMA
--- ============================================================
+--  ============================================================
 
 DO $$
 DECLARE
@@ -168,8 +168,8 @@ CREATE TABLE IF NOT EXISTS "PerformanceReport" (
     generated_at TIMESTAMP DEFAULT NOW() NOT NULL,
     total_score FLOAT,
     avg_time_per_question FLOAT,
-    strengths TEXT,
-    weaknesses TEXT
+    strengths TEXT[],
+    weaknesses TEXT[]
 );
 
 -- ============================================================

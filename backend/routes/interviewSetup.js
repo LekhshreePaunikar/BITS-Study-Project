@@ -1,6 +1,7 @@
 // backend/routes/interviewSetup.js
 
 require("dotenv").config({ path: "./.env.local" });
+const PDFDocument = require("pdfkit");
 
 
 const express = require('express');
@@ -312,20 +313,67 @@ router.post("/end", async (req, res) => {
 
     const avgTime = answerCount > 0 ? sessionSeconds / answerCount : 0;
 
+    // Fetch all feedback suggestions for this session
+    const feedbackRes = await query(
+      `
+     SELECT a.score_overall, f.suggestion_text
+     FROM "Feedback" f
+     JOIN "Answer" a ON a.answer_id = f.answer_id
+      WHERE a.session_id = $1
+    `,
+      [session_id]
+    );
+
+    const strengths = [];
+    const weaknesses = [];
+
+    feedbackRes.rows.forEach(row => {
+      const score = Number(row.score_overall);
+      const text = row.suggestion_text;
+
+      if (Number.isNaN(score)) return;
+
+      if (score >= 8) {
+        strengths.push(text);
+      }
+
+      if (score <= 4) {
+        weaknesses.push(text);
+      }
+    });
+
+    // remove duplicates & limit size
+    const uniqueStrengths = [...new Set(strengths)].slice(0, 5);
+    const uniqueWeaknesses = [...new Set(weaknesses)].slice(0, 5);
+
+
+
+
+
+
 
     await query(
       `
-  INSERT INTO "PerformanceReport"
-    (session_id, generated_at, total_score, avg_time_per_question)
-  VALUES ($1, NOW(), $2, $3)
-  ON CONFLICT (session_id)
-  DO UPDATE SET
-    total_score = EXCLUDED.total_score,
-    avg_time_per_question = EXCLUDED.avg_time_per_question,
-    generated_at = NOW()
-  `,
-      [session_id, totalScore, avgTime]
+      INSERT INTO "PerformanceReport"
+       (session_id, generated_at, total_score, avg_time_per_question, strengths, weaknesses)
+      VALUES ($1, NOW(), $2, $3, $4, $5)
+      ON CONFLICT (session_id)
+      DO UPDATE SET
+        total_score = EXCLUDED.total_score,
+        avg_time_per_question = EXCLUDED.avg_time_per_question,
+        strengths = EXCLUDED.strengths,
+        weaknesses = EXCLUDED.weaknesses,
+        generated_at = NOW()
+    `,
+      [
+        session_id,
+        totalScore,
+        avgTime,
+        uniqueStrengths,
+        uniqueWeaknesses
+      ]
     );
+
 
     // Update Session table
     await query(
@@ -343,9 +391,11 @@ router.post("/end", async (req, res) => {
 
     return res.json({
       success: true,
-      session_id: result.rows[0].session_id,
-      start_time: result.rows[0].start_time,
-      end_time: result.rows[0].end_time,
+      session_id,
+      totalScore,
+      timeTakenSeconds: sessionSeconds,
+      strengths: uniqueStrengths,
+      weaknesses: uniqueWeaknesses,
       message: "Session ended successfully",
     });
   } catch (err) {
@@ -354,6 +404,204 @@ router.post("/end", async (req, res) => {
       success: false,
       error: "Internal server error",
     });
+  }
+});
+
+/**
+ * GET /api/interview/session-summary/:sessionId
+ * Returns interview summary for SessionCompletion page
+ */
+router.get("/session-summary/:sessionId", async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const sessionId = Number(req.params.sessionId);
+
+    if (!userId || !sessionId) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
+    // 1️⃣ Fetch performance report
+    const reportRes = await query(
+      `
+      SELECT
+        total_score,
+        avg_time_per_question
+      FROM "PerformanceReport"
+      WHERE session_id = $1
+      `,
+      [sessionId]
+    );
+
+    if (reportRes.rows.length === 0) {
+      return res.status(404).json({ error: "Performance report not found" });
+    }
+
+    // 2️⃣ Fetch feedback + scores
+    const feedbackRes = await query(
+      `
+      SELECT a.score_overall, f.suggestion_text
+      FROM "Feedback" f
+      JOIN "Answer" a ON a.answer_id = f.answer_id
+      WHERE a.session_id = $1
+      `,
+      [sessionId]
+    );
+
+    const strengths = [];
+    const weaknesses = [];
+    const feedback = [];
+
+    feedbackRes.rows.forEach(row => {
+      feedback.push(row.suggestion_text);
+
+      if (row.score_overall >= 7) strengths.push(row.suggestion_text);
+      if (row.score_overall <= 4) weaknesses.push(row.suggestion_text);
+    });
+
+    res.json({
+      totalScore: Number(reportRes.rows[0].total_score),
+      timeTakenSeconds: Math.round(
+        reportRes.rows[0].avg_time_per_question *
+        feedbackRes.rows.length
+      ),
+      strengths: [...new Set(strengths)],
+      weaknesses: [...new Set(weaknesses)],
+      feedback: [...new Set(feedback)],
+    });
+
+  } catch (err) {
+    console.error("Session summary error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Helper to clean & dedupe feedback bullets
+const cleanBullets = (texts, max = 5) => {
+  const seen = new Set();
+
+  return texts
+    .map(t => t.toLowerCase())
+    .flatMap(t =>
+      t
+        .replace(/to improve,.*$/i, "")
+        .replace(/however,.*$/i, "")
+        .replace(/grammar.*$/i, "")
+        .split(/[.\n]/)
+        .map(s => s.trim())
+    )
+    .filter(s => s.length > 20)
+    .filter(s => {
+      if (seen.has(s)) return false;
+      seen.add(s);
+      return true;
+    })
+    .slice(0, max)
+    .map(s => s.charAt(0).toUpperCase() + s.slice(1));
+};
+
+
+// routes/interview.ts//download PDF report for a session
+
+router.get("/session/:sessionId/report-pdf", async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+
+    // 1️⃣ Get performance report
+    const reportRes = await query(
+      `
+      SELECT total_score, avg_time_per_question
+      FROM "PerformanceReport"
+      WHERE session_id = $1
+      `,
+      [sessionId]
+    );
+
+    if (reportRes.rows.length === 0) {
+      return res.status(404).json({ error: "Performance report not found" });
+    }
+
+    // 2️⃣ Get feedback
+    const feedbackRes = await query(
+      `
+      SELECT a.score_overall, f.suggestion_text
+      FROM "Feedback" f
+      JOIN "Answer" a ON a.answer_id = f.answer_id
+      WHERE a.session_id = $1
+      `,
+      [sessionId]
+    );
+
+    const strengths = [];
+    const weaknesses = [];
+    const feedback = [];
+
+    feedbackRes.rows.forEach(row => {
+      if (!row.suggestion_text) return;
+
+      feedback.push(row.suggestion_text);
+
+      if (row.score_overall >= 7) {
+        strengths.push(row.suggestion_text);
+      }
+
+      if (row.score_overall <= 4) {
+        weaknesses.push(row.suggestion_text);
+      }
+    });
+
+    // 3️⃣ Create PDF
+    const doc = new PDFDocument({ margin: 50 });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=session-${sessionId}-report.pdf`
+    );
+
+    doc.pipe(res);
+
+    // ---- HEADER ----
+    doc.fontSize(18).fillColor("#111827")
+      .text("Interview Session Report", { align: "center" });
+
+    doc.moveDown();
+
+    doc.fontSize(11).fillColor("#374151");
+    doc.text(`Session ID: ${sessionId}`);
+    doc.text(`Total Score: ${reportRes.rows[0].total_score.toFixed(1)} / 10`);
+    doc.text(`Avg Time per Question: ${Math.round(reportRes.rows[0].avg_time_per_question)} sec`);
+
+    doc.moveDown();
+
+    // ---- CLEAN BULLETS ----
+    const strengthsClean = cleanBullets(strengths, 4);
+    const weaknessesClean = cleanBullets(weaknesses, 4);
+    const feedbackClean = cleanBullets(feedback, 5);
+
+    // ---- STRENGTHS ----
+    doc.fillColor("#059669").fontSize(14).text("Strengths");
+    doc.moveDown(0.5);
+    doc.fontSize(11).fillColor("#065f46");
+    strengthsClean.forEach(s => doc.text(`• ${s}`, { indent: 20 }));
+
+    // ---- IMPROVEMENTS ----
+    doc.moveDown();
+    doc.fillColor("#d97706").fontSize(14).text("Areas for Improvement");
+    doc.moveDown(0.5);
+    doc.fontSize(11).fillColor("#92400e");
+    weaknessesClean.forEach(w => doc.text(`• ${w}`, { indent: 20 }));
+
+    // ---- AI FEEDBACK ----
+    doc.moveDown();
+    doc.fillColor("#2563eb").fontSize(14).text("AI Interviewer Summary");
+    doc.moveDown(0.5);
+    doc.fontSize(11).fillColor("#1e3a8a");
+    feedbackClean.forEach(f => doc.text(`• ${f}`, { indent: 20 }));
+
+    doc.end();
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+    res.status(500).json({ error: "Failed to generate PDF" });
   }
 });
 

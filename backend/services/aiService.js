@@ -119,7 +119,7 @@ Make sure the JSON is valid and complete.`;
     });
 
     const response = completion.choices[0].message.content;
-    
+
     try {
       const parsedResponse = JSON.parse(response);
       return parsedResponse.questions || [];
@@ -139,7 +139,7 @@ Make sure the JSON is valid and complete.`;
 const generateFallbackQuestions = (config) => {
   const { experienceLevel, questionCount } = config;
   const levelQuestions = defaultQuestions[experienceLevel] || defaultQuestions.easy;
-  
+
   const allQuestions = [];
   Object.entries(levelQuestions).forEach(([category, questions]) => {
     questions.forEach(questionText => {
@@ -203,7 +203,7 @@ Return the feedback in the following JSON format:
     });
 
     const response = completion.choices[0].message.content;
-    
+
     try {
       return JSON.parse(response);
     } catch (parseError) {
@@ -221,11 +221,11 @@ Return the feedback in the following JSON format:
 const generateFallbackFeedback = (question, answer) => {
   const wordCount = answer.split(' ').length;
   let score = 70; // Base score
-  
+
   // Adjust score based on answer length
   if (wordCount < 20) score -= 20;
   else if (wordCount > 100) score += 10;
-  
+
   // Adjust score based on content quality indicators
   if (answer.toLowerCase().includes('example') || answer.toLowerCase().includes('experience')) score += 10;
   if (answer.toLowerCase().includes('result') || answer.toLowerCase().includes('outcome')) score += 10;
@@ -292,21 +292,35 @@ Return ONLY valid JSON:
     max_tokens: 500,
   });
 
-  const raw = completion.choices?.[0]?.message?.content?.trim() || "{}";
-  return JSON.parse(raw);
+  let raw = completion.choices?.[0]?.message?.content || "{}";
+
+  // ✅ REMOVE markdown wrappers if OpenAI adds them
+  raw = raw.replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    console.error("OpenAI JSON parse failed. Raw response:", raw);
+    throw new Error("Invalid JSON from OpenAI");
+  }
+
+  return parsed;
 };
 
 
-// Check if AI service is available
-const isAIAvailable = () => {
-  return openai !== null;
-};
+  // Check if AI service is available
+  const isAIAvailable = () => {
+    return openai !== null;
+  };
 
-module.exports = {
-  generateAIQuestions,
-  generateAIFeedback,
-  generateFallbackQuestions,
-  generateFallbackFeedback,
-  evaluateAnswerWithOpenAI,
-  isAIAvailable
-};
+  module.exports = {
+    generateAIQuestions,
+    generateAIFeedback,
+    generateFallbackQuestions,
+    generateFallbackFeedback,
+    evaluateAnswerWithOpenAI,
+    isAIAvailable
+  };
