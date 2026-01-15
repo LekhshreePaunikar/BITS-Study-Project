@@ -85,6 +85,6 @@
             "start": "serve -s build",
             "start:backend": "node backend/server.js",
             "build:backend": "tsc backend/server.ts --outDir backend/dist",
-            "db:setup": "node backend/scripts/setupDatabase.js"
+            "db:seed": "node backend/scripts/seed.js"
       }
 }
