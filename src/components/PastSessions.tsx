@@ -7,7 +7,6 @@ import { Card, CardContent } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import {
-  Download,
   ArrowLeft,
   Calendar,
   Clock,
@@ -18,7 +17,17 @@ import {
   FileText,
   Mic,
   HelpCircle,
+  CheckCircle,
+  XCircle,
+  Lightbulb
 } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "./ui/dialog";
 
 interface PastSessionsProps {
   username: string;
@@ -73,6 +82,19 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
     differentRoles: 0,
   });
   const [loading, setLoading] = useState(true);
+
+  const [openReportModal, setOpenReportModal] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportAvailable, setReportAvailable] = useState(true);
+  const [tips, setTips] = useState<string[]>([]);
+  const [reportData, setReportData] = useState<{
+    strengths: string[];
+    weaknesses: string[];
+  }>({
+    strengths: [],
+    weaknesses: [],
+  });
+
 
   useEffect(() => {
     const token = localStorage.getItem("authToken");
@@ -147,6 +169,42 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
   //   generateSessionData,
   // );
 
+  const handleViewReport = async (sessionId: number) => {
+    try {
+      setReportLoading(true);
+      setOpenReportModal(true);
+
+      const token = localStorage.getItem("authToken");
+
+      const res = await fetch(
+        `http://localhost:3001/api/performance-report/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch report");
+
+      const data = await res.json();
+      setReportAvailable(data.reportAvailable);
+
+      setReportData({
+        strengths: data.strengths ?? [],
+        weaknesses: data.weaknesses ?? [],
+      });
+
+
+      setTips(data.tips ?? []);
+
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
   const handleSort = (column: keyof ApiSession) => {
     const newDirection =
       sortColumn === column && sortDirection === "asc"
@@ -187,11 +245,11 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
     setSessions(sortedSessions);
   };
 
-  const handleDownloadReport = (sessionId: string) => {
-    console.log(`Downloading report for session ${sessionId}`);
-    // Mock download functionality
-    alert(`Downloading PDF report for session ${sessionId}`);
-  };
+  // const handleDownloadReport = (sessionId: string) => {
+  //   console.log(`Downloading report for session ${sessionId}`);
+  //   // Mock download functionality
+  //   alert(`Downloading PDF report for session ${sessionId}`);
+  // };
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return "#10B981";
@@ -485,7 +543,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
                       </th>
                       <th className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center space-x-2 text-white">
-                          <Download className="h-4 w-4" />
+                          <FileText className="h-4 w-4" />
                           <span>View Report</span>
                         </div>
                       </th>
@@ -654,21 +712,20 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
 
                           <td className="px-6 py-4 text-center">
                             <Button
-                              disabled
+                              onClick={() => handleViewReport(session.session_id)}
                               style={{
-                                backgroundColor: "#10B981",
+                                backgroundColor: "#2563EB",
                                 color: "#FFFFFF",
-                                border: "1px solid #34D399",
+                                border: "1px solid #3B82F6",
                                 padding: "8px 14px",
                                 borderRadius: "8px",
                                 fontWeight: 600,
-                                opacity: 0.9,
-                                boxShadow: "0 4px 12px rgba(16,185,129,0.3)",
                               }}
                             >
-                              <Download className="h-4 w-4 mr-2" />
-                              Download Report
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Report
                             </Button>
+
 
 
                           </td>
@@ -686,12 +743,174 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
           <div className="text-center mt-6">
             <p className="text-lg" style={{ color: "#9CA3AF" }}>
               💡 Click on column headers to sort • Reports are
-              available for download immediately after session
-              completion
+              available to view immediately after session completion
+
             </p>
           </div>
         </div>
       </main>
+
+      <Dialog open={openReportModal} onOpenChange={setOpenReportModal}>
+        <DialogContent
+          style={{
+            backgroundColor: "#1F2937",
+            borderColor: "#374151",
+            color: "#fff",
+            maxWidth: "650px",
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Performance Report</DialogTitle>
+          </DialogHeader>
+
+          {reportLoading ? (
+            <div className="text-center py-6">Loading report...</div>
+          ) : (
+            <div className="space-y-6">
+
+              {/* NO REPORT AVAILABLE → SHOW ONLY TIPS */}
+              {!reportAvailable ? (
+                <div className="space-y-4">
+                  <div className="rounded-lg bg-yellow-900/20 border border-yellow-600 px-4 py-3 text-yellow-300">
+                    No performance report available yet, but here are some useful tips.
+                  </div>
+
+                  <div>
+                    <h3
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        backgroundColor: "rgba(234, 179, 8, 0.15)", // yellow tint
+                        border: "1px solid rgba(250, 204, 21, 0.4)",
+                        color: "#FDE68A", // yellow text
+                        fontSize: "18px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Lightbulb size={20} color="#FACC15" />
+                      Interview Tips
+                    </h3>
+
+                    <ul className="list-disc ml-6 space-y-1 text-gray-200">
+                      {tips.map((tip, i) => (
+                        <li key={i}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* STRENGTHS */}
+                  <div>
+                    <h3
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        backgroundColor: "rgba(22, 163, 74, 0.15)", // green tint
+                        border: "1px solid rgba(34, 197, 94, 0.4)",
+                        color: "#86EFAC", // green text
+                        fontSize: "18px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <CheckCircle size={20} color="#4ADE80" />
+                      Strengths
+                    </h3>
+
+                    {reportData.strengths.length === 0 ? (
+                      <p className="italic text-gray-400">
+                        No strengths available for this session.
+                      </p>
+                    ) : (
+                      <ul className="list-disc ml-6 space-y-1 text-gray-200">
+                        {reportData.strengths.map((s, i) => (
+                          <li key={i}>{s}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {/* WEAKNESSES */}
+                  <div>
+                    <h3
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        backgroundColor: "rgba(220, 38, 38, 0.15)", // red tint
+                        border: "1px solid rgba(239, 68, 68, 0.4)",
+                        color: "#FCA5A5", // red text
+                        fontSize: "18px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <XCircle size={20} color="#F87171" />
+                      Weaknesses
+                    </h3>
+
+
+
+                    {reportData.weaknesses.length === 0 ? (
+                      <p className="italic text-gray-400">
+                        No weaknesses available for this session.
+                      </p>
+                    ) : (
+                      <ul className="list-disc ml-6 space-y-1 text-gray-200">
+                        {reportData.weaknesses.map((w, i) => (
+                          <li key={i}>{w}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+
+                  {/* TIPS */}
+                  <div>
+                    <h3
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "10px 12px",
+                        marginBottom: "8px",
+                        borderRadius: "8px",
+                        backgroundColor: "rgba(234, 179, 8, 0.15)", // yellow tint
+                        border: "1px solid rgba(250, 204, 21, 0.4)",
+                        color: "#FDE68A", // yellow text
+                        fontSize: "18px",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <Lightbulb size={20} color="#FACC15" />
+                      Interview Tips
+                    </h3>
+
+
+                    <ul className="list-disc ml-6 space-y-1 text-gray-200">
+                      {tips.map((tip, i) => (
+                        <li key={i}>{tip}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+
+      </Dialog>
+
+
     </div>
   );
 }
