@@ -20,13 +20,7 @@ require('dotenv').config();
 
 const path = require('path');
 
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '..', 'build')));
 
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
-  });
-}
 
 
 
@@ -42,6 +36,14 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'build')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
+  });
+}
 
 // Rate limiting (max 100 requests per 15 minutes per IP)
 const limiter = rateLimit({
