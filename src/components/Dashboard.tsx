@@ -53,7 +53,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
         const res = await api.get('/user'); // Backend se data mangwayein
         if (res.data.profileImage) {
           // Timestamp (?t=...) add karne se browser hamesha nayi image download karega
-          const imageUrl = `http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`;
+          const imageUrl = `${API_BASE_URL}${res.data.profileImage}?t=${new Date().getTime()}`;
           setProfileImage(imageUrl);
 
           // Optional: LocalStorage mein bhi save kar sakte hain instant access ke liye
@@ -86,6 +86,8 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
     completionRate: 0,
     streakDays: 0,
   });
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const fetchUserKPIs = async () => {

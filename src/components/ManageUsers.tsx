@@ -214,6 +214,9 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
     });
   };
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
   if (loading && users.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center text-white" style={{ backgroundColor: '#111827' }}>
@@ -329,7 +332,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
                       <div className="h-16 w-16 rounded-full bg-gray-600 flex items-center justify-center flex-shrink-0 border-2 border-white">
                         {user.profileImage ? (
                           <img
-                            src={`http://localhost:3001${user.profileImage}`}
+                            src={`${API_BASE_URL}${user.profileImage}`}
                             alt={user.name}
                             className="h-full w-full rounded-full object-cover"
                           />
@@ -654,7 +657,7 @@ export default function ManageUsers({ onBackToAdminDashboard }: ManageUsersProps
             </div>
           )}
 
-          
+
         </DialogContent>
       </Dialog>
     </div>

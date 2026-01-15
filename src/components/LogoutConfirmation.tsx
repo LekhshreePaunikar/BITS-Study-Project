@@ -10,6 +10,8 @@ import {
   CheckCircle,
   RotateCcw
 } from 'lucide-react';
+import logo from '@/assets/images/platform/logo.png';
+
 
 interface LogoutConfirmationProps {
   username: string;
@@ -49,7 +51,7 @@ export default function LogoutConfirmation({
         >
           <CardHeader className="text-center">
             <img
-              src="http://localhost:3001/static/platform/logo.png"
+              src={logo}
               alt="ClariPrep Logo"
               className="h-20 w-auto object-contain mx-auto"
             />
@@ -133,7 +135,7 @@ export default function LogoutConfirmation({
             <div className="flex items-center justify-center gap-4 text-left">
               <div className="flex-shrink-0">
                 <img
-                  src="http://localhost:3001/static/platform/logo.png"
+                  src={logo}
                   alt="ClariPrep Logo"
                   className="h-20 w-auto object-contain"
                 />

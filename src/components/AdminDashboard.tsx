@@ -86,7 +86,7 @@ const trendColor = (trend: string) =>
 export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicket, onManageQuestions, onManageUsers, onAnalytics }: AdminDashboardProps) {
 
   // Admin action handlers
-    const [kpiData, setKpiData] = useState({
+  const [kpiData, setKpiData] = useState({
     questionsLastWeek: 0,
     ticketsLastWeek: 0,
     usersLastWeek: 0,
@@ -255,6 +255,8 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
     }
   ];
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
   return (
     <TooltipProvider>
       <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
@@ -273,7 +275,7 @@ export default function AdminDashboard({ onLogout, onEditProfile, onSupportTicke
               style={{ boxShadow: "0 0 20px rgba(59, 130, 246, 0.35)" }}>
               {admin.profile_image ? (
                 <img
-                  src={`http://localhost:3001${admin.profile_image}`}
+                  src={`${API_BASE_URL}${admin.profile_image}`}
                   alt="Admin avatar"
                   className="h-full w-full object-cover"
                 />

@@ -8,6 +8,7 @@ import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
 import { Eye, EyeOff, User, Mail, Lock } from 'lucide-react';
 import { authAPI } from "../utils/api";
+import logo from '@/assets/images/platform/logo.png';
 
 
 interface SignUpFormProps {
@@ -61,7 +62,7 @@ export default function SignUpForm({ onSwitchToLogin }: SignUpFormProps) {
     <div>
       <div className="flex justify-center mb-12">
         <img
-          src="http://localhost:3001/static/platform/logo.png"
+          src={logo}
           alt="ClariPrep Logo"
           className="h-52 w-auto object-contain"
         />
