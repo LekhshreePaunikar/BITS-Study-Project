@@ -7,6 +7,8 @@ const { OAuth2Client } = require('google-auth-library');
 const { query } = require('../config/database');
 const { generateToken, authenticateToken } = require('../middleware/auth');
 
+
+
 const router = express.Router();
 const googleClient = new OAuth2Client(process.env.OAUTH_CLIENT_ID);
 
@@ -15,6 +17,10 @@ const googleClient = new OAuth2Client(process.env.OAUTH_CLIENT_ID);
 // ==============================
 router.post('/register', async (req, res) => {
   try {
+    console.log(
+      'REGISTER DB URL:',
+      process.env.DATABASE_URL?.slice(0, 40)
+    );
     // 1️⃣ Validate input
     const { isValid, errors, sanitized } =
       validationUtils.validateRegistration(req.body);
