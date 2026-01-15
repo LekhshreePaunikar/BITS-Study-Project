@@ -79,6 +79,9 @@ export default function AdminProfile({ onBack }: AdminProfileProps) {
         }
     };
 
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
 
     if (loading) {
         return (
@@ -143,7 +146,7 @@ export default function AdminProfile({ onBack }: AdminProfileProps) {
                                 <div className="h-12 w-12 rounded-full overflow-hidden bg-gray-600 flex items-center justify-center">
                                     {profileImage ? (
                                         <img
-                                            src={`http://localhost:3001${profileImage}`}
+                                            src={`${API_BASE_URL}${profileImage}`}
 
                                             alt="Profile"
                                             className="h-full w-full object-cover"

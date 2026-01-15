@@ -28,6 +28,9 @@ interface ProfileSetupProps {
   onBack: () => void;
 }
 
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+
 
 export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [showPassword, setShowPassword] = useState(false);
@@ -36,33 +39,33 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const handleProfileImageChange = async (
-  e: React.ChangeEvent<HTMLInputElement>
-) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const allowed = ['image/png', 'image/jpeg', 'image/jpg'];
-  if (!allowed.includes(file.type)) {
-    alert('Only PNG, JPG, JPEG images allowed');
-    return;
-  }
+    const allowed = ['image/png', 'image/jpeg', 'image/jpg'];
+    if (!allowed.includes(file.type)) {
+      alert('Only PNG, JPG, JPEG images allowed');
+      return;
+    }
 
-  setProfileImage(URL.createObjectURL(file));
+    setProfileImage(URL.createObjectURL(file));
 
-  try {
-    const formData = new FormData();
-    formData.append('profileImage', file);
+    try {
+      const formData = new FormData();
+      formData.append('profileImage', file);
 
-    const res = await api.post('/user/image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+      const res = await api.post('/user/image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
 
-    console.log('Profile image saved:', res.data.profileImage);
-    setProfileImage(`http://localhost:3001${res.data.profileImage}`);
-  } catch (err) {
-    alert('Failed to upload profile image');
-  }
-};
+      console.log('Profile image saved:', res.data.profileImage);
+      setProfileImage(`${API_BASE_URL}${res.data.profileImage}`);
+    } catch (err) {
+      alert('Failed to upload profile image');
+    }
+  };
   const [profileData, setProfileData] = useState(() => ({
     // Personal Information
     fullName: username || '',      // prefill with the logged-in username
@@ -93,7 +96,7 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
     resumeFile: null as File | null
   }));
 
-  
+
   useEffect(() => {
     const fetchProfile = async () => {
       setIsLoading(true);
@@ -108,18 +111,18 @@ export default function ProfileSetup({ username, onBack }: ProfileSetupProps) {
         const data = res.data;
         console.log('Fetched profile data:', data); // Debug log
 
-if (data.profileImage) {
-  setProfileImage(`http://localhost:3001${res.data.profileImage}?t=${new Date().getTime()}`);
-}
+        if (data.profileImage) {
+          setProfileImage(`${API_BASE_URL}${res.data.profileImage}?t=${new Date().getTime()}`);
+        }
 
-if (data.resumePath) {
-  setResumePreview(`http://localhost:3001${data.resumePath}`);
-}
+        if (data.resumePath) {
+          setResumePreview(`${API_BASE_URL}${data.resumePath}`);
+        }
 
         const normalized = {
           fullName: data.fullName || username || '',
           email: data.email || '',
-          password: '********', 
+          password: '********',
 
           gender: data.gender || '',
           phone_number: data.phone_number || '',
@@ -128,7 +131,7 @@ if (data.resumePath) {
           preferredRole: data.preferredRole || '',
           skills: data.skills || [],
           programmingLanguages: data.programmingLanguages || [],
-          experience: data.experience|| '',
+          experience: data.experience || '',
 
           education: data.education || '',
           university: data.university || '',
@@ -143,33 +146,33 @@ if (data.resumePath) {
         };
 
         setProfileData({
-  fullName: data.fullName || username || '',
-  email: data.email || '',
-  password: '********',
-  gender: data.gender || '',
-  phone_number: data.phone_number || '',
-  location: data.location || '',
-  preferredRole: data.preferredRole || '',
-  skills: Array.isArray(data.skills) ? data.skills : [],
-  programmingLanguages: Array.isArray(data.programmingLanguages) ? data.programmingLanguages : [],
-  experience: data.experience || '',
-  education: data.education || '',
-  university: data.university || '',
-  graduation_year: data.graduation_year ? String(data.graduation_year) : '',
-  hobbies: data.hobbies || '',
-  linkedinProfile: data.linkedinProfile || '',
-  githubProfile: data.githubProfile || '',
-  portfolio: data.portfolio || '',
-  resumeFile: null
-});
+          fullName: data.fullName || username || '',
+          email: data.email || '',
+          password: '********',
+          gender: data.gender || '',
+          phone_number: data.phone_number || '',
+          location: data.location || '',
+          preferredRole: data.preferredRole || '',
+          skills: Array.isArray(data.skills) ? data.skills : [],
+          programmingLanguages: Array.isArray(data.programmingLanguages) ? data.programmingLanguages : [],
+          experience: data.experience || '',
+          education: data.education || '',
+          university: data.university || '',
+          graduation_year: data.graduation_year ? String(data.graduation_year) : '',
+          hobbies: data.hobbies || '',
+          linkedinProfile: data.linkedinProfile || '',
+          githubProfile: data.githubProfile || '',
+          portfolio: data.portfolio || '',
+          resumeFile: null
+        });
 
-}catch (err) {
+      } catch (err) {
         console.error('Error fetching profile:', err);
       }
       finally {
-  setIsLoading(false);
-}
-      
+        setIsLoading(false);
+      }
+
     };
 
     fetchProfile();
@@ -306,16 +309,16 @@ if (data.resumePath) {
         });
 
         // Update saved resume preview
-        setResumePreview(`http://localhost:3001${resumeRes.data.resume_path}`);
+        setResumePreview(`${API_BASE_URL}${resumeRes.data.resume_path}`);
         // Clear local preview after successful upload
         setLocalResumePreview(null);
       }
 
       // 2. Update profile data
       const { resumeFile, password, email, ...payload } = profileData;
-console.log('Sending payload to backend:', payload); 
+      console.log('Sending payload to backend:', payload);
       await api.put("/user", payload);
-      
+
       alert("Profile saved successfully!");
     } catch (error) {
       console.error("Error saving profile:", error);
@@ -324,16 +327,16 @@ console.log('Sending payload to backend:', payload);
   };
 
   if (isLoading) {
-  return (
-    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
-      <p className="text-white text-xl">Loading profile...</p>
-    </div>
-  );
-}
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
+        <p className="text-white text-xl">Loading profile...</p>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       {/* Header */}
-      <header className="border-b" style={{backgroundColor: '#1F2937',  borderColor: '#374151',}}>
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
         <div className="container mx-auto px-6 py-6">
           <div className="grid grid-cols-3 items-center">
             <div className="flex justify-start">
@@ -378,16 +381,16 @@ console.log('Sending payload to backend:', payload);
                 style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.15)' }}
               >
                 <AvatarImage
-  src={profileImage || undefined}
-  alt={username}
-/>
-<input
-  type="file"
-  accept=".png,.jpg,.jpeg"
-  hidden
-  id="profile-image-input"
-  onChange={handleProfileImageChange}
-/>
+                  src={profileImage || undefined}
+                  alt={username}
+                />
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg"
+                  hidden
+                  id="profile-image-input"
+                  onChange={handleProfileImageChange}
+                />
 
                 <AvatarFallback
                   className="text-white"
@@ -397,15 +400,15 @@ console.log('Sending payload to backend:', payload);
                 </AvatarFallback>
               </Avatar>
               <Button
-  type="button"
-  variant="outline"
-  onClick={() =>
-    document.getElementById('profile-image-input')?.click()
-  }
->
-  <Camera className="h-4 w-4" />
-  <span>Change Photo</span>
-</Button>
+                type="button"
+                variant="outline"
+                onClick={() =>
+                  document.getElementById('profile-image-input')?.click()
+                }
+              >
+                <Camera className="h-4 w-4" />
+                <span>Change Photo</span>
+              </Button>
             </CardContent>
           </Card>
 
@@ -805,11 +808,11 @@ console.log('Sending payload to backend:', payload);
                     Drag and drop your resume here, or click to browse
                   </p>
                   <input
-  id="resume-upload"
-  type="file"
-  accept=".pdf"
-  onChange={handleResumeChange}
-/>
+                    id="resume-upload"
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleResumeChange}
+                  />
 
                   <Button
                     type="button"
@@ -830,34 +833,34 @@ console.log('Sending payload to backend:', payload);
                     </p>
                   )}
                   {/* Instant preview BEFORE save */}
-{localResumePreview && (
-  <p className="text-sm mt-2">
-    <a
-      href={localResumePreview}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline"
-      style={{ color: "#60A5FA" }}
-    >
-      Preview selected resume
-    </a>
-  </p>
-)}
+                  {localResumePreview && (
+                    <p className="text-sm mt-2">
+                      <a
+                        href={localResumePreview}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        style={{ color: "#60A5FA" }}
+                      >
+                        Preview selected resume
+                      </a>
+                    </p>
+                  )}
 
-{/* Saved preview AFTER save */}
-{resumePreview && (
-  <p className="text-sm mt-2">
-    <a
-      href={resumePreview}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="underline"
-      style={{ color: "#34D399" }}
-    >
-      View saved resume
-    </a>
-  </p>
-)}
+                  {/* Saved preview AFTER save */}
+                  {resumePreview && (
+                    <p className="text-sm mt-2">
+                      <a
+                        href={resumePreview}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                        style={{ color: "#34D399" }}
+                      >
+                        View saved resume
+                      </a>
+                    </p>
+                  )}
 
                 </div>
               </div>
@@ -975,14 +978,14 @@ console.log('Sending payload to backend:', payload);
               variant="outline"
               onClick={onBack}
               className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}
+              style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}
             >
               Cancel
             </Button>
             <Button
               type="submit"
               className="flex items-center space-x-2 transition-all duration-200 hover:shadow-lg hover:scale-105 text-white"
-              style={{ backgroundColor: '#10B981'}}
+              style={{ backgroundColor: '#10B981' }}
             >
               <Save className="h-4 w-4" />
               <span>Save Profile</span>
