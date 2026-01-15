@@ -398,8 +398,8 @@ RETURNING user_id, name;
     VALUES
       (
         $1,
-        'text',
-        'predefined',
+        'voice',
+        'resume-based',
         'Backend Development',
         2,
         ARRAY['Node.js', 'Databases'],
