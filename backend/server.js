@@ -9,7 +9,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
-const path = require('path');
+
 const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 const adminKpisRoutes = require("./routes/adminKpis");
