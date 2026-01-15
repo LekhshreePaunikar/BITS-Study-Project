@@ -100,7 +100,7 @@ app.use('/api/user', authenticateToken, checkLogin, require('./routes/userKpis')
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
-
+app.use('/api/past-sessions', authenticateToken, checkLogin, require('./routes/pastSessions'));
 
 // ==============================
 // Test & Health Routes
