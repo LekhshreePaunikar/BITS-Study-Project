@@ -13,6 +13,7 @@ const path = require('path');
 const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 const adminKpisRoutes = require("./routes/adminKpis");
+const performanceReportRoutes = require("./routes/performanceReport");
 
 // Load environment variables
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -89,6 +90,7 @@ app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfil
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
 app.use('/api/past-sessions', authenticateToken, checkLogin, require('./routes/pastSessions'));
+app.use('/api/performance-report', authenticateToken, checkLogin, performanceReportRoutes);
 
 // ==============================
 // Test & Health Routes

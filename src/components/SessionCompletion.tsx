@@ -450,7 +450,7 @@ export default function SessionCompletion({
             </span>
           </Button>
 
-          <Button
+          {/* <Button
             onClick={onViewDetailedFeedback}
             className="px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 text-white hover:scale-105"
             style={{ backgroundColor: "#10B981" }}
@@ -460,7 +460,7 @@ export default function SessionCompletion({
             <span className="uppercase tracking-wide">
               View Detailed Feedback
             </span>
-          </Button>
+          </Button> */}
         </div>
 
         {/* Footer Actions */}
