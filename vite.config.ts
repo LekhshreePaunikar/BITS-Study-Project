@@ -5,8 +5,11 @@
   
 
   export default defineConfig({
+    base: '/',
+
+    
     plugins: [react()],
-    cacheDir: path.resolve(__dirname, '.vite-cache'),
+    // cacheDir: path.resolve(__dirname, '.vite-cache'),
     resolve: {
       extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
       alias: {

@@ -57,6 +57,7 @@
             "react-resizable-panels": "^2.1.7",
             "react-router-dom": "^7.11.0",
             "recharts": "^2.15.2",
+            "serve": "^14.2.5",
             "sonner": "^2.0.3",
             "tailwind-merge": "*",
             "validator": "^13.11.0",
@@ -81,9 +82,9 @@
             "dev:frontend": "vite",
             "dev:backend": "nodemon backend/server.js",
             "build": "vite build",
-            "build:backend": "tsc backend/server.ts --outDir backend/dist",
-            "start": "node backend/server.js",
+            "start": "serve -s build",
             "start:backend": "node backend/server.js",
+            "build:backend": "tsc backend/server.ts --outDir backend/dist",
             "db:setup": "node backend/scripts/setupDatabase.js"
       }
 }
