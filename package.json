@@ -82,9 +82,8 @@
             "dev:frontend": "vite",
             "dev:backend": "nodemon backend/server.js",
             "build": "vite build",
-            "start": "serve -s build",
-            "start:backend": "node backend/server.js",
-            "build:backend": "tsc backend/server.ts --outDir backend/dist",
+            "heroku-postbuild": "vite build",
+            "start": "node backend/server.js",
             "db:seed": "node backend/scripts/seed.js"
       }
 }
