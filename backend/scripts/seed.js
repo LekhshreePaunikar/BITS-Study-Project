@@ -16,11 +16,18 @@
 const { Pool } = require('pg');
 const path = require('path');
 const bcrypt = require('bcryptjs');
-require("dotenv").config({ path: path.resolve(__dirname, "../../.env.local") });
+require("dotenv").config();
 console.log("Using DATABASE_URL:", process.env.DATABASE_URL);
+
+// const pool = new Pool({
+//   connectionString: process.env.DATABASE_URL,
+// });
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production'
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 const log = (...a) => console.log('[seed]', ...a);
