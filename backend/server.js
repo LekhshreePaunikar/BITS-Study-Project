@@ -15,7 +15,7 @@ const userProfileRoutes = require('./routes/userProfile');
 const adminKpisRoutes = require("./routes/adminKpis");
 
 // Load environment variables
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config();
 
 
 
