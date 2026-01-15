@@ -42,7 +42,7 @@ app.use('/api', limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  origin: [process.env.FRONTEND_URL, process.env.VITE_API_URL],
   credentials: true
 }));
 
@@ -166,8 +166,14 @@ app.listen(PORT, () => {
   console.log('-----------------------------------');
   console.log(`Server running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
-  console.log(`Database: ${process.env.POSTGRES_DB}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}`);
+
+  if (!process.env.FRONTEND_URL) {
+    console.warn('⚠️ FRONTEND_URL is not set');
+  } else {
+    console.log(`Frontend URL: ${process.env.FRONTEND_URL}`);
+  }
+
+  console.log(`Database URL present: ${!!process.env.DATABASE_URL}`);
   console.log('-----------------------------------');
 });
 
