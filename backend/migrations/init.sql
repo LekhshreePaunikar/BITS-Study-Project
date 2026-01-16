@@ -94,24 +94,6 @@ CREATE TABLE IF NOT EXISTS "StaticQuestion" (
     langs  TEXT[]
 );
 
-CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
-    dynamic_question_id SERIAL PRIMARY KEY,
-    base_question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
-    model_id INT REFERENCES "EvaluationModel"(model_id) ON DELETE SET NULL,
-    user_id INT NOT NULL REFERENCES "User"(user_id) ON DELETE CASCADE,
-    generated_question_content TEXT NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
-    question_response_mode_id SERIAL PRIMARY KEY,
-    question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
-    mode "ModeType" NOT NULL
-);
-
--- ============================================================
--- INTERVIEW SESSION TABLES
--- ============================================================
-
 CREATE TABLE IF NOT EXISTS "Session" (
     session_id SERIAL PRIMARY KEY,
     user_id INT REFERENCES "User"(user_id) ON DELETE CASCADE,
@@ -125,6 +107,25 @@ CREATE TABLE IF NOT EXISTS "Session" (
     selected_difficulty VARCHAR(50),
     total_score FLOAT
 );
+
+CREATE TABLE IF NOT EXISTS "DynamicQuestion" (
+    dynamic_question_id SERIAL PRIMARY KEY,
+    base_question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
+    model_id INT REFERENCES "EvaluationModel"(model_id) ON DELETE SET NULL,
+    user_id INT NOT NULL REFERENCES "User"(user_id) ON DELETE CASCADE,
+    session_id INT REFERENCES "Session"(session_id) ON DELETE CASCADE,
+    generated_question_content TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "QuestionResponseMode" (
+    question_response_mode_id SERIAL PRIMARY KEY,
+    question_id INT UNIQUE REFERENCES "BaseQuestion"(question_id) ON DELETE CASCADE,
+    mode "ModeType" NOT NULL
+);
+
+-- ============================================================
+-- INTERVIEW SESSION TABLES
+-- ============================================================
 
 CREATE TABLE IF NOT EXISTS "Answer" (
     answer_id SERIAL PRIMARY KEY,
