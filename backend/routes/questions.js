@@ -3,6 +3,7 @@
 const express = require('express');
 const { query } = require('../config/database');
 const { authenticateToken, requireAdmin } = require('../middleware/auth');
+const { generateResumeBasedQuestions, } = require("../scripts/dynamicQuestionGeneration");
 
 const router = express.Router();
 
@@ -261,7 +262,7 @@ router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
 // Later I plan to replace it with proper logic
 const INTERVIEW_QUESTION_COUNT = 3;
 // --------------------------------------------------
-// Interview: Fetch latest questions for interview
+// PREDEFINED QUESTION Interview: Fetch latest static questions for interview
 // --------------------------------------------------
 router.get("/predefined", authenticateToken, async (req, res) => {
   try {
@@ -326,6 +327,81 @@ router.get("/predefined", authenticateToken, async (req, res) => {
     console.error("Predefined interview questions error:", error);
     return res.status(500).json({
       message: "Failed to fetch interview questions",
+    });
+  }
+});
+
+// --------------------------------------------------
+// DYNAMIC QUESTION Interview: Fetch session& resume based dynamic questions for interview
+// --------------------------------------------------
+
+router.get("/resume-based-questions", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const sessionId = Number(req.query.sessionId);
+
+    if (!sessionId) {
+      return res.status(400).json({
+        error: "sessionId is required",
+      });
+    }
+
+    // Generate questions (waits for AI)
+    try {
+      // Check if session already has questions
+      const existing = await query(
+        `
+        SELECT 1
+        FROM "DynamicQuestion"
+        WHERE session_id = $1
+        LIMIT 1
+        `,
+        [sessionId]
+      );
+
+      if (existing.rowCount === 0) {
+        await generateResumeBasedQuestions({ userId, sessionId });
+      }
+
+    } catch (err) {
+      if (err.message === "RESUME_NOT_FOUND") {
+        return res.status(400).json({
+          code: "NO_RESUME",
+          message:
+            "Resume not found. Please upload your resume in Profile section.",
+        });
+      }
+      throw err;
+    }
+
+    // Fetch ONLY session-specific dynamic questions
+    const result = await query(
+      `
+      SELECT
+        b.question_id,
+        b.difficulty,
+        dq.generated_question_content
+      FROM "DynamicQuestion" dq
+      JOIN "BaseQuestion" b ON b.question_id = dq.base_question_id
+      WHERE dq.session_id = $1
+      ORDER BY dq.dynamic_question_id ASC
+      `,
+      [sessionId]
+    );
+
+    const questions = result.rows.map((q) => ({
+      questionId: q.question_id,
+      text: q.generated_question_content,
+      difficulty: q.difficulty,
+      type: "dynamic",
+    }));
+
+    return res.json({ questions });
+
+  } catch (error) {
+    console.error("Resume-based question error:", error);
+    res.status(500).json({
+      error: "Failed to generate resume-based questions",
     });
   }
 });

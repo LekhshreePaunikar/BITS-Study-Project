@@ -65,7 +65,11 @@ export default function InterviewQuestion({
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const res = await api.get("/questions/predefined");
+        const endpoint =
+          config.questionSource === "resume-based"
+            ? `/questions/resume-based-questions?sessionId=${config.sessionId}`
+            : "/questions/predefined";
+        const res = await api.get(endpoint);
         setQuestions(res.data.questions);
       } catch (err) {
         console.error("Failed to load questions", err);
@@ -173,7 +177,7 @@ export default function InterviewQuestion({
       return;
     }
     if (isSubmitting) return;
-        setIsSubmitting(true);
+    setIsSubmitting(true);
     const currentQ = questions[currentQuestionIndex];
 
     try {

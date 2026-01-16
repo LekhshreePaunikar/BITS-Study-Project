@@ -294,7 +294,7 @@ Return ONLY valid JSON:
 
   let raw = completion.choices?.[0]?.message?.content || "{}";
 
-  // ✅ REMOVE markdown wrappers if OpenAI adds them
+  // REMOVE markdown wrappers if OpenAI adds them
   raw = raw.replace(/```json/g, "")
     .replace(/```/g, "")
     .trim();
