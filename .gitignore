@@ -100,6 +100,11 @@ coverage/
 backend/static/profile-images/*
 backend/static/resumes/*
 
+# Ignore generated voice/audio files
+backend/static/voice/*
+# But keep directory placeholder
+!backend/static/voice/.gitkeep
+
 # But keep directory placeholders
 !backend/static/profile-images/.gitkeep
 !backend/static/resumes/.gitkeep
