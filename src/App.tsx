@@ -21,9 +21,10 @@ import HelpAndSupport from './components/HelpAndSupport';
 import { Toaster } from './components/ui/sonner';
 import { Routes, Route } from "react-router-dom";
 import AdminProfile from "./components/AdminProfile";
+import QuestionReview from "./components/QuestionReview";
 
 
-type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'admin-profile' | 'support-ticket' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support';
+type ViewType = 'login' | 'signup' | 'dashboard' | 'admin-dashboard' | 'admin-profile' | 'support-ticket' | 'manage-questions' | 'manage-users' | 'analytics' | 'profile' | 'logout' | 'interview-setup' | 'interview' | 'session-completion' | 'detailed-feedback' | 'past-sessions' | 'performance-report' | 'help-support' | 'question-review';
 
 type Admin = {
   user_id: number;
@@ -48,7 +49,9 @@ export default function App() {
     totalQuestions: number;
   } | null>(null);
 
- 
+
+
+
 
   // Check for remembered user on app initialization
   useEffect(() => {
@@ -76,8 +79,15 @@ export default function App() {
     }
   }, []);
 
+  const [reviewSessionId, setReviewSessionId] = useState<number | null>(null);
 
-  
+  const handleQuestionReview = (sessionId: number) => {
+    setReviewSessionId(sessionId);
+    setCurrentView('question-review');
+  };
+
+
+
   const switchToSignUp = () => {
     setCurrentView('signup');
   };
@@ -89,7 +99,7 @@ export default function App() {
   const handleLoginSuccess = (username: string) => {
     setCurrentUser(username);
     setIsAdmin(false);
-    setAdmin(username); 
+    setAdmin(username);
     setCurrentView('dashboard');
     localStorage.setItem('rememberUser', JSON.stringify({
       rememberMe: true,
@@ -98,7 +108,7 @@ export default function App() {
     }));
   };
 
-  
+
 
   const handleAdminLoginSuccess = (username: string) => {
     setCurrentUser(username);
@@ -135,8 +145,8 @@ export default function App() {
   const handleBackToDashboard = () => {
     setCurrentView(isAdmin ? 'admin-dashboard' : 'dashboard');
   };
-  
-  
+
+
 
   const handleStartInterviewSetup = () => {
     setCurrentView('interview-setup');
@@ -174,7 +184,7 @@ export default function App() {
     setCurrentView('analytics');
 
   };
-  
+
   const handleAdminProfile = () => {
     setCurrentView('admin-profile');
   };
@@ -205,6 +215,9 @@ export default function App() {
     setCurrentView('dashboard');
   };
 
+
+
+
   const handleViewDetailedFeedback = () => {
     setCurrentView('detailed-feedback');
   };
@@ -215,6 +228,8 @@ export default function App() {
     setSessionData(null);
     setCurrentView('dashboard');
   };
+  
+
 
   const renderCurrentView = () => {
     switch (currentView) {
@@ -244,7 +259,7 @@ export default function App() {
         );
       case 'admin-dashboard':
         return (
-          <AdminDashboard 
+          <AdminDashboard
             admin={admin}
             onLogout={handleLogout}
             onEditProfile={() => setCurrentView("admin-profile")}
@@ -292,10 +307,10 @@ export default function App() {
       case 'admin-profile':
         return (
           <AdminProfile
-             onBack={handleBackToAdminDashboard}
-        
+            onBack={handleBackToAdminDashboard}
+
           />
-        );  
+        );
       case 'interview-setup':
         return (
           <InterviewSetup
@@ -321,6 +336,7 @@ export default function App() {
             sessionData={sessionData}
             onBackToDashboard={handleSessionCompletionBackToDashboard}
             onViewDetailedFeedback={handleViewDetailedFeedback}
+            onViewQuestionReview={handleQuestionReview} 
           />
         ) : null;
       case 'detailed-feedback':
@@ -332,6 +348,15 @@ export default function App() {
             onBackToDashboard={handleDetailedFeedbackBackToDashboard}
           />
         ) : null;
+
+      case 'question-review':
+        return reviewSessionId ? (
+          <QuestionReview
+            sessionId={reviewSessionId}
+            onBack={() => setCurrentView('session-completion')}
+          />
+        ) : null;
+
       case 'past-sessions':
         return (
           <PastSessions

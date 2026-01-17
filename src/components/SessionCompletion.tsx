@@ -26,6 +26,7 @@ interface SessionCompletionProps {
   config: InterviewConfigWithSession;
   onBackToDashboard: () => void;
   onViewDetailedFeedback: () => void;
+  onViewQuestionReview: (sessionId: number) => void;
 }
 
 interface SessionSummary {
@@ -41,12 +42,14 @@ export default function SessionCompletion({
   config,
   onBackToDashboard,
   onViewDetailedFeedback,
+  onViewQuestionReview,
 }: SessionCompletionProps) {
-  const [summary, setSummary] = useState<SessionSummary | null>(null);
+  const [summary, setSummary] = useState<any>(null);;
   const [loading, setLoading] = useState(true);
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [showContent, setShowContent] = useState(false);
+
 
   // Fetch real session summary
   useEffect(() => {
@@ -60,6 +63,8 @@ export default function SessionCompletion({
       })
       .finally(() => setLoading(false));
   }, [config.sessionId]);
+
+  
 
   // Animations (same behavior as your original)
   useEffect(() => {
@@ -78,11 +83,18 @@ export default function SessionCompletion({
       .padStart(2, "0")}`;
   };
 
+
+
+
+
   // 0..10 score colors (nice, not “all white”)
   const getScoreColor10 = (score10: number) => {
     if (score10 >= 8) return "#10B981"; // green
     if (score10 >= 6) return "#F59E0B"; // amber
     return "#EF4444"; // red
+  };
+  const score10ToPercent = (score10: number) => {
+    return Math.round((score10 / 10) * 100);
   };
 
   const getPerformanceMessage10 = (score10: number) => {
@@ -93,30 +105,33 @@ export default function SessionCompletion({
     return "Keep practicing! 💪";
   };
 
+
+
+
   const handleDownloadReport = async () => {
-  try {
-    const response = await api.get(
-      `/interview/session/${config.sessionId}/report-pdf`,
-      { responseType: "blob" }
-    );
+    try {
+      const response = await api.get(
+        `/interview/session/${config.sessionId}/report-pdf`,
+        { responseType: "blob" }
+      );
 
-    const blob = new Blob([response.data], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = window.URL.createObjectURL(blob);
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `session-${config.sessionId}-report.pdf`;
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `session-${config.sessionId}-report.pdf`;
 
-    document.body.appendChild(link);
-    link.click();
+      document.body.appendChild(link);
+      link.click();
 
-    link.remove();
-    window.URL.revokeObjectURL(url);
-  } catch (err) {
-    console.error("PDF download failed:", err);
-    alert("Failed to download report");
-  }
-};
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF download failed:", err);
+      alert("Failed to download report");
+    }
+  };
 
   if (loading || !summary) {
     return (
@@ -126,52 +141,59 @@ export default function SessionCompletion({
     );
   }
 
- 
+
 
   const toCleanBullets = (
-  texts: unknown[],
-  max = 5,
-  short = false
-) => {
-  const seen = new Set<string>();
+    texts: unknown[],
+    max = 5,
+    short = false
+  ) => {
+    const seen = new Set<string>();
 
-  return (Array.isArray(texts) ? texts : [])
-    .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
-    .flatMap(t =>
-      t
-        .replace(/to improve,.*$/i, "")
-        .replace(/however,.*$/i, "")
-        .replace(/improve by.*$/i, "")
-        .split(/[.\n]/)
-        .map(s => s.trim())
-    )
-    .filter(s => s.length > 15)
-    .map(s => {
-      if (!short) return s;
+    return (Array.isArray(texts) ? texts : [])
+      .filter((t): t is string => typeof t === "string" && t.trim().length > 0)
+      .flatMap(t =>
+        t
+          .replace(/to improve,.*$/i, "")
+          .replace(/however,.*$/i, "")
+          .replace(/improve by.*$/i, "")
+          .split(/[.\n]/)
+          .map(s => s.trim())
+      )
+      .filter(s => s.length > 15)
+      .map(s => {
+        if (!short) return s;
 
-      // 🔹 compress sentence into a short phrase
-      return s
-        .replace(/the answer (is|shows|demonstrates)/i, "")
-        .replace(/demonstrating|demonstrates/i, "")
-        .replace(/with|and/gi, "")
-        .trim();
-    })
-    .filter(s => {
-      const key = s.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, max)
-    .map(s => s.charAt(0).toUpperCase() + s.slice(1));
-};
+        // 🔹 compress sentence into a short phrase
+        return s
+          .replace(/the answer (is|shows|demonstrates)/i, "")
+          .replace(/demonstrating|demonstrates/i, "")
+          .replace(/with|and/gi, "")
+          .trim();
+      })
+      .filter(s => {
+        const key = s.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, max)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1));
+  };
 
 
- const strengths = toCleanBullets(summary.strengths, 4, true);
- const weaknesses = toCleanBullets(summary.weaknesses, 4, true);
+  const strengths = toCleanBullets(summary.strengths, 4, true);
+  const weaknesses = toCleanBullets(summary.weaknesses, 4, true);
 
- // feedback stays detailed
- const feedback = toCleanBullets(summary.feedback, 6, false);
+  // feedback stays detailed
+  const feedback = toCleanBullets(summary.feedback, 6, false);
+  const safeTotalScore =
+  typeof summary.totalScore === "number" ? summary.totalScore : 0;
+
+const safeTimeTaken =
+  typeof summary.timeTakenSeconds === "number"
+    ? summary.timeTakenSeconds
+    : 0;
 
   return (
     <div
@@ -216,7 +238,7 @@ export default function SessionCompletion({
           <div className="flex items-center justify-center space-x-2 mb-2">
             <Trophy className="h-6 w-6" style={{ color: "#F59E0B" }} />
             <p className="text-2xl text-white">
-              {getPerformanceMessage10(summary.totalScore)}
+              {getPerformanceMessage10(safeTotalScore)}
             </p>
             <Trophy className="h-6 w-6" style={{ color: "#F59E0B" }} />
           </div>
@@ -230,15 +252,19 @@ export default function SessionCompletion({
               <div>
                 <p className="text-white text-xl">
                   Total Score:{" "}
-                  <span style={{ color: getScoreColor10(summary.totalScore) }}>
-                    {summary.totalScore.toFixed(1)}/10
+                  <span style={{ color: getScoreColor10(safeTotalScore) }}>
+                    {safeTotalScore.toFixed(1)}/10
+                  </span>
+                  <span className="ml-2 text-sm text-gray-400">
+                    ({score10ToPercent(safeTotalScore)}%))
                   </span>
                 </p>
+
 
                 <p className="text-white text-xl">
                   Time Taken:{" "}
                   <span style={{ color: "#3B82F6" }}>
-                    {formatTime(summary.timeTakenSeconds)}
+                    {formatTime(safeTimeTaken)}
                   </span>
                 </p>
               </div>
@@ -248,7 +274,13 @@ export default function SessionCompletion({
               <Badge
                 variant="secondary"
                 className="mr-2 text-white"
-                style={{ backgroundColor: "#374151" }}
+                style={{
+                  backgroundColor: config.level === "easy"
+                    ? "#10B981" // green
+                    : config.level === "medium"
+                      ? "#F59E0B" // orange
+                      : "#EF4444", // red 
+                }}
               >
                 Level: {config.level}
               </Badge>
@@ -277,7 +309,7 @@ export default function SessionCompletion({
         </div>
 
         {/* Performance Charts Icons */}
-        <div className="flex justify-center items-center space-x-16 mb-16">
+        {/* <div className="flex justify-center items-center space-x-16 mb-16">
           <div className="text-center">
             <div
               className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full transition-all duration-200 hover:shadow-lg"
@@ -307,13 +339,13 @@ export default function SessionCompletion({
             </div>
             <p className="text-white text-sm">Answer Progression</p>
           </div>
-        </div>
+        </div> */}
 
         {/* Strengths & Weaknesses */}
         <div className="grid md:grid-cols-2 gap-8 mb-10">
           {/* Strengths */}
           <div>
-            <h3 className="text-white mb-4 flex items-center space-x-2">
+            <h3 className="text-white text-lg font-semibold flex items-center space-x-2">
               <Star className="h-5 w-5" style={{ color: "#10B981" }} />
               <span>Strengths:</span>
             </h3>
@@ -328,7 +360,7 @@ export default function SessionCompletion({
             >
               <CardContent className="p-6">
                 {strengths.length ? (
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 text-gray-200 text-base">
                     {strengths.map((strength, index) => (
                       <li
                         key={index}
@@ -355,7 +387,7 @@ export default function SessionCompletion({
 
           {/* Weaknesses */}
           <div>
-            <h3 className="text-white mb-4 flex items-center space-x-2">
+            <h3 className="text-white text-lg font-semibold flex items-center space-x-2">
               <Target className="h-5 w-5" style={{ color: "#F59E0B" }} />
               <span>Areas for Improvement:</span>
             </h3>
@@ -370,7 +402,7 @@ export default function SessionCompletion({
             >
               <CardContent className="p-6">
                 {weaknesses.length ? (
-                  <ul className="space-y-3">
+                  <ul className="space-y-3 text-gray-200 text-base">
                     {weaknesses.map((weakness, index) => (
                       <li
                         key={index}
@@ -398,7 +430,7 @@ export default function SessionCompletion({
 
         {/* AI Feedback Card (keeps same “beautiful” style) */}
         <div className="mb-12">
-          <h3 className="text-white mb-4 flex items-center space-x-2">
+          <h3 className="text-white text-lg font-semibold flex items-center space-x-2">
             <BarChart3 className="h-5 w-5" style={{ color: "#3B82F6" }} />
             <span>AI Interviewer Summary:</span>
           </h3>
@@ -413,7 +445,7 @@ export default function SessionCompletion({
           >
             <CardContent className="p-6">
               {feedback.length ? (
-                <ul className="space-y-3">
+                <ul className="space-y-3 text-gray-200 text-base">
                   {feedback.map((f, i) => (
                     <li
                       key={i}
@@ -450,17 +482,27 @@ export default function SessionCompletion({
             </span>
           </Button>
 
-          {/* <Button
-            onClick={onViewDetailedFeedback}
-            className="px-8 py-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center space-x-2 text-white hover:scale-105"
-            style={{ backgroundColor: "#10B981" }}
+
+          <Button
+            onClick={() => onViewQuestionReview(config.sessionId)}
             size="lg"
+            className="px-8 py-4 rounded-lg shadow-lg hover:shadow-xl
+             transition-all duration-300 flex items-center gap-2 text-white"
+            style={{ backgroundColor: "#10B981" }}
           >
             <Search className="h-5 w-5" />
-            <span className="uppercase tracking-wide">
-              View Detailed Feedback
-            </span>
+            Question Review
+          </Button>
+        
+
+          {/* <Button
+            variant="outline"
+            className="border-white/20 text-white px-6"
+            onClick={() => setShowReview(true)}
+          >
+            Question Review
           </Button> */}
+
         </div>
 
         {/* Footer Actions */}
@@ -486,6 +528,6 @@ export default function SessionCompletion({
           </p>
         </div>
       </div>
-    </div>
+    </div >
   );
 }
