@@ -14,6 +14,7 @@ const interviewSetupRoutes = require("./routes/interviewSetup");
 const userProfileRoutes = require('./routes/userProfile');
 const adminKpisRoutes = require("./routes/adminKpis");
 const performanceReportRoutes = require("./routes/performanceReport");
+const performanceRoutes = require("./routes/performance");
 
 // Load environment variables
 require('dotenv').config();
@@ -151,6 +152,7 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use("/api/performance", require("./routes/performance"));
 // Handle profile photo
 app.use(
   "/static/profile-images",

@@ -333,14 +333,22 @@ router.post("/end", async (req, res) => {
 
       if (Number.isNaN(score)) return;
 
-      if (score >= 8) {
+      if (score >= 7) {
         strengths.push(text);
       }
 
-      if (score <= 4) {
+      else if (score <= 6) {
         weaknesses.push(text);
       }
     });
+
+    if (!strengths.length && totalScore >= 7) {
+      strengths.push("Overall performance in this session was strong.");
+    }
+
+    if (!weaknesses.length && totalScore <= 6) {
+      weaknesses.push("More consistent answers would improve the session.");
+    }
 
     // remove duplicates & limit size
     const uniqueStrengths = [...new Set(strengths)].slice(0, 5);
@@ -604,6 +612,74 @@ router.get("/session/:sessionId/report-pdf", async (req, res) => {
     res.status(500).json({ error: "Failed to generate PDF" });
   }
 });
+
+// GET Question Review for a session
+router.get("/session/:sessionId/question-review", async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const userId = req.user?.id || req.user?.userId; // depending on your auth middleware
+
+    if (!sessionId || !userId) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+
+    // Pull each question + user's answer + per-question feedback/score
+    const result = await query(
+      `
+      SELECT
+        a.answer_id,
+
+        bq.question_id,
+
+        COALESCE(
+            sq.question_content,
+            dq.generated_question_content
+        ) AS "questionText",
+
+       a.answer_text AS "userAnswer",
+
+       ROUND(COALESCE(a.score_overall, 0)::numeric, 1) AS "score",
+
+       COALESCE(f.suggestion_text, '') AS "feedback"
+
+      FROM "Answer" a
+
+      JOIN "BaseQuestion" bq
+      ON bq.question_id = a.question_id
+
+      LEFT JOIN "StaticQuestion" sq
+      ON sq.base_question_id = bq.question_id
+
+      LEFT JOIN "DynamicQuestion" dq
+      ON dq.base_question_id = bq.question_id
+
+      LEFT JOIN "Feedback" f
+      ON f.answer_id = a.answer_id
+
+      WHERE a.session_id = $1
+
+       ORDER BY a.answer_id ASC;
+
+      `,
+      [sessionId]
+    );
+
+    const rows = result.rows.map((r) => ({
+      questionText: r.questionText,
+      userAnswer: r.userAnswer,
+      score: Number(r.score),
+      feedback: typeof r.feedback === "string"
+        ? r.feedback.split("\n").map((x) => x.trim()).filter(Boolean)
+        : [],
+    }));
+
+    return res.json(rows);
+  } catch (err) {
+    console.error("question-review error:", err);
+    return res.status(500).json({ error: "Failed to load question review" });
+  }
+});
+
 
 
 
