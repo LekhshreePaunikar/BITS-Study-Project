@@ -129,7 +129,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Handle undefined routes
-app.use('*', (req, res) => {
+app.use('/api', (req, res) => {
   res.status(404).json({
     message: 'API endpoint not found'
   });
