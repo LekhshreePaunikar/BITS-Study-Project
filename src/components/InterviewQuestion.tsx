@@ -70,7 +70,13 @@ export default function InterviewQuestion({
             ? `/questions/resume-based-questions?sessionId=${config.sessionId}`
             : "/questions/predefined";
         const res = await api.get(endpoint);
-        setQuestions(res.data.questions);
+        const qs = Array.isArray(res.data.questions)
+          ? res.data.questions
+          : [];
+
+        console.log("Fetched questions:", qs);
+        setQuestions(qs);
+        
       } catch (err) {
         console.error("Failed to load questions", err);
         alert("Failed to load interview questions");
@@ -179,6 +185,11 @@ export default function InterviewQuestion({
     if (isSubmitting) return;
     setIsSubmitting(true);
     const currentQ = questions[currentQuestionIndex];
+    if (!currentQ) {
+      alert("Question not ready yet. Please wait.");
+      setIsSubmitting(false);
+      return;
+    }
 
     try {
 
@@ -299,7 +310,7 @@ export default function InterviewQuestion({
     }
   };
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = questions.length > 0 ? questions[currentQuestionIndex] : null;
   const difficulty = currentQuestion?.difficulty;
 
   const progressPercentage =
@@ -375,7 +386,7 @@ export default function InterviewQuestion({
             <CardContent className="p-8">
               <div className="min-h-[120px] flex items-center justify-center">
                 <p className="text-center text-xl leading-relaxed text-white">
-                  {currentQuestion.text}
+                  {currentQuestion?.text ?? "Loading question..."}
                 </p>
               </div>
             </CardContent>
