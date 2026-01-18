@@ -56,7 +56,7 @@ export default function PerformanceReport({
   useEffect(() => {
     api
       .get("/performance/summary")
-      .then((res) => setData(res.data))
+      .then((res: any) => setData(res.data))
       .finally(() => setLoading(false));
   }, []);
 
@@ -67,7 +67,10 @@ export default function PerformanceReport({
       </div>
     );
   }
-  const toPercent = (v = 0) => Math.round(v * 10);
+  const toPercent = (score = 0) => {
+    if (score > 10) return Math.round(score); // already %
+    return Math.round((score / 10) * 100);
+  };
   /* ================= SUMMARY ================= */
   const totalSessions = data.summary.total_sessions;
   const averageScore = toPercent(data.summary.avg_score);
@@ -79,18 +82,32 @@ export default function PerformanceReport({
     data.scoreOverTime?.length
       ? data.scoreOverTime
       : [{ date: "Today", score: averageScore }];
-  const normalize = (v = 0) => Math.round(v * 10);
 
-  const improvement =
+  const rawImprovement =
     scoreOverTimeData.length >= 2 &&
       scoreOverTimeData[0].score > 0
-      ? (
-        ((scoreOverTimeData.at(-1).score -
-          scoreOverTimeData[0].score) /
-          scoreOverTimeData[0].score) *
-        100
-      ).toFixed(1)
-      : "0.0";
+      ? ((scoreOverTimeData.at(-1).score -
+        scoreOverTimeData[0].score) /
+        scoreOverTimeData[0].score) *
+      100
+      : 0;
+
+
+
+  const scores = scoreOverTimeData.map(d => d.score);
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+
+  const improvement =
+    avg > 0
+      ? Math.max(
+        0,
+        Number((((scores.at(-1) - avg) / avg) * 100).toFixed(1))
+      )
+      : 0;
+
+
+
+
 
   /* ================= DISTRIBUTIONS ================= */
   const levelDistribution = {
@@ -102,17 +119,21 @@ export default function PerformanceReport({
   const skillPerformanceData = [
     {
       skill: "Communication",
-      easy: normalize(data.skills.communication),
-      medium: normalize(data.skills.communication) - 5,
-      hard: normalize(data.skills.communication) - 10,
+      easy: data.skills.communication,
+      medium: data.skills.communication - 5,
+      hard: data.skills.communication - 10,
     },
+
     {
       skill: "Technical Skills",
-      easy: normalize(data.skills.technical),
-      medium: normalize(data.skills.technical) - 5,
-      hard: normalize(data.skills.technical) - 10,
+      easy: data.skills.technical,
+      medium: data.skills.technical - 5,
+      hard: data.skills.technical - 10,
     },
   ];
+
+  const capitalize = (text: string) =>
+    text.charAt(0).toUpperCase() + text.slice(1);
 
 
   const questionTypeData = [
@@ -121,17 +142,17 @@ export default function PerformanceReport({
   ];
 
   /* ================= STRENGTHS / WEAKNESSES ================= */
-  const strengths = (data.strengths || []).map((t: string) => ({
-    skill: "Strength",
-    score: 90,
-    tip: t,
-  }));
+  const strengths = (data.strengths || []).slice(0, 4);
+  const weaknesses = (data.weaknesses || []).slice(0, 4);
+  // const strengths = (data.strengths || []).map((t: string) => ({
+  //   skill: "Strength",
+  //   tip: t,
+  // }));
 
-  const weaknesses = (data.weaknesses || []).map((t: string) => ({
-    skill: "Improvement",
-    score: 70,
-    tip: t,
-  }));
+  // const weaknesses = (data.weaknesses || []).map((t: string) => ({
+  //   skill: "Improvement",
+  //   tip: t,
+  // }));
 
   /* ================= METRICS ================= */
   const evaluationMetrics = {
@@ -175,6 +196,16 @@ export default function PerformanceReport({
     }
     return null;
   };
+
+  let bannerMessage = "";
+
+  if (!scoreOverTimeData || scoreOverTimeData.length < 2) {
+    bannerMessage = "This is your first benchmark session. Keep going! 🚀";
+  } else if (Number(improvement) > 0) {
+    bannerMessage = `You've improved by ${improvement}% recently! 🎉`;
+  } else {
+    bannerMessage = "You're building consistency — keep practicing! 💪";
+  }
 
   /* ================= RENDER ================= */
   return (
@@ -228,7 +259,7 @@ export default function PerformanceReport({
             <Award className="h-8 w-8 mx-auto mb-2" />
             <h2 className="text-xl">🎉 Congratulations, {username}!</h2>
             <p className="text-lg">
-              You've improved by {improvement}% since your first session!
+              {bannerMessage}
             </p>
           </CardContent>
         </Card>
@@ -368,7 +399,8 @@ export default function PerformanceReport({
                   data={questionTypeData}
                   dataKey="value"
                   outerRadius={80}
-                  label
+                  labelLine={false}
+                  label={({ percent }) => `${Math.round(percent * 100)}%`}
                 >
                   {questionTypeData.map((e, i) => (
                     <Cell key={i} fill={e.color} />
@@ -390,23 +422,31 @@ export default function PerformanceReport({
               <CardTitle style={{ color: "#10B981" }}>
                 Top Strengths
               </CardTitle>
+              <p className="text-xs text-gray-400 mt-1">
+                What you consistently did well
+              </p>
             </CardHeader>
+
             <CardContent className="space-y-4">
               {strengths.length ? (
-                strengths.map((s, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-white mb-1">
-                      <span>{s.skill}</span>
-                      <span>{s.score}%</span>
-                    </div>
-                    <Progress value={s.score} />
-                    <p className="text-sm mt-1" style={{ color: "#9CA3AF" }}>
-                      {s.tip}
+                strengths.map((s: string, i: number) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-2"
+                  >
+                    <Star className="h-4 w-4 mt-1 text-green-400 shrink-0" />
+                    <p
+                      className="text-sm font-medium leading-relaxed"
+                      style={{ color: "#D1FAE5" }} // soft green
+                    >
+                      {capitalize(s)}
                     </p>
                   </div>
                 ))
               ) : (
-                <p style={{ color: "#9CA3AF" }}>No strengths identified.</p>
+                <p style={{ color: "#9CA3AF" }}>
+                  No strengths identified.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -420,18 +460,24 @@ export default function PerformanceReport({
               <CardTitle style={{ color: "#F59E0B" }}>
                 Areas for Improvement
               </CardTitle>
+              <p className="text-xs text-gray-400 mt-1">
+                What to focus on next
+              </p>
             </CardHeader>
+
             <CardContent className="space-y-4">
               {weaknesses.length ? (
-                weaknesses.map((w, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-white mb-1">
-                      <span>{w.skill}</span>
-                      <span>{w.score}%</span>
-                    </div>
-                    <Progress value={w.score} />
-                    <p className="text-sm mt-1" style={{ color: "#9CA3AF" }}>
-                      {w.tip}
+                weaknesses.map((w: string, i: number) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-2"
+                  >
+                    <AlertCircle className="h-4 w-4 mt-1 text-yellow-400 shrink-0" />
+                    <p
+                      className="text-sm font-medium leading-relaxed"
+                      style={{ color: "#FDE68A" }} // soft amber
+                    >
+                      {capitalize(w)}
                     </p>
                   </div>
                 ))
@@ -443,6 +489,7 @@ export default function PerformanceReport({
             </CardContent>
           </Card>
         </div>
+
         {/* ================= EVALUATION METRICS ================= */}
         <Card
           className="border"

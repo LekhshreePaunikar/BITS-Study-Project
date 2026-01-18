@@ -106,7 +106,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
         Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => {
+      .then((res: any) => {
         if (!res.ok) throw new Error("Failed to fetch");
         return res.json();
       })

@@ -56,7 +56,7 @@ export default function SessionCompletion({
     setLoading(true);
     api
       .get(`/interview/session-summary/${config.sessionId}`)
-      .then((res) => setSummary(res.data))
+      .then((res: any) => setSummary(res.data))
       .catch((err) => {
         console.error("Failed to load session summary:", err);
         setSummary(null);
@@ -160,7 +160,7 @@ export default function SessionCompletion({
           .split(/[.\n]/)
           .map(s => s.trim())
       )
-      .filter(s => s.length > 15)
+      .filter(s => s.length > 6)
       .map(s => {
         if (!short) return s;
 

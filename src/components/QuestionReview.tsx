@@ -33,7 +33,7 @@ export default function QuestionReview({
     useEffect(() => {
         api
             .get(`/interview/session/${sessionId}/question-review`)
-            .then((res) => setQuestions(res.data))
+            .then((res: any) => setQuestions(res.data))
             .finally(() => setLoading(false));
     }, [sessionId]);
 

@@ -333,7 +333,7 @@ router.post("/end", async (req, res) => {
 
       if (Number.isNaN(score)) return;
 
-      if (score >= 7) {
+      if (score >= 6.5) {
         strengths.push(text);
       }
 
@@ -432,10 +432,12 @@ router.get("/session-summary/:sessionId", async (req, res) => {
     const reportRes = await query(
       `
       SELECT
-        total_score,
-        avg_time_per_question
-      FROM "PerformanceReport"
-      WHERE session_id = $1
+  total_score,
+  avg_time_per_question,
+  strengths,
+  weaknesses
+FROM "PerformanceReport"
+WHERE session_id = $1;
       `,
       [sessionId]
     );
@@ -454,28 +456,18 @@ router.get("/session-summary/:sessionId", async (req, res) => {
       `,
       [sessionId]
     );
-
-    const strengths = [];
-    const weaknesses = [];
-    const feedback = [];
-
-    feedbackRes.rows.forEach(row => {
-      feedback.push(row.suggestion_text);
-
-      if (row.score_overall >= 7) strengths.push(row.suggestion_text);
-      if (row.score_overall <= 4) weaknesses.push(row.suggestion_text);
-    });
+    const report = reportRes.rows[0];
 
     res.json({
-      totalScore: Number(reportRes.rows[0].total_score),
+      totalScore: Number(report.total_score),
       timeTakenSeconds: Math.round(
-        reportRes.rows[0].avg_time_per_question *
-        feedbackRes.rows.length
+        report.avg_time_per_question * feedbackRes.rows.length
       ),
-      strengths: [...new Set(strengths)],
-      weaknesses: [...new Set(weaknesses)],
-      feedback: [...new Set(feedback)],
+      strengths: report.strengths || [],
+      weaknesses: report.weaknesses || [],
+      feedback: [...new Set(feedbackRes.rows.map(r => r.suggestion_text))],
     });
+
 
   } catch (err) {
     console.error("Session summary error:", err);
@@ -517,7 +509,11 @@ router.get("/session/:sessionId/report-pdf", async (req, res) => {
     // 1️⃣ Get performance report
     const reportRes = await query(
       `
-      SELECT total_score, avg_time_per_question
+      SELECT
+       COUNT(*) AS session_count,
+        AVG(total_score) AS avg_score,
+        ARRAY_AGG(DISTINCT unnest(strengths)) AS strengths,
+        ARRAY_AGG(DISTINCT unnest(weaknesses)) AS weaknesses
       FROM "PerformanceReport"
       WHERE session_id = $1
       `,
