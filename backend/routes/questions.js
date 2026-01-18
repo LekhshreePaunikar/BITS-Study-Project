@@ -309,11 +309,18 @@ router.get("/predefined", authenticateToken, async (req, res) => {
         text = dynamicRes.rows[0]?.generated_question_content || "";
       }
 
+      if (!text) continue;
       questions.push({
         questionId: base.question_id,
         text,
         difficulty: base.difficulty,
         type: base.is_predefined ? "static" : "dynamic",
+      });
+    }
+    if (questions.length === 0) {
+      return res.status(400).json({
+        message: "No interview questions available",
+        questions: [],
       });
     }
 

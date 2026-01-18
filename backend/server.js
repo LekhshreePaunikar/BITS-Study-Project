@@ -10,16 +10,18 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 
-const interviewSetupRoutes = require("./routes/interviewSetup");
+const path = require('path');
+
+
+// Route modules (KEEPING ALL YOU MENTIONED)
+const interviewSetupRoutes = require('./routes/interviewSetup');
 const userProfileRoutes = require('./routes/userProfile');
-const adminKpisRoutes = require("./routes/adminKpis");
-const performanceReportRoutes = require("./routes/performanceReport");
-const performanceRoutes = require("./routes/performance");
+const adminKpisRoutes = require('./routes/adminKpis');
+const performanceReportRoutes = require('./routes/performanceReport');
+const performanceRoutes = require('./routes/performance');
 
 // Load environment variables
 require('dotenv').config();
-
-
 
 // Initialize Express app
 const app = express();
@@ -33,14 +35,6 @@ const PORT = process.env.PORT || 3001;
 app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '..', 'build')));
-
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
-  });
-}
 
 // Rate limiting (max 100 requests per 15 minutes per IP)
 const limiter = rateLimit({
@@ -59,16 +53,19 @@ app.use(cors({
 // Request parsers
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
 // static files
 // backend/server.js
 
 // Ensure this points correctly to the root 'static' folder
 // backend/server.js
 
-// Ab ye backend ke andar waale static folder ko point karega
 app.use("/static", express.static(path.join(__dirname, "static")));
-
-
+// Handle profile photo
+app.use(
+  "/static/profile-images",
+  express.static(path.join(__dirname, "static/profile-images"))
+);
 // ==============================
 // Routes
 // ==============================
@@ -87,6 +84,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/support', require('./routes/supportTicket'));
 app.use('/api/questions', require('./routes/questions'));
 
+
 // ADMIN ROUTES
 app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets'));
 app.use('/api/admin', require('./routes/admin'));
@@ -98,6 +96,8 @@ app.use('/api/user', authenticateToken, checkLogin, require('./routes/userKpis')
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userProfile'));
 app.use('/api/interview', authenticateToken, checkLogin, require('./routes/interviewSetup'));
 app.use('/api/sessions', authenticateToken, checkLogin, require('./routes/sessions'));
+
+app.use("/api/performance", require("./routes/performance"));
 app.use('/api/past-sessions', authenticateToken, checkLogin, require('./routes/pastSessions'));
 app.use('/api/performance-report', authenticateToken, checkLogin, performanceReportRoutes);
 
@@ -128,39 +128,23 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// ==============================
-// Error Handling
-// ==============================
-
-
-app.use((req, res, next) => {
-  // Ignore logging for static files and successful route hits
-  if (!res.headersSent && !req.originalUrl.startsWith("/static")) {
-    console.log("404 - Unmatched route:", req.method, req.originalUrl);
-  }
-  next();
-});
-
-app.use((req, res, next) => {
-  if (!req.originalUrl.startsWith("/static")) {
-    console.log("Unmatched route:", req.method, req.originalUrl);
-  }
-  next();
-});
-
-app.use("/api/performance", require("./routes/performance"));
-// Handle profile photo
-app.use(
-  "/static/profile-images",
-  express.static(path.join(__dirname, "static/profile-images"))
-);
-
 // Handle undefined routes
 app.use('*', (req, res) => {
   res.status(404).json({
     message: 'API endpoint not found'
   });
 });
+
+// ==============================
+// Serve React SPA (PRODUCTION ONLY)
+// ==============================
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '..', 'build')));
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'build', 'index.html'));
+  });
+}
 
 // Global error handler
 app.use((err, req, res, next) => {
@@ -170,7 +154,7 @@ app.use((err, req, res, next) => {
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
-// app.use('/api/profile', userProfileRoutes);
+
 // ==============================
 // Server Start
 // ==============================
@@ -188,5 +172,21 @@ app.listen(PORT, () => {
   console.log(`Database URL present: ${!!process.env.DATABASE_URL}`);
   console.log('-----------------------------------');
 });
+
+
+
+
+// // ==============================
+// // Error Handling
+// // ==============================
+
+// app.use((req, res, next) => {
+//   if (!req.originalUrl.startsWith("/static")) {
+//     console.log("Unmatched route:", req.method, req.originalUrl);
+//   }
+//   next();
+// });
+
+
 
 module.exports = app;
