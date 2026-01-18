@@ -382,7 +382,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
               <div
                 className="text-3xl mb-1 text-white"
               >
-                +{userStats.improvementRate}%
+                {userStats.improvementRate}%
               </div>
               <p
                 className="text-base"

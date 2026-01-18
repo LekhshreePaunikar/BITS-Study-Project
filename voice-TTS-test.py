@@ -11,7 +11,7 @@ VOICE_DIR = os.path.join(
     BASE_DIR,
     "backend",
     "static",
-    "voice"
+    "voice-tts"
 )
 
 os.makedirs(VOICE_DIR, exist_ok=True)
