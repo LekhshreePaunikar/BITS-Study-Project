@@ -101,9 +101,11 @@ backend/static/profile-images/*
 backend/static/resumes/*
 
 # Ignore generated voice/audio files
-backend/static/voice/*
+backend/static/voice-tts/*
+backend/static/voice-stt/*
 # But keep directory placeholder
-!backend/static/voice/.gitkeep
+!backend/static/voice-tts/.gitkeep
+!backend/static/voice-stt/.gitkeep
 
 # But keep directory placeholders
 !backend/static/profile-images/.gitkeep
