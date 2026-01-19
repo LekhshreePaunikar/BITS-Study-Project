@@ -120,15 +120,15 @@ export default function PerformanceReport({
     {
       skill: "Communication",
       easy: data.skills.communication,
-      medium: data.skills.communication - 5,
-      hard: data.skills.communication - 10,
+      medium: data.skills.communication - 2,
+      hard: data.skills.communication - 4,
     },
 
     {
       skill: "Technical Skills",
       easy: data.skills.technical,
-      medium: data.skills.technical - 5,
-      hard: data.skills.technical - 10,
+      medium: data.skills.technical - 2,
+      hard: data.skills.technical - 4,
     },
   ];
 
@@ -157,7 +157,7 @@ export default function PerformanceReport({
   /* ================= METRICS ================= */
   const evaluationMetrics = {
     avgResponseTime: `${Math.round(data.avgTimePerQuestion || 120)} sec`,
-    avgEvaluationTime: "45 sec",
+    avgEvaluationTime: "1 min",
     consistencyScore: data.consistencyScore || 85,
   };
 
@@ -398,7 +398,8 @@ export default function PerformanceReport({
                 <Pie
                   data={questionTypeData}
                   dataKey="value"
-                  outerRadius={80}
+                  outerRadius={65}
+                  innerRadius={35}
                   labelLine={false}
                   label={({ percent }) => `${Math.round(percent * 100)}%`}
                 >
