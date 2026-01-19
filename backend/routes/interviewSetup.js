@@ -432,12 +432,12 @@ router.get("/session-summary/:sessionId", async (req, res) => {
     const reportRes = await query(
       `
       SELECT
-  total_score,
-  avg_time_per_question,
-  strengths,
-  weaknesses
-FROM "PerformanceReport"
-WHERE session_id = $1;
+       total_score,
+       avg_time_per_question,
+       strengths,
+       weaknesses
+      FROM "PerformanceReport"
+      WHERE session_id = $1;
       `,
       [sessionId]
     );
@@ -510,10 +510,10 @@ router.get("/session/:sessionId/report-pdf", async (req, res) => {
     const reportRes = await query(
       `
       SELECT
-       COUNT(*) AS session_count,
-        AVG(total_score) AS avg_score,
-        ARRAY_AGG(DISTINCT unnest(strengths)) AS strengths,
-        ARRAY_AGG(DISTINCT unnest(weaknesses)) AS weaknesses
+        total_score,
+        avg_time_per_question,
+        strengths,
+        weaknesses
       FROM "PerformanceReport"
       WHERE session_id = $1
       `,
