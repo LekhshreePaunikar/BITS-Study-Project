@@ -19,10 +19,6 @@ const performanceRoutes = require("./routes/performance");
 // Load environment variables
 require('dotenv').config();
 
-const path = require('path');
-
-
-
 
 
 // Initialize Express app
