@@ -1,6 +1,7 @@
 import os
 import psycopg2
 import subprocess
+import platform
 from dotenv import load_dotenv
 
 load_dotenv(".env.local")
@@ -39,6 +40,35 @@ def fetch_latest_questions(limit=3):
 
     return [r[0] for r in rows][::-1]
 
+def play_audio(filename: str):
+    system = platform.system()
+
+    # macOS
+    if system == "Darwin":
+        subprocess.run(["afplay", filename], check=True)
+
+    # Windows (keep existing PowerShell logic)
+    elif system == "Windows":
+        ps_cmd = f"""
+        Add-Type -AssemblyName presentationCore;
+        $player = New-Object System.Windows.Media.MediaPlayer;
+        $player.Open([uri]'{filename}');
+        $player.Play();
+        while ($player.NaturalDuration.HasTimeSpan -eq $false) {{
+            Start-Sleep -Milliseconds 200
+        }}
+        while ($player.Position -lt $player.NaturalDuration.TimeSpan) {{
+            Start-Sleep -Milliseconds 200
+        }}
+        """
+        subprocess.run(
+            ["powershell", "-NoProfile", "-Command", ps_cmd],
+            check=True,
+        )
+
+    else:
+        raise RuntimeError(f"Unsupported OS: {system}")
+
 
 def speak_question(text: str, index: int):
     filename = os.path.join(VOICE_DIR, f"question_{index}.mp3")
@@ -56,23 +86,25 @@ def speak_question(text: str, index: int):
     )
 
     # Play MP3 and BLOCK until finished
-    ps_cmd = f"""
-    Add-Type -AssemblyName presentationCore;
-    $player = New-Object System.Windows.Media.MediaPlayer;
-    $player.Open([uri]'{filename}');
-    $player.Play();
-    while ($player.NaturalDuration.HasTimeSpan -eq $false) {{
-        Start-Sleep -Milliseconds 200
-    }}
-    while ($player.Position -lt $player.NaturalDuration.TimeSpan) {{
-        Start-Sleep -Milliseconds 200
-    }}
-    """
+    # ps_cmd = f"""
+    # Add-Type -AssemblyName presentationCore;
+    # $player = New-Object System.Windows.Media.MediaPlayer;
+    # $player.Open([uri]'{filename}');
+    # $player.Play();
+    # while ($player.NaturalDuration.HasTimeSpan -eq $false) {{
+    #     Start-Sleep -Milliseconds 200
+    # }}
+    # while ($player.Position -lt $player.NaturalDuration.TimeSpan) {{
+    #     Start-Sleep -Milliseconds 200
+    # }}
+    # """
 
-    subprocess.run(
-        ["powershell", "-NoProfile", "-Command", ps_cmd],
-        check=True,
-    )
+    # subprocess.run(
+    #     ["powershell", "-NoProfile", "-Command", ps_cmd],
+    #     check=True,
+    # )
+
+    play_audio(filename)
 
     # Cleanup temporary file
     os.remove(filename)
