@@ -1,9 +1,8 @@
 // root/src/components/Analytics.tsx
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Separator } from './ui/separator';
 import { 
@@ -16,7 +15,7 @@ import {
   Target,
   AlertCircle,
   Calendar,
-  Filter
+  Loader2
 } from 'lucide-react';
 import { 
   LineChart, 
@@ -31,7 +30,6 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend
 } from 'recharts';
 
 interface AnalyticsProps {
@@ -39,12 +37,26 @@ interface AnalyticsProps {
   onBackToAdminDashboard: () => void;
 }
 
-export default function Analytics({ username, onBackToAdminDashboard }: AnalyticsProps) {
-  const [timeRange, setTimeRange] = useState('30d');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+interface AnalyticsData {
+  dailyActiveUsers: Array<{ date: string; users: number }>;
+  monthlyActiveUsers: Array<{ month: string; users: number }>;
+  roleDistribution: Array<{ name: string; value: number }>;
+  topQuestions: Array<{ question: string; answered: number; skipped: number }>;
+  engagementData: Array<{ stage: string; users: number }>;
+  heatmapData: Array<{ date: string; logins: number }>;
+}
 
-  // Chart colors - muted for dark backgrounds
+export default function Analytics({ username, onBackToAdminDashboard }: AnalyticsProps) {
+  const [analyticsData, setAnalyticsData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fixed filters (no UI for them)
+  const timeRange = '30d';
+  const roleFilter = 'all';
+  const categoryFilter = 'all';
+
+  // Chart colors
   const chartColors = {
     blue: '#3B82F6',
     green: '#10B981',
@@ -53,72 +65,67 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
     purple: '#8B5CF6'
   };
 
-  // Mock data for charts
-  const dailyActiveUsers = [
-    { date: '01 Jul', users: 45 },
-    { date: '02 Jul', users: 52 },
-    { date: '03 Jul', users: 48 },
-    { date: '04 Jul', users: 61 },
-    { date: '05 Jul', users: 55 },
-    { date: '06 Jul', users: 67 },
-    { date: '07 Jul', users: 59 },
-    { date: '08 Jul', users: 73 },
-    { date: '09 Jul', users: 68 },
-    { date: '10 Jul', users: 82 },
-    { date: '11 Jul', users: 76 },
-    { date: '12 Jul', users: 89 },
-    { date: '13 Jul', users: 94 },
-    { date: '14 Jul', users: 87 },
-    { date: '15 Jul', users: 92 },
-    { date: '16 Jul', users: 96 },
-    { date: '17 Jul', users: 103 },
-    { date: '18 Jul', users: 98 },
-    { date: '19 Jul', users: 112 },
-    { date: '20 Jul', users: 108 }
-  ];
+  // Fetch analytics data from database
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = new URLSearchParams({
+          timeRange,
+          roleFilter,
+          categoryFilter
+        });
+        
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}/api/admin/analytics/data?${params}`,
+          {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+            },
+            credentials: 'include'
+          }
+        );
 
-  const monthlyActiveUsers = [
-    { month: 'Feb', users: 1250 },
-    { month: 'Mar', users: 1420 },
-    { month: 'Apr', users: 1680 },
-    { month: 'May', users: 1890 },
-    { month: 'Jun', users: 2100 },
-    { month: 'Jul', users: 2380 }
-  ];
+        if (!response.ok) {
+          throw new Error('Failed to fetch analytics data');
+        }
 
-  const roleDistribution = [
-    { name: 'Frontend Developer', value: 35, color: chartColors.blue },
-    { name: 'Backend Developer', value: 28, color: chartColors.green },
-    { name: 'Data Analyst', value: 18, color: chartColors.orange },
-    { name: 'Full Stack Developer', value: 12, color: chartColors.purple },
-    { name: 'UI/UX Designer', value: 7, color: chartColors.red }
-  ];
+        const data = await response.json();
+        setAnalyticsData(data);
+      } catch (err) {
+        console.error('Error fetching analytics:', err);
+        setError('Failed to load analytics data');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const topQuestions = [
-    { question: 'JavaScript Fundamentals', answered: 245, skipped: 12 },
-    { question: 'React Components', answered: 198, skipped: 18 },
-    { question: 'Database Queries', answered: 187, skipped: 22 },
-    { question: 'API Development', answered: 172, skipped: 15 },
-    { question: 'System Design', answered: 156, skipped: 28 },
-    { question: 'Data Structures', answered: 143, skipped: 19 },
-    { question: 'Cloud Architecture', answered: 128, skipped: 31 },
-    { question: 'Testing Strategies', answered: 115, skipped: 25 },
-    { question: 'DevOps Practices', answered: 98, skipped: 33 },
-    { question: 'Security Principles', answered: 87, skipped: 29 }
-  ];
+    fetchAnalyticsData();
+  }, []);
 
+  // Use real data or fallback to empty arrays
+  const dailyActiveUsers = analyticsData?.dailyActiveUsers || [];
+  const monthlyActiveUsers = analyticsData?.monthlyActiveUsers || [];
+  const roleDistribution = (analyticsData?.roleDistribution || []).map((role, index) => ({
+    ...role,
+    color: [chartColors.blue, chartColors.green, chartColors.orange, chartColors.purple, chartColors.red][index % 5]
+  }));
+  const topQuestions = analyticsData?.topQuestions || [];
+  const engagementData = (analyticsData?.engagementData || []).map((stage, index) => ({
+    ...stage,
+    color: [chartColors.blue, chartColors.green, chartColors.orange, chartColors.purple][index % 4]
+  }));
+  const heatmapData = analyticsData?.heatmapData || [];
+
+  // HARDCODED System Performance (as requested)
   const performanceMetrics = [
     { metric: 'API Response Time', value: 245, unit: 'ms', status: 'good' },
     { metric: 'LLM Evaluation Time', value: 1.8, unit: 's', status: 'warning' },
     { metric: 'Error Rate', value: 0.3, unit: '%', status: 'good' },
     { metric: 'Uptime', value: 99.7, unit: '%', status: 'good' }
-  ];
-
-  const engagementData = [
-    { stage: 'Started', users: 1000, color: chartColors.blue },
-    { stage: 'Answered Q1', users: 850, color: chartColors.green },
-    { stage: 'Answered Q3', users: 720, color: chartColors.orange },
-    { stage: 'Completed', users: 650, color: chartColors.purple }
   ];
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -153,17 +160,45 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
     }
   };
 
+  // Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4" style={{ color: chartColors.blue }} />
+          <p className="text-white">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error State
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#111827' }}>
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 mx-auto mb-4" style={{ color: chartColors.red }} />
+          <p className="text-white mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Retry</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#111827' }}>
       
       {/* Header */}
-      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151', }}>
+      <header className="border-b" style={{ backgroundColor: '#1F2937', borderColor: '#374151' }}>
         <div className="container mx-auto px-6 py-6">
           <div className="grid grid-cols-3 items-center">
             <div className="flex justify-start">
-              <Button variant="outline" onClick={onBackToAdminDashboard}
+              <Button 
+                variant="outline" 
+                onClick={onBackToAdminDashboard}
                 className="hidden md:flex items-center space-x-2 transition-all duration-200 hover:scale-105"
-                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)", }}>
+                style={{ borderColor: '#6B7280', backgroundColor: "rgba(62, 65, 69, 1)" }}
+              >
                 <ArrowLeft className="h-4 w-4" />
                 <span>Back to Dashboard</span>
               </Button>
@@ -178,84 +213,6 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
           </div>
         </div>
       </header>
-
-      {/* Filters */}
-      <div 
-        className="border-b"
-        style={{ 
-          backgroundColor: '#1F2937',
-          borderColor: '#374151'
-        }}
-      >
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4" style={{ color: '#9CA3AF' }} />
-              <span className="text-sm" style={{ color: '#9CA3AF' }}>Filters:</span>
-            </div>
-            
-            <Select value={timeRange} onValueChange={setTimeRange}>
-              <SelectTrigger 
-                className="w-40 text-white"
-                style={{ 
-                  backgroundColor: '#374151',
-                  borderColor: '#4B5563',
-                  color: '#FFFFFF'
-                }}
-              >
-                <SelectValue placeholder="Time Range" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="7d">Last 7 days</SelectItem>
-                <SelectItem value="30d">Last 30 days</SelectItem>
-                <SelectItem value="90d">Last 90 days</SelectItem>
-                <SelectItem value="1y">Last year</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger 
-                className="w-48 text-white"
-                style={{ 
-                  backgroundColor: '#374151',
-                  borderColor: '#4B5563',
-                  color: '#FFFFFF'
-                }}
-              >
-                <SelectValue placeholder="Role Filter" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Roles</SelectItem>
-                <SelectItem value="frontend">Frontend Developer</SelectItem>
-                <SelectItem value="backend">Backend Developer</SelectItem>
-                <SelectItem value="fullstack">Full Stack Developer</SelectItem>
-                <SelectItem value="data">Data Analyst</SelectItem>
-                <SelectItem value="design">UI/UX Designer</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger 
-                className="w-48 text-white"
-                style={{ 
-                  backgroundColor: '#374151',
-                  borderColor: '#4B5563',
-                  color: '#FFFFFF'
-                }}
-              >
-                <SelectValue placeholder="Question Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="technical">Technical</SelectItem>
-                <SelectItem value="behavioral">Behavioral</SelectItem>
-                <SelectItem value="system-design">System Design</SelectItem>
-                <SelectItem value="coding">Coding</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
@@ -465,7 +422,7 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
             </CardContent>
           </Card>
 
-          {/* System Performance Section */}
+          {/* System Performance Section - HARDCODED */}
           <Card 
             className="border rounded-xl transition-all duration-200 hover:shadow-lg"
             style={{ 
@@ -572,7 +529,7 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
                 <CardContent>
                   <div className="space-y-3">
                     {engagementData.map((stage, index) => {
-                      const percentage = index === 0 ? 100 : (stage.users / engagementData[0].users) * 100;
+                      const percentage = index === 0 ? 100 : engagementData[0].users > 0 ? (stage.users / engagementData[0].users) * 100 : 0;
                       return (
                         <div key={index} className="space-y-1">
                           <div className="flex items-center justify-between">
@@ -621,21 +578,33 @@ export default function Analytics({ username, onBackToAdminDashboard }: Analytic
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-7 gap-1">
-                    {Array.from({ length: 35 }, (_, i) => {
-                      const intensity = Math.random();
-                      return (
+                    {heatmapData.length > 0 ? (
+                      heatmapData.slice(0, 35).reverse().map((day, i) => {
+                        const maxLogins = Math.max(...heatmapData.map(d => d.logins), 1);
+                        const intensity = day.logins / maxLogins;
+                        return (
+                          <div
+                            key={i}
+                            className="w-4 h-4 rounded-sm cursor-pointer transition-all duration-200 hover:scale-110"
+                            style={{ 
+                              backgroundColor: intensity > 0.7 ? chartColors.green : 
+                                             intensity > 0.4 ? chartColors.orange : 
+                                             intensity > 0.2 ? chartColors.blue : '#4B5563'
+                            }}
+                            title={`${new Date(day.date).toLocaleDateString()}: ${day.logins} logins`}
+                          />
+                        );
+                      })
+                    ) : (
+                      Array.from({ length: 35 }, (_, i) => (
                         <div
                           key={i}
-                          className="w-4 h-4 rounded-sm cursor-pointer transition-all duration-200 hover:scale-110"
-                          style={{ 
-                            backgroundColor: intensity > 0.7 ? chartColors.green : 
-                                           intensity > 0.4 ? chartColors.orange : 
-                                           intensity > 0.2 ? chartColors.blue : '#4B5563'
-                          }}
-                          title={`Day ${i + 1}: ${Math.floor(intensity * 100)} logins`}
+                          className="w-4 h-4 rounded-sm"
+                          style={{ backgroundColor: '#4B5563' }}
+                          title="No data"
                         />
-                      );
-                    })}
+                      ))
+                    )}
                   </div>
                   <div className="flex items-center justify-between mt-3 text-xs" style={{ color: '#9CA3AF' }}>
                     <span>Less</span>

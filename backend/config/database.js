@@ -1,3 +1,7 @@
+require('dotenv').config({
+  path: require('path').resolve(__dirname, '../../.env.local')
+});
+
 const { Pool } = require('pg');
 
 const isProd = process.env.NODE_ENV === 'production';

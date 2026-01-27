@@ -90,6 +90,7 @@ app.use('/api/admin/support-tickets', require('./routes/adminSupportTickets'));
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/admin', require('./routes/adminProfile'));
 app.use('/api/admin', adminKpisRoutes);
+app.use('/api/admin/analytics', authenticateToken, require('./routes/analytics'));
 
 // PROTECTED USER ROUTES
 app.use('/api/user', authenticateToken, checkLogin, require('./routes/userKpis'));
