@@ -21,7 +21,7 @@ router.post('/register', async (req, res) => {
       'REGISTER DB URL:',
       process.env.DATABASE_URL?.slice(0, 40)
     );
-    // 1️⃣ Validate input
+    //  Validate input
     const { isValid, errors, sanitized } =
       validationUtils.validateRegistration(req.body);
 
@@ -34,7 +34,7 @@ router.post('/register', async (req, res) => {
 
     const { username, email, password } = sanitized;
 
-    // 2️⃣ Check duplicate email
+    // Check duplicate email
     const existingUser = await query(
       `SELECT user_id FROM "User" WHERE email = $1`,
       [email]
@@ -46,10 +46,10 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // 3️⃣ Hash password
+    //  Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // 4️⃣ Insert user (ONLY REQUIRED FIELDS)
+    // Insert user (ONLY REQUIRED FIELDS)
     await query(
       `
       INSERT INTO "User"

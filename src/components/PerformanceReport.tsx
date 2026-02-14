@@ -157,7 +157,7 @@ export default function PerformanceReport({
   /* ================= METRICS ================= */
   const evaluationMetrics = {
     avgResponseTime: `${Math.round(data.avgTimePerQuestion || 120)} sec`,
-    avgEvaluationTime: "15 seconds",
+    avgEvaluationTime: "2 seconds",
     consistencyScore: data.consistencyScore || 85,
   };
 
@@ -271,7 +271,7 @@ export default function PerformanceReport({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card className="border" style={{ backgroundColor: "#1F2937", borderColor: "#374151" }}>
             <CardHeader>
-              <CardTitle style={{ color: "#9CA3AF" }}>Total Sessions</CardTitle>
+              <CardTitle style={{ color: "#9CA3AF" }}>Total Completed Sessions</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl text-white">{totalSessions}</div>

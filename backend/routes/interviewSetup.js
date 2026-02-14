@@ -12,16 +12,6 @@ const { evaluateAnswerWithOpenAI, isAIAvailable } = require("../services/aiServi
 
 
 
-
-// This script tests the OpenAI API and generates interview questions
-// for the user whose ID is 2. Questions are personalized based on 
-// the user's profile in the database and grouped by difficulty.
-
-
-// const { query } = require('../config/database');
-// const { authenticateToken } = require('../middleware/auth');
-// const checkLogin = require('../middleware/checkLogin');
-
 // //**
 // * POST /api/interview/start
 // * Creates a row in public."Session" using frontend config values
@@ -118,7 +108,7 @@ router.post("/:sessionId/answer", async (req, res) => {
       return res.status(400).json({ error: "Invalid request" });
     }
 
-    // 1️⃣ Insert Answer
+    //  Insert Answer
     const insertResult = await query(
       `
       INSERT INTO "Answer" (
@@ -137,7 +127,7 @@ router.post("/:sessionId/answer", async (req, res) => {
 
     const answerId = insertResult.rows[0].answer_id;
 
-    // 2️⃣ Fetch REAL question text
+    //  Fetch REAL question text
     const qRes = await query(
       `
       SELECT COALESCE(
@@ -183,7 +173,7 @@ router.post("/:sessionId/answer", async (req, res) => {
     }
 
 
-    // 4️⃣ Update Answer scores
+    //  Update Answer scores
     await query(
       `
       UPDATE "Answer"
@@ -205,7 +195,7 @@ router.post("/:sessionId/answer", async (req, res) => {
       ]
     );
 
-    // 5️⃣ Insert Feedback
+    //  Insert Feedback
     await query(
       `
       INSERT INTO "Feedback"
@@ -307,7 +297,7 @@ router.post("/end", async (req, res) => {
       [session_id]
     );
 
-    const totalScore = Number(agg.rows[0]?.total_score) || 0;
+    const totalScore = Math.round((Number(agg.rows[0]?.total_score) || 0) * 10);
     const answerCount = Number(agg.rows[0]?.answer_count) || 0;
     const sessionSeconds = Number(agg.rows[0]?.session_seconds) || 0;
 
@@ -353,12 +343,6 @@ router.post("/end", async (req, res) => {
     // remove duplicates & limit size
     const uniqueStrengths = [...new Set(strengths)].slice(0, 5);
     const uniqueWeaknesses = [...new Set(weaknesses)].slice(0, 5);
-
-
-
-
-
-
 
     await query(
       `
@@ -428,7 +412,7 @@ router.get("/session-summary/:sessionId", async (req, res) => {
       return res.status(400).json({ error: "Invalid request" });
     }
 
-    // 1️⃣ Fetch performance report
+    // Fetch performance report
     const reportRes = await query(
       `
       SELECT
@@ -446,7 +430,7 @@ router.get("/session-summary/:sessionId", async (req, res) => {
       return res.status(404).json({ error: "Performance report not found" });
     }
 
-    // 2️⃣ Fetch feedback + scores
+    // Fetch feedback + scores
     const feedbackRes = await query(
       `
       SELECT a.score_overall, f.suggestion_text
@@ -524,7 +508,7 @@ router.get("/session/:sessionId/report-pdf", async (req, res) => {
       return res.status(404).json({ error: "Performance report not found" });
     }
 
-    // 2️⃣ Get feedback
+    // Get feedback
     const feedbackRes = await query(
       `
       SELECT a.score_overall, f.suggestion_text
@@ -553,7 +537,7 @@ router.get("/session/:sessionId/report-pdf", async (req, res) => {
       }
     });
 
-    // 3️⃣ Create PDF
+    //  Create PDF
     const doc = new PDFDocument({ margin: 50 });
 
     res.setHeader("Content-Type", "application/pdf");

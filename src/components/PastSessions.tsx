@@ -121,53 +121,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
       });
   }, []);
 
-  // Mock session data
-  // const generateSessionData = (): SessionRecord[] => {
-  //   const roles = [
-  //     "Frontend Developer",
-  //     "Backend Developer",
-  //     "Full Stack Developer",
-  //     "Cloud Engineer",
-  //     "Data Analyst",
-  //     "Product Manager",
-  //   ];
-  //   const levels = ["easy", "medium", "hard"];
-  //   const modes: ("Text" | "Voice")[] = ["Text", "Voice"];
-
-  //   const sessions: SessionRecord[] = [];
-
-  //   for (let i = 0; i < 15; i++) {
-  //     const date = new Date();
-  //     date.setDate(
-  //       date.getDate() - i * 2 - Math.floor(Math.random() * 7),
-  //     );
-
-  //     sessions.push({
-  //       id: `session-${i + 1}`,
-  //       date: date.toLocaleDateString("en-GB", {
-  //         day: "2-digit",
-  //         month: "short",
-  //         year: "numeric",
-  //       }),
-  //       mode: modes[Math.floor(Math.random() * modes.length)],
-  //       score: Math.floor(Math.random() * 40) + 60, // 60-100
-  //       duration: `${String(Math.floor(Math.random() * 45) + 15).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
-  //       role: roles[Math.floor(Math.random() * roles.length)],
-  //       level:
-  //         levels[Math.floor(Math.random() * levels.length)],
-  //       questionsAnswered: Math.floor(Math.random() * 6) + 5, // 5-10 questions
-  //     });
-  //   }
-
-  //   return sessions.sort(
-  //     (a, b) =>
-  //       new Date(b.date).getTime() - new Date(a.date).getTime(),
-  //   );
-  // };
-
-  // const [sessions, setSessions] = useState<SessionRecord[]>(
-  //   generateSessionData,
-  // );
+  
 
   const handleViewReport = async (sessionId: number) => {
     try {
@@ -245,11 +199,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
     setSessions(sortedSessions);
   };
 
-  // const handleDownloadReport = (sessionId: string) => {
-  //   console.log(`Downloading report for session ${sessionId}`);
-  //   // Mock download functionality
-  //   alert(`Downloading PDF report for session ${sessionId}`);
-  // };
+
 
   const getScoreColor = (score: number) => {
     if (score >= 85) return "#10B981";
@@ -258,13 +208,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
     return "#EF4444";
   };
 
-  // const getScoreBadgeVariant = (
-  //   score: number,
-  // ): "default" | "secondary" | "destructive" | "outline" => {
-  //   if (score >= 85) return "default";
-  //   if (score >= 70) return "secondary";
-  //   return "destructive";
-  // };
+
 
   const SortIcon = ({
     column,

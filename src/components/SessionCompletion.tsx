@@ -93,9 +93,7 @@ export default function SessionCompletion({
     if (score10 >= 6) return "#F59E0B"; // amber
     return "#EF4444"; // red
   };
-  const score10ToPercent = (score10: number) => {
-    return Math.round((score10 / 10) * 100);
-  };
+  
 
   const getPerformanceMessage10 = (score10: number) => {
     if (score10 >= 9) return "Outstanding performance! 🎉";
@@ -253,10 +251,10 @@ const safeTimeTaken =
                 <p className="text-white text-xl">
                   Total Score:{" "}
                   <span style={{ color: getScoreColor10(safeTotalScore) }}>
-                    {safeTotalScore.toFixed(1)}/10
+                    {safeTotalScore}/100
                   </span>
                   <span className="ml-2 text-sm text-gray-400">
-                    ({score10ToPercent(safeTotalScore)}%))
+                    ({safeTotalScore}%)
                   </span>
                 </p>
 
@@ -308,38 +306,6 @@ const safeTimeTaken =
           </div>
         </div>
 
-        {/* Performance Charts Icons */}
-        {/* <div className="flex justify-center items-center space-x-16 mb-16">
-          <div className="text-center">
-            <div
-              className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full transition-all duration-200 hover:shadow-lg"
-              style={{ backgroundColor: "rgba(55, 65, 81, 0.5)" }}
-            >
-              <BarChart3 className="h-10 w-10 text-white" />
-            </div>
-            <p className="text-white text-sm">Performance Trend</p>
-          </div>
-
-          <div className="text-center">
-            <div
-              className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full transition-all duration-200 hover:shadow-lg"
-              style={{ backgroundColor: "rgba(55, 65, 81, 0.5)" }}
-            >
-              <PieChart className="h-10 w-10 text-white" />
-            </div>
-            <p className="text-white text-sm">Category Distribution</p>
-          </div>
-
-          <div className="text-center">
-            <div
-              className="w-20 h-20 mx-auto mb-4 flex items-center justify-center rounded-full transition-all duration-200 hover:shadow-lg"
-              style={{ backgroundColor: "rgba(55, 65, 81, 0.5)" }}
-            >
-              <TrendingUp className="h-10 w-10 text-white" />
-            </div>
-            <p className="text-white text-sm">Answer Progression</p>
-          </div>
-        </div> */}
 
         {/* Strengths & Weaknesses */}
         <div className="grid md:grid-cols-2 gap-8 mb-10">
@@ -494,14 +460,6 @@ const safeTimeTaken =
             Question Review
           </Button>
         
-
-          {/* <Button
-            variant="outline"
-            className="border-white/20 text-white px-6"
-            onClick={() => setShowReview(true)}
-          >
-            Question Review
-          </Button> */}
 
         </div>
 
