@@ -813,17 +813,15 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                 style={{ color: "#6B7280" }}
                 onClick={() => setOpenPolicyModal("privacy")}
                 className="transition-colors duration-200"
-                style={{ color: '#6B7280' }}
                 onMouseEnter={(e) => e.currentTarget.style.color = '#9CA3AF'}
                 onMouseLeave={(e) => e.currentTarget.style.color = '#6B7280'}
               >
                 Privacy
               </button>
 
-              <span style={{ color: "#374151" }}>|</span>
+              <span style={{ color: '#6B7280', cursor: 'pointer' }}>|</span>
 
               <button
-                style={{ color: "#6B7280" }}
                 onClick={() => setOpenPolicyModal("terms")}
                 className="transition-colors duration-200"
                 style={{ color: '#6B7280' }}
@@ -833,7 +831,7 @@ export default function Dashboard({ username, onLogout, onProfileClick, onStartI
                 Terms
               </button>
 
-              <span style={{ color: "#374151" }}>|</span>
+        
 
               <div className="flex items-center space-x-2">
                 <span style={{ color: "#6B7280" }}>Last Synced:</span>
