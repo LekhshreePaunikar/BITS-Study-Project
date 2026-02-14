@@ -157,7 +157,7 @@ export default function PerformanceReport({
   /* ================= METRICS ================= */
   const evaluationMetrics = {
     avgResponseTime: `${Math.round(data.avgTimePerQuestion || 120)} sec`,
-    avgEvaluationTime: "2 seconds",
+    avgEvaluationTime: "1.8 seconds",
     consistencyScore: data.consistencyScore || 85,
   };
 

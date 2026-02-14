@@ -100,7 +100,7 @@ export default function PastSessions({ username, onBackToDashboard, }: PastSessi
     const token = localStorage.getItem("authToken");
 
 
-    fetch("http://localhost:3001/api/past-sessions", {
+    fetch("/api/past-sessions", {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
