@@ -38,6 +38,7 @@ const durationMMSS = (start, end) => {
 router.get("/", authenticateToken, checkLogin, async (req, res) => {
   try {
     const userId = req.user.id;
+    console.log("Logged-in userId:", userId);
 
     // KPI SUMMARY
     const summaryResult = await query(
