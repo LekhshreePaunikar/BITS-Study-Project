@@ -12,7 +12,6 @@
 |------|------|-------------|
 | **Lekhshree Paunikar** | (Team Lead) API Integration & Testing| 2022EBCS070 |
 | **Meenakshi Sharma** | Database Developer | 2022EBCS034 |
-| **Mohammad Sharuph Ali Khan** | Backend Developer | 2022EBCS071 |
 | **Manviya Sahni** | Frontend Developer | 2022EBCS130 |
 
 ---
