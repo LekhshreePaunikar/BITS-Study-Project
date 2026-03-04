@@ -1,25 +1,10 @@
+
+<img width="360" height="100" alt="Clariprep" src="https://github.com/user-attachments/assets/d2d3a7a5-6372-490e-993a-5677817c7f1b" />
+
 # Web-Based AI-Powered Mock Interview Platform
-
-### Semester-6 Capstone Project 
-- **PHASE-I Project Supervisor(s):** Dr. Shreyas Suresh Rao
-- **PHASE-II Project Supervisor(s):** Mr. Thilak Vasant and Mr. Pranav Arya Sunku.
-
----
-
-## Team Members
-
-| Name | Role | Student ID |
-|------|------|-------------|
-| **Lekhshree Paunikar** | (Team Lead) API Integration & Testing| 2022EBCS070 |
-| **Meenakshi Sharma** | Database Developer | 2022EBCS034 |
-| **Manviya Sahni** | Frontend Developer | 2022EBCS130 |
-
----
-
 ## Project Overview
 
-**Web-Based AI-Powered Mock Interview Platform** is an intelligent web application designed to help users **practice and improve interview skills** using AI-driven question generation and evaluation.  
-It offers **text and voice-based** interview simulations, **automated scoring**, and **personalized feedback** - accessible anytime, anywhere.
+**Web-Based AI-Powered Mock Interview Platform** is an intelligent web application designed to help users **practice and improve interview skills** using AI-driven question generation and evaluation.  It offers **text and voice-based** interview simulations, **automated scoring**, and **personalized feedback** - accessible anytime, anywhere.
 
 ---
 
@@ -117,16 +102,21 @@ The platform follows a **Three-Tier Architecture**:
 
 ---
   
-## High Fidelity Figma Prototype
+## Links
 
-  The original project prototype is available at https://www.figma.com/design/2RRNFXiNFKKxA7KKmXgSh4/AI-Powered-Mock-Interview-Platform.
+  - The original project prototype is available at https://www.figma.com/design/2RRNFXiNFKKxA7KKmXgSh4/AI-Powered-Mock-Interview-Platform.
+  - The deployed application is available at [https://www.figma.com/design/2RRNFXiNFKKxA7KKmXgSh4/AI-Powered-Mock-Interview-Platform.](https://clariprep-e847652e4af3.herokuapp.com/)
+
+---
+
+
+## Team Members
+
+| Name | Role |
+|------|------|
+| **Lekhshree Paunikar** | *(Team Lead)* AI Integration |
+| **Meenakshi Sharma** | Database Developer & App Deployemnt|
+| **Manviya Sahni** | Frontend & Backend Developer |
 
 ---
 
-## Running the code
-
-  Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
-
----
